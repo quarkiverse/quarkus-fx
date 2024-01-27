@@ -1,3 +1,6 @@
+# Quarkiverse extension
+Extension dev has moved to : https://github.com/quarkiverse/quarkus-fx
+
 # quarkus-fx
 This Quarkus extension allows you to use JavaFX in your Quarkus application. \
 It will allow component injection in FX Controllers and will allow you to use CDI events to register on primary stage creation.
