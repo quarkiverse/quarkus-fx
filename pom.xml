@@ -13,9 +13,9 @@
   </modules>
   <properties>
     <quarkus.version>3.6.7</quarkus.version>
-    <javafx.version>21.0.2</javafx.version>
+    <javafx.version>17.0.10</javafx.version>
 
-    <maven.compiler.release>21</maven.compiler.release>
+    <maven.compiler.release>17</maven.compiler.release>
     <compiler-plugin.version>3.11.0</compiler-plugin.version>
     <failsafe-plugin.version>${surefire-plugin.version}</failsafe-plugin.version>
     <surefire-plugin.version>3.0.0</surefire-plugin.version>
