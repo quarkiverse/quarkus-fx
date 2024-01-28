@@ -1,4 +1,7 @@
 # quarkus-fx
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 This Quarkus extension allows you to use JavaFX in your Quarkus application. \
 It will allow component injection in FX Controllers and will allow you to use CDI events to register on primary stage creation.
 
@@ -75,3 +78,25 @@ public class CDIApplication implements QuarkusApplication {
 
 For a sample app / usage, check :
 https://github.com/CodeSimcoe/quarkus-using-fx-extension
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/CodeSimcoe"><img src="https://avatars.githubusercontent.com/u/110094118?v=4?s=100" width="100px;" alt="Clément"/><br /><sub><b>Clément</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-fx/commits?author=CodeSimcoe" title="Code">💻</a> <a href="#maintenance-CodeSimcoe" title="Maintenance">🚧</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
