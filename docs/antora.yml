@@ -1,0 +1,5 @@
+name: quarkus-fx
+title: Quarkus FX
+version: dev
+nav:
+  - modules/ROOT/nav.adoc

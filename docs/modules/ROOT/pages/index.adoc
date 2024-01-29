@@ -1,0 +1,71 @@
+= Quarkus FX
+include::./includes/attributes.adoc[]
+
+:extension-status: experimental
+
+This extension allows you to use https://openjfx.io/[Java FX] to your Quarkus application.
+
+== Installation
+
+In order to use this extension, you need to add the `io.quarkiverse.fx:quarkus-fx` dependency to your project.
+
+Maven
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.fx</groupId>
+    <artifactId>quarkus-fx</artifactId>
+    <version>{quarkus-fx-version}</version>
+</dependency>
+----
+
+Gradle
+[source,groovy,subs=attributes+]
+----
+dependencies {
+    implementation 'io.quarkiverse.fx:quarkus-fx:${quarkus_fx_version}'
+}
+----
+
+== Usage
+
+The extension allows using cdi features in JavaFX controller classes. +
+The FXMLLoader is made a CDI bean and can be injected in your application.
+
+[source,java,subs=attributes+]
+----
+@Inject
+FXMLLoader fxmlLoader;
+
+public void load() {
+  Parent root = this.fxmlLoader.load(this.getClass().getResourceAsStream("/app.fxml"));
+  Scene scene = new Scene(root);
+  stage.setScene(scene);
+  stage.show();
+}
+----
+
+[source,java,subs=attributes+]
+----
+public class MyFxmlController {
+
+  @Inject
+  MyService myService;
+
+  @FXML
+  private void onButtonClicked() {
+    this.myService.doSomething();
+  }
+}
+----
+
+== Startup
+
+When the application is started, you can get obtain acces to the primary `Stage` instance by observing the CDI event :
+
+[source,java,subs=attributes+]
+----
+void onStart(@Observes @PrimaryStage final Stage stage) {
+  // Do something with the stage
+}
+----
