@@ -41,6 +41,10 @@ public class QuarkusFxTest {
             <Pane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="%s" />
             """.formatted(TestController.class.getName());
 
+    private static final AtomicBoolean primaryStageObserved = new AtomicBoolean(false);
+    private static final AtomicBoolean testControllerInitialized = new AtomicBoolean(false);
+    private static final AtomicInteger testServiceAnswer = new AtomicInteger(0);
+
     @Dependent
     public static class TestService {
         int getValue() {
@@ -68,10 +72,6 @@ public class QuarkusFxTest {
 
     @Inject
     FXMLLoader fxmlLoader;
-
-    private static final AtomicBoolean primaryStageObserved = new AtomicBoolean(false);
-    private static final AtomicBoolean testControllerInitialized = new AtomicBoolean(false);
-    private static final AtomicInteger testServiceAnswer = new AtomicInteger(0);
 
     @Test
     void testFXMLLoaderInjection() {
