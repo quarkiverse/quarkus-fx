@@ -1,7 +1,8 @@
 package io.quarkiverse.fx;
 
-import io.quarkus.runtime.QuarkusApplication;
 import jakarta.enterprise.context.Dependent;
+
+import io.quarkus.runtime.QuarkusApplication;
 import javafx.application.Application;
 
 @Dependent

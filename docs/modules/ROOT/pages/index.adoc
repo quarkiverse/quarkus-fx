@@ -1,5 +1,5 @@
 = Quarkus FX
-include::./includes/attributes.adoc[]
+include::../includes/attributes.adoc[]
 
 :extension-status: experimental
 
