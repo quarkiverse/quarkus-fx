@@ -61,7 +61,28 @@ public class MyFxmlController {
 
 == Startup
 
-When the application is started, you can get obtain acces to the primary `Stage` instance by observing the CDI event :
+To launch the application, you'll need to provide a custom main such as :
+
+[source,java,subs=attributes+]
+----
+package io.quarkiverse.fx.fxapp;
+
+import io.quarkiverse.fx.FxApplication;
+import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.annotations.QuarkusMain;
+import javafx.application.Application;
+
+@QuarkusMain
+public class QuarkusFxApplication implements QuarkusApplication {
+    @Override
+    public int run(final String... args) {
+        Application.launch(FxApplication.class, args);
+        return 0;
+    }
+}
+----
+
+When the application is started, you can get obtain access to the primary `Stage` instance by observing the CDI event :
 
 [source,java,subs=attributes+]
 ----
