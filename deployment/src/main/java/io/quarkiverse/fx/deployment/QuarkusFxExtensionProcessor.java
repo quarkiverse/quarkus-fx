@@ -39,11 +39,6 @@ class QuarkusFxExtensionProcessor {
 
     @BuildStep
     AdditionalBeanBuildItem runOnFxThreadInterceptor(CombinedIndexBuildItem combinedIndex) {
-        runOnFxThreadInterceptorChecker(combinedIndex);
-        return new AdditionalBeanBuildItem(RunOnFxThread.class, RunOnFxThreadInterceptor.class);
-    }
-
-    void runOnFxThreadInterceptorChecker(CombinedIndexBuildItem combinedIndex) {
         Consumer<AnnotationTarget> methodChecker = target -> {
             if (!(target.asMethod().returnType() instanceof VoidType)) {
                 LOGGER.warnf("Method %s annotated with %s return value will be lost, set return type to void",
@@ -60,5 +55,8 @@ class QuarkusFxExtensionProcessor {
                 case CLASS -> target.asClass().methods().forEach(methodChecker);
             }
         }
+
+        return new AdditionalBeanBuildItem(RunOnFxThread.class, RunOnFxThreadInterceptor.class);
     }
+
 }
