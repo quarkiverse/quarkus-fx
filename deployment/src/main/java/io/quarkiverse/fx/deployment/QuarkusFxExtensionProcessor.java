@@ -1,8 +1,5 @@
 package io.quarkiverse.fx.deployment;
 
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.IndexView;
-
 import io.quarkiverse.fx.FXMLLoaderProducer;
 import io.quarkiverse.fx.PrimaryStage;
 import io.quarkiverse.fx.QuarkusFxApplication;
@@ -13,6 +10,8 @@ import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.IndexView;
 
 class QuarkusFxExtensionProcessor {
 
@@ -34,7 +33,7 @@ class QuarkusFxExtensionProcessor {
     }
 
     @BuildStep
-    void picocliRunner(
+    void quarkusFxLauncher(
             final CombinedIndexBuildItem combinedIndex,
             final BuildProducer<AdditionalBeanBuildItem> additionalBean,
             final BuildProducer<QuarkusApplicationClassBuildItem> quarkusApplicationClass) {
