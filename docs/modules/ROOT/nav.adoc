@@ -1,1 +1,2 @@
 * xref:index.adoc[Quarkus FX]
+* xref:run-on-fx-thread.adoc[]
