@@ -38,7 +38,7 @@ class QuarkusFxExtensionProcessor {
     }
 
     @BuildStep
-    AdditionalBeanBuildItem runOnFxThreadInterceptor(CombinedIndexBuildItem combinedIndex) {
+    AdditionalBeanBuildItem runOnFxThreadInterceptor(final CombinedIndexBuildItem combinedIndex) {
         Consumer<AnnotationTarget> methodChecker = target -> {
             if (!(target.asMethod().returnType() instanceof VoidType)) {
                 LOGGER.warnf("Method %s annotated with %s return value will be lost, set return type to void",
