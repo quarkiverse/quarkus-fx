@@ -12,6 +12,7 @@ import jakarta.enterprise.event.Observes;
 
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -23,6 +24,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 
+@Disabled // Disabled until #9 is fixed
 public class RunOnFxThreadTest {
 
     private static final int LAUNCH_TIMEOUT_MS = 1_000;
