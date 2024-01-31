@@ -1,0 +1,14 @@
+= @RunOnFxThread
+include::../includes/attributes.adoc[]
+
+`@RunOnFxThread` annotation offers for a convenient way to execute the target on JavaFx UI thread (JavaFX Application Thread).
+
+Annotation can be applied on method level or on class level (to mark all methods within a class)
+
+
+[source,java, indent=0]
+----
+include::../../../../deployment/src/test/java/io/quarkiverse/fx/deployment/RunOnFxThreadTest.java[tag=docs]
+----
+<1> `doOnCurrentThread` method will be executed in whatever thread it was called from
+<2> `doOnFxThread` method will be executed on JavaFx UI thread (JavaFX Application Thread)

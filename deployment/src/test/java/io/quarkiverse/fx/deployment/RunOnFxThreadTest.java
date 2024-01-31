@@ -60,14 +60,16 @@ public class RunOnFxThreadTest {
             Observer.OBSERVED_STAGE.set(stage);
         }
 
-        void doOnCurrentThread() {
+        //tag::docs[]
+        void doOnCurrentThread() {//<1>
             DO_ON_CURRENT_METHOD_THREAD = Thread.currentThread().getName();
         }
 
         @RunOnFxThread
-        void doOnFxThread() {
+        void doOnFxThread() {//<2>
             DO_ON_FX_METHOD_THREAD = Thread.currentThread().getName();
         }
+        //end::docs[]
 
         public static boolean stageObserved() {
             return OBSERVED_STAGE.get() != null;
