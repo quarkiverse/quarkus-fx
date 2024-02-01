@@ -22,17 +22,35 @@ on:
       - '*.txt'
       - '.all-contributorsrc'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+#        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Prepare git
+        run: git config --global core.autocrlf false
+        if: startsWith(matrix.os, 'windows')
 
+      - uses: actions/checkout@v4
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
+          cache: 'maven'
 
       - name: Build with Maven
         run: ./mvnw -B -ntp compile
@@ -41,3 +59,6 @@ jobs:
         uses: coactions/setup-xvfb@v1
         with:
           run: ./mvnw -B -ntp verify
+
+#      - name: Build with Maven (Native)
+#        run: ./mvnw -B install -Dnative -Dquarkus.native.container-build -Dnative.surefire.skip
