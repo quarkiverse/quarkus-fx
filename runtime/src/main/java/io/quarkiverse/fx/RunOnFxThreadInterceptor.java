@@ -3,8 +3,10 @@ package io.quarkiverse.fx;
 import jakarta.interceptor.AroundInvoke;
 import jakarta.interceptor.Interceptor;
 import jakarta.interceptor.InvocationContext;
-import javafx.application.Platform;
+
 import org.jboss.logging.Logger;
+
+import javafx.application.Platform;
 
 @Interceptor
 @RunOnFxThread
