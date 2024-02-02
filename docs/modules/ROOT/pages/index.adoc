@@ -1,5 +1,8 @@
 = Quarkus FX
-include::../includes/attributes.adoc[]
+
+include::./includes/attributes.adoc[]
+:diataxis-type: reference
+:categories: miscellaneous
 
 :extension-status: experimental
 
