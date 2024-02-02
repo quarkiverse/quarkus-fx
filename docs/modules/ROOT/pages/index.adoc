@@ -15,7 +15,7 @@ Maven
 <dependency>
     <groupId>io.quarkiverse.fx</groupId>
     <artifactId>quarkus-fx</artifactId>
-    <version>{quarkus-fx-version}</version>
+    <version>{project-version}</version>
 </dependency>
 ----
 
@@ -23,7 +23,7 @@ Gradle
 [source,groovy,subs=attributes+]
 ----
 dependencies {
-    implementation 'io.quarkiverse.fx:quarkus-fx:${quarkus_fx_version}'
+    implementation 'io.quarkiverse.fx:quarkus-fx:{project-version}'
 }
 ----
 
