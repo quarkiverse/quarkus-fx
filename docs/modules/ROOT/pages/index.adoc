@@ -64,7 +64,9 @@ public class MyFxmlController {
 
 == Startup
 
-To launch the application, you'll need to provide a custom main such as :
+The application will automatically be launched (thanks to a call to `javafx.application.Application::launch`) when the extension is present. +
+
+If you need to customize the launch, you can provide a custom `@QuarkusMain`, such as :
 
 [source,java,subs=attributes+]
 ----
