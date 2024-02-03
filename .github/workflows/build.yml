@@ -36,9 +36,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
 #        os: [windows-latest, ubuntu-latest]
-#        os: [ubuntu-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Prepare git
