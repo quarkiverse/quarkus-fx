@@ -15,7 +15,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-picocli</artifactId>
-            <version>3.2.10.Final</version>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.fx</groupId>
