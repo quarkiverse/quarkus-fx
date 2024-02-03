@@ -1,5 +1,8 @@
 = Quarkus FX
-include::../includes/attributes.adoc[]
+
+include::./includes/attributes.adoc[]
+:diataxis-type: reference
+:categories: miscellaneous
 
 :extension-status: experimental
 
@@ -15,7 +18,7 @@ Maven
 <dependency>
     <groupId>io.quarkiverse.fx</groupId>
     <artifactId>quarkus-fx</artifactId>
-    <version>{quarkus-fx-version}</version>
+    <version>{project-version}</version>
 </dependency>
 ----
 
@@ -23,7 +26,7 @@ Gradle
 [source,groovy,subs=attributes+]
 ----
 dependencies {
-    implementation 'io.quarkiverse.fx:quarkus-fx:${quarkus_fx_version}'
+    implementation 'io.quarkiverse.fx:quarkus-fx:{project-version}'
 }
 ----
 
@@ -61,17 +64,6 @@ public class MyFxmlController {
 
 == Startup
 
-When the application is started, you can get obtain access to the primary `Stage` instance by observing the CDI event :
-
-[source,java,subs=attributes+]
-----
-void onStart(@Observes @PrimaryStage final Stage stage) {
-  // Do something with the stage
-}
-----
-
-The extension takes care of automatically launching the JavaFX application. If you need to customize this behavior, you can provide a @QuarkusMain :
-
 To launch the application, you'll need to provide a custom main such as :
 
 [source,java,subs=attributes+]
@@ -87,12 +79,17 @@ import javafx.application.Application;
 public class QuarkusFxApplication implements QuarkusApplication {
     @Override
     public int run(final String... args) {
-      // Do something fancy here
-      // ...
-
-      // Start the JavaFX application
-      Application.launch(FxApplication.class, args);
-      return 0;
+        Application.launch(FxApplication.class, args);
+        return 0;
     }
+}
+----
+
+When the application is started, you can get obtain access to the primary `Stage` instance by observing the CDI event :
+
+[source,java,subs=attributes+]
+----
+void onStart(@Observes @PrimaryStage final Stage stage) {
+  // Do something with the stage
 }
 ----

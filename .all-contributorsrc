@@ -16,6 +16,15 @@
         "code",
         "maintenance"
       ]
+    },
+    {
+      "login": "ghazyami",
+      "name": "Ghazy Abdallah",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7247810?v=4",
+      "profile": "https://github.com/ghazyami",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

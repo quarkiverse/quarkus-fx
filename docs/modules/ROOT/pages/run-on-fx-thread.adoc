@@ -1,0 +1,34 @@
+= @RunOnFxThread
+include::../includes/attributes.adoc[]
+
+`@RunOnFxThread` annotation offers for a convenient way to execute the target on JavaFx UI thread (JavaFX Application Thread).
+
+Annotation can be applied on method level or on class level (to mark all methods within a class)
+
+- Example
+
+[source,java, indent=0]
+----
+VBox vBox = new VBox();
+
+public void start(@Observes @PrimaryStage final Stage stage) {
+    Scene scene = new Scene(vBox);
+    stage.setScene(scene);
+    stage.show();
+
+    try (ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
+        executorService.submit(() -> showNode(createExpensiveNode()));
+    }
+}
+
+Node createExpensiveNode() {//<1>
+    return new Label(LocalTime.now().toString());
+}
+
+@RunOnFxThread
+void showNode(Node node) {//<2>
+    vBox.getChildren().add(node);
+}
+----
+<1> `createExpensiveNode` method will be executed in a thread from executor service
+<2> `showNode` method will be executed on JavaFx UI thread (JavaFX Application Thread)
