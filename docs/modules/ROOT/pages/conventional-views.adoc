@@ -1,6 +1,8 @@
 = Conventional FXML views
 
-Conventional FXML views offers a convenient way to load FXML based views, by following structural and naming conventions a view can easily be used without manually loading the `.fxml` file and associated stylesheet and resource bundle
+Conventional FXML views offers a convenient way to load FXML based views, by following structural and naming conventions a view can easily be used without manually loading the `.fxml` file and associated stylesheet and resource bundle.
+
+Sample application can be found at https://github.com/quarkiverse/quarkus-fx/tree/main/samples/using-conventional-views
 
 
 - Class that extends `io.quarkiverse.fx.FXMLView`
@@ -53,9 +55,9 @@ public class ContactCardView extends FXMLView<VBox> {}//<1>
 <VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1"
 styleClass="red-bg"><!--1-->
    <padding><Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/></padding>
-   <Label fx:id="firstName" text="John"/>
-   <Label fx:id="lastName" text="Doe"/>
-   <Label fx:id="location" text="%location"/><!--2-->
+   <Label id="firstName" text="John"/>
+   <Label id="lastName" text="Doe"/>
+   <Label id="location" text="%location"/><!--2-->
 </VBox>
 ----
 <1> `styleClass` set to a class defined on `ContactCardView.css`
