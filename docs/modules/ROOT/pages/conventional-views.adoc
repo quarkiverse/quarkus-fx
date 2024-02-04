@@ -1,0 +1,78 @@
+= Conventional FXML views
+
+Conventional FXML views offers a convenient way to load FXML based views, by following structural and naming conventions a view can easily be used without manually loading the `.fxml` file and associated stylesheet and resource bundle
+
+
+- Class that extends `io.quarkiverse.fx.FXMLView`
+- FXML file with the same name as the class above, located at under the same directory structure as the class above under `src/main/resources`
+- Stylesheet file with the same name as the class above, located at under the same directory structure as the class above under `src/main/resources` (Optional)
+- Resource bundle file with the same name as the class above, located at under the same directory structure as the class above under `src/main/resources` (Optional)
+
+== Example
+
+[source,java, indent=0]
+----
+// src/main/java/org/example/ContactCardView.java
+// src/main/resources/org/example/ContactCardView.fxml
+// src/main/resources/org/example/ContactCardView.css (Optional)
+// src/main/resources/org/example/ContactCardView.properties (Optional)
+
+// Having these files in place we can simply load the view by injecting the instance then calling getNode() on it
+
+@Inject
+ContactCardView view;//<1>
+
+public void start(@Observes @PrimaryStage final Stage stage) {
+    Scene scene = new Scene(view.getNode());//<2>
+    stage.setScene(scene);
+    stage.show();
+}
+----
+<1> Inject an instance of our view
+<2> Get the loaded node
+
+
+=== ContactCardView.java
+[source,java, indent=0]
+----
+@Dependent
+public class ContactCardView extends FXMLView<VBox> {}//<1>
+----
+<1> Extending FXMLView specifying the root node as defined on `ContactCardView.fxml`
+
+
+=== ContactCardView.fxml
+[source,xml, indent=0]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1"
+styleClass="red-bg"><!--1-->
+   <padding><Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/></padding>
+   <Label fx:id="firstName" text="John"/>
+   <Label fx:id="lastName" text="Doe"/>
+   <Label fx:id="location" text="%location"/><!--2-->
+</VBox>
+----
+<1> `styleClass` set to a class defined on `ContactCardView.css`
+<2> `text` set to an entry defined on `ContactCardView.properties` resource bundle
+
+
+=== ContactCardView.css
+[source,css, indent=0]
+----
+.red-bg {
+    -fx-background-color: red;
+}
+----
+
+
+=== ContactCardView.properties
+[source,properties, indent=0]
+----
+location=Some location
+----

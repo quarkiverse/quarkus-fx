@@ -1,5 +1,4 @@
 = @RunOnFxThread
-include::../includes/attributes.adoc[]
 
 `@RunOnFxThread` annotation offers for a convenient way to execute the target on JavaFx UI thread (JavaFX Application Thread).
 
