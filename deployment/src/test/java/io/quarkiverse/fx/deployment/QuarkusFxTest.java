@@ -21,10 +21,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkiverse.fx.FxApplication;
 import io.quarkiverse.fx.PrimaryStage;
+import io.quarkiverse.fx.QuarkusFxApplication;
+import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
-import javafx.application.Application;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.Pane;
@@ -81,7 +81,7 @@ public class QuarkusFxTest {
     @Test
     void testFXMLLaunchAndLoad() {
         // Non-blocking JavaFX launch
-        CompletableFuture.runAsync(() -> Application.launch(FxApplication.class));
+        CompletableFuture.runAsync(() -> Quarkus.run(QuarkusFxApplication.class));
 
         await()
                 .atMost(LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS)

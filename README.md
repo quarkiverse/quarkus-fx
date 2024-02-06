@@ -7,27 +7,6 @@ It will allow component injection in FX Controllers and will allow you to use CD
 
 Live reload is still problematic and will be studied in the future.
 
-First, you'll have to use a custom Main in your application
-```java
-package io.quarkiverse.fx.fxapp;
-
-import io.quarkiverse.fx.FxApplication;
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.QuarkusApplication;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import javafx.application.Application;
-
-@QuarkusMain
-public class CDIApplication implements QuarkusApplication {
-
-  @Override
-  public int run(final String... args) {
-    Application.launch(FxApplication.class, args);
-    return 0;
-  }
-}
-```
-
 You will be able to register on primary stage creation event via such code example.
 ```java
 import java.io.InputStream;
@@ -78,7 +57,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/CodeSimcoe"><img src="https://avatars.githubusercontent.com/u/110094118?v=4?s=100" width="100px;" alt="Clément"/><br /><sub><b>Clément</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-fx/commits?author=CodeSimcoe" title="Code">💻</a> <a href="#maintenance-CodeSimcoe" title="Maintenance">🚧</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/CodeSimcoe"><img src="https://avatars.githubusercontent.com/u/110094118?v=4?s=100" width="100px;" alt="Clément de Tastes"/><br /><sub><b>Clément de Tastes</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-fx/commits?author=CodeSimcoe" title="Code">💻</a> <a href="#maintenance-CodeSimcoe" title="Maintenance">🚧</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ghazyami"><img src="https://avatars.githubusercontent.com/u/7247810?v=4?s=100" width="100px;" alt="Ghazy Abdallah"/><br /><sub><b>Ghazy Abdallah</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-fx/commits?author=ghazyami" title="Code">💻</a></td>
     </tr>
   </tbody>

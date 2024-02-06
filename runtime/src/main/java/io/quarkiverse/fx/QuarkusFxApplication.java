@@ -1,12 +1,9 @@
-package io.quarkiverse.fx.sample;
+package io.quarkiverse.fx;
 
-import io.quarkiverse.fx.FxApplication;
 import io.quarkus.runtime.QuarkusApplication;
-import io.quarkus.runtime.annotations.QuarkusMain;
 import javafx.application.Application;
 
-@QuarkusMain
-public class QuarkusFxMain implements QuarkusApplication {
+public class QuarkusFxApplication implements QuarkusApplication {
 
     @Override
     public int run(final String... args) {
