@@ -1,2 +1,3 @@
 * xref:index.adoc[Quarkus FX]
 * xref:run-on-fx-thread.adoc[]
+* xref:conventional-views.adoc[]
