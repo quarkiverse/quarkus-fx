@@ -11,6 +11,7 @@ import org.jboss.jandex.VoidType;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.FXMLLoaderProducer;
+import io.quarkiverse.fx.FxApplication;
 import io.quarkiverse.fx.PrimaryStage;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
@@ -41,7 +42,7 @@ class QuarkusFxExtensionProcessor {
 
     @BuildStep
     AdditionalBeanBuildItem primaryStage() {
-        return new AdditionalBeanBuildItem(PrimaryStage.class);
+        return new AdditionalBeanBuildItem(PrimaryStage.class, FxApplication.class);
     }
 
     @BuildStep

@@ -1,5 +1,8 @@
 package io.quarkiverse.fx;
 
+import java.util.concurrent.CountDownLatch;
+
+import jakarta.inject.Inject;
 import jakarta.interceptor.AroundInvoke;
 import jakarta.interceptor.Interceptor;
 import jakarta.interceptor.InvocationContext;
@@ -13,10 +16,18 @@ import javafx.application.Platform;
 public class RunOnFxThreadInterceptor {
 
     private static final Logger LOGGER = Logger.getLogger(RunOnFxThreadInterceptor.class);
+    // The startup latch from FxApplication
+    @PrimaryStage
+    @Inject
+    CountDownLatch hasStarted;
 
     @AroundInvoke
     public Object runOnFxThread(final InvocationContext ctx) throws Exception {
         LOGGER.tracef("intercepted %s on thread %s", ctx.getMethod(), Thread.currentThread());
+        // Block any thread until the startup latch has been cleared
+        // This will return immediately after the FxApplication#start has completed
+        hasStarted.await();
+
         if (Platform.isFxApplicationThread()) {
             return ctx.proceed();
         } else {
