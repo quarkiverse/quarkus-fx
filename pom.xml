@@ -15,6 +15,7 @@
   <modules>
     <module>deployment</module>
     <module>runtime</module>
+    <module>docs</module>
   </modules>
   <properties>
     <quarkus.version>3.2.10.Final</quarkus.version>
