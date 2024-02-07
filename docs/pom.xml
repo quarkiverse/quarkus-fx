@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>quarkus-fx-docs</artifactId>
-  <name>Quarkus - FX - Documentation</name>
+  <name>Quarkus FX - Documentation</name>
 
   <dependencies>
     <!-- Make sure the doc is built after the other artifacts -->
