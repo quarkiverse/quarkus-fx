@@ -1,39 +1,40 @@
 package io.quarkiverse.fx;
 
-import java.util.concurrent.CountDownLatch;
-
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.context.spi.CreationalContext;
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.CDI;
 import jakarta.enterprise.util.AnnotationLiteral;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-@ApplicationScoped
+/**
+ * A non-CDI bean that is instantiated by the {@linkplain Application} layer. This
+ * calls into the quarkus-fx application bean using a CDI event with {@linkplain Stage}
+ * with a {@linkplain PrimaryStage} qualifier.
+ *
+ * @see PrimaryStage
+ * @see Stage
+ */
 public class FxApplication extends Application {
-    private static CountDownLatch started = new CountDownLatch(1);
-
-    /**
-     * A producer for the FxApplication.started CountDownLatch
-     *
-     * @return FxApplication.started CountDownLatch
-     */
-    @Produces
-    @PrimaryStage
-    CountDownLatch produceStartedFlag() {
-        return started;
-    }
 
     @Override
     public void start(final Stage primaryStage) {
 
-        CDI.current()
-                .getBeanManager()
-                .getEvent()
-                .select(new AnnotationLiteral<PrimaryStage>() {
-                })
-                .fire(primaryStage);
+        // We need to obtain the StartupLatch singleton
+        BeanManager bm = CDI.current().getBeanManager();
+        Bean<StartupLatch> bean = (Bean<StartupLatch>) bm.getBeans(StartupLatch.class).iterator().next();
+        CreationalContext<StartupLatch> ctx = bm.createCreationalContext(bean);
+        StartupLatch started = (StartupLatch) bm.getReference(bean, StartupLatch.class, ctx);
+
+        // Now broadcast the startup event
+        bm
+            .getEvent()
+            .select(new AnnotationLiteral<PrimaryStage>() {})
+            .fire(primaryStage);
+
         // Mark that the application has finished starting.
         started.countDown();
     }
