@@ -1,6 +1,22 @@
 package io.quarkiverse.fx.deployment;
 
-import static org.awaitility.Awaitility.await;
+import io.quarkiverse.fx.PrimaryStage;
+import io.quarkiverse.fx.QuarkusFxApplication;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.test.QuarkusUnitTest;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -10,28 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jakarta.enterprise.context.Dependent;
-import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import static org.awaitility.Awaitility.await;
 
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-
-import io.quarkiverse.fx.PrimaryStage;
-import io.quarkiverse.fx.QuarkusFxApplication;
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.test.QuarkusUnitTest;
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
-
-@Disabled
 public class QuarkusFxTest {
 
     private static final int LAUNCH_TIMEOUT_MS = 3_000;
