@@ -41,7 +41,7 @@ public class ClockEvents {
             String timeString = String.format("%016x", unixTime);
             TimeEvent event = new TimeEvent(unixTime, timeString);
             Log.infof("%d/%s", unixTime, timeString);
-            timeEvent.fireAsync(event);
+            timeEvent.fire(event);
         } catch (IOException e) {
             Log.error("Failed to send TimeEvent", e);
         }

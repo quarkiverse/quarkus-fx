@@ -4,7 +4,6 @@ import java.io.InputStream;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
 
 import io.quarkiverse.fx.PrimaryStage;
@@ -44,7 +43,7 @@ public class QuarkusFxApp {
         Log.info("End start");
     }
 
-    void onMessage(@ObservesAsync TimeEvent timeEvent) {
+    void onMessage(@Observes TimeEvent timeEvent) {
         Log.infof("Time: %s;%s", timeEvent.unixTime(), timeEvent.timeString());
         appController.onMessage(timeEvent.timeString());
     }
