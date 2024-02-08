@@ -16,6 +16,7 @@ public class AppController {
     Instance<FXMLLoader> fxmlLoaderInstance;
     @FXML
     private Label timeLabel;
+
     @FXML
     private void initialize() {
         //

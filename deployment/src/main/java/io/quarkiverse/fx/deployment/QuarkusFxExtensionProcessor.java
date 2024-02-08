@@ -40,9 +40,24 @@ class QuarkusFxExtensionProcessor {
         return new AdditionalBeanBuildItem(FXMLLoaderProducer.class);
     }
 
+    /**
+     * Register the PrimaryStage qualifier
+     *
+     * @return build item for PrimaryStage
+     */
     @BuildStep
     AdditionalBeanBuildItem primaryStage() {
-        return new AdditionalBeanBuildItem(PrimaryStage.class, FxApplication.class);
+        return new AdditionalBeanBuildItem(PrimaryStage.class);
+    }
+
+    /**
+     * Register the FxApplication so the startup latch producer method is found
+     *
+     * @return build item for FxApplication
+     */
+    @BuildStep
+    AdditionalBeanBuildItem fxApplication() {
+        return new AdditionalBeanBuildItem(FxApplication.class);
     }
 
     @BuildStep
