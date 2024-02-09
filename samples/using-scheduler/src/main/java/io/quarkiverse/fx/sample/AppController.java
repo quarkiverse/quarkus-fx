@@ -2,7 +2,6 @@ package io.quarkiverse.fx.sample;
 
 import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkus.logging.Log;
-import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Singleton;
 import javafx.fxml.FXML;
