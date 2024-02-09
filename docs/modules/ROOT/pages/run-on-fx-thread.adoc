@@ -1,5 +1,5 @@
 = @RunOnFxThread
-include::../includes/attributes.adoc[]
+include::./includes/attributes.adoc[]
 
 `@RunOnFxThread` annotation offers for a convenient way to execute the target on JavaFx UI thread (JavaFX Application Thread).
 
@@ -27,7 +27,7 @@ Node createExpensiveNode() {//<1>
 
 @RunOnFxThread
 void showNode(Node node) {//<2>
-    vBox.getChildren().add(node);
+  this.vBox.getChildren().add(node);
 }
 ----
 <1> `createExpensiveNode` method will be executed in a thread from executor service

@@ -17,31 +17,31 @@ import javafx.stage.Stage;
 @ApplicationScoped
 public class QuarkusFxApp {
 
-    @Inject
-    FXMLLoader fxmlLoader;
+  @Inject
+  FXMLLoader fxmlLoader;
 
-    public void start(@Observes @PrimaryStage final Stage stage) throws InterruptedException {
+  public void start(@Observes @PrimaryStage final Stage stage) throws InterruptedException {
 
-        // Make it slow on purpose
-        Thread.sleep(20_000);
+    // Make it slow on purpose
+    Thread.sleep(3_000);
 
-        Log.info("Begin start");
-        stage.setOnCloseRequest(event -> {
-            Platform.exit();
-            System.exit(0);
-        });
+    Log.info("Begin start");
+    stage.setOnCloseRequest(event -> {
+      Platform.exit();
+      System.exit(0);
+    });
 
-        try {
-            InputStream fxml = this.getClass().getResourceAsStream("/app.fxml");
-            Parent fxmlParent = this.fxmlLoader.load(fxml);
+    try {
+      InputStream fxml = this.getClass().getResourceAsStream("/app.fxml");
+      Parent fxmlParent = this.fxmlLoader.load(fxml);
 
-            Scene scene = new Scene(fxmlParent, 300, 200);
-            stage.setScene(scene);
-            stage.setTitle("Hello Quarkus + JavaFX ! ⏰");
-            stage.show();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        Log.info("End start");
+      Scene scene = new Scene(fxmlParent, 300, 200);
+      stage.setScene(scene);
+      stage.setTitle("Hello Quarkus + JavaFX ! ⏰");
+      stage.show();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
+    Log.info("End start");
+  }
 }

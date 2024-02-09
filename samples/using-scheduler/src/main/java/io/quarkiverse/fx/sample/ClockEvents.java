@@ -15,35 +15,34 @@ import io.quarkus.scheduler.Scheduled;
 @ApplicationScoped
 public class ClockEvents {
 
-    @Inject
-    UnixTimeProvider timeProvider;
+  @Inject
+  UnixTimeProvider timeProvider;
 
-    @Inject
-    Event<TimeEvent> timeEvent;
+  @Inject
+  Event<TimeEvent> timeEvent;
 
-    /**
-     * A scheduler callback method that delegates to method that is to be run on the
-     * JavaFX creates an application thread. This allows for better startup behavior
-     * than direct use of javafx.application.Platform#runLater(...) as the interceptor
-     * associated with @RunOnFxThread is able to synchronize with the
-     * {@linkplain io.quarkiverse.fx.FxApplication#start(javafx.stage.Stage)} completion.
-     */
-    @Scheduled(every = "1s", skipExecutionIf = FxApplicationNotStarted.class)
-    //    @RunOnFxThread
-    void timeIncrement() {
-        Log.info("timeIncrement");
-        this.sendTimeEvent();
+  /**
+   * A scheduler callback method that delegates to method that is to be run on the
+   * JavaFX creates an application thread. This allows for better startup behavior
+   * than direct use of javafx.application.Platform#runLater(...) as the interceptor
+   * associated with @RunOnFxThread is able to synchronize with the
+   * {@linkplain io.quarkiverse.fx.FxApplication#start(javafx.stage.Stage)} completion.
+   */
+  @Scheduled(every = "1s", skipExecutionIf = FxApplicationNotStarted.class)
+  void timeIncrement() {
+    Log.info("timeIncrement");
+    this.sendTimeEvent();
+  }
+
+  private void sendTimeEvent() {
+    try {
+      long unixTime = this.timeProvider.getTime();
+      String timeString = String.format("%016x", unixTime);
+      TimeEvent event = new TimeEvent(unixTime, timeString);
+      Log.infof("%d/%s", unixTime, timeString);
+      this.timeEvent.fire(event);
+    } catch (IOException e) {
+      Log.error("Failed to send TimeEvent", e);
     }
-
-    private void sendTimeEvent() {
-        try {
-            long unixTime = this.timeProvider.getTime();
-            String timeString = String.format("%016x", unixTime);
-            TimeEvent event = new TimeEvent(unixTime, timeString);
-            Log.infof("%d/%s", unixTime, timeString);
-            this.timeEvent.fire(event);
-        } catch (IOException e) {
-            Log.error("Failed to send TimeEvent", e);
-        }
-    }
+  }
 }

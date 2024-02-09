@@ -11,28 +11,21 @@ import javafx.scene.control.Label;
 @Singleton
 public class AppController {
 
-    @FXML
-    private Label timeLabel;
+  @FXML
+  private Label timeLabel;
 
-    @FXML
-    private void initialize() {
-        //
-    }
+  @FXML
+  private void initialize() {
+    //
+  }
 
-    @RunOnFxThread
-    public void onMessage(final String timeString) {
-        this.timeLabel.setText(timeString);
-        //        Platform.runLater(() -> this.timeLabel.setText(timeString));
-    }
+  @RunOnFxThread
+  public void onMessage(final String timeString) {
+    this.timeLabel.setText(timeString);
+  }
 
-    void onMessage(@Observes final TimeEvent timeEvent) {
-        Log.infof("Time: %s;%s", timeEvent.unixTime(), timeEvent.timeString());
-        this.onMessage(timeEvent.timeString());
-    }
-
-    @Scheduled(every = "1s")
-    @RunOnFxThread
-    void a() {
-        System.out.println(this.timeLabel + " " + System.currentTimeMillis());
-    }
+  void onMessage(@Observes final TimeEvent timeEvent) {
+    Log.infof("Time: %s;%s", timeEvent.unixTime(), timeEvent.timeString());
+    this.onMessage(timeEvent.timeString());
+  }
 }
