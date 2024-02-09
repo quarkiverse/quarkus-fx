@@ -8,7 +8,7 @@
   </parent>
   <groupId>io.quarkiverse.fx</groupId>
   <artifactId>quarkus-fx-parent</artifactId>
-  <version>0.2.0</version>
+  <version>999-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Quarkus FX - Parent</name>
   <modules>
@@ -43,8 +43,4 @@
       </plugins>
     </pluginManagement>
   </build>
-
-  <scm>
-    <tag>0.2.0</tag>
-  </scm>
 </project>
