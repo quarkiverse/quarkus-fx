@@ -12,7 +12,6 @@ import javafx.stage.Stage;
 /**
  * This is used as a qualifier as for receiving the notification main <code>start</code> entry point for all
  * JavaFX applications has been called.
- *
  * It is also used to qualify the CountDownLatch type used by the {@linkplain FxApplication} uses
  * as a startup notification barrier.
  *
