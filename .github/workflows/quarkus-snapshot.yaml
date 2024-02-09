@@ -31,7 +31,7 @@ jobs:
     name: "Build against latest Quarkus snapshot"
     runs-on: ubuntu-latest
     # Allow <ADMIN> to manually launch the ecosystem CI in addition to the bots
-    if: github.actor == 'quarkusbot' || github.actor == 'quarkiversebot' || github.actor == '<ADMIN>'
+    if: github.actor == 'quarkusbot' || github.actor == 'quarkiversebot' || github.actor == 'gastaldi' || github.actor == 'CodeSimcoe'
 
     steps:
       - name: Install yq
@@ -55,6 +55,8 @@ jobs:
           path: ecosystem-ci
 
       - name: Setup and Run Tests
-        run: ./ecosystem-ci/setup-and-test
+        uses: coactions/setup-xvfb@v1
+        with:
+          run: ./ecosystem-ci/setup-and-test
         env:
           ECOSYSTEM_CI_TOKEN: ${{ secrets.ECOSYSTEM_CI_TOKEN }}
