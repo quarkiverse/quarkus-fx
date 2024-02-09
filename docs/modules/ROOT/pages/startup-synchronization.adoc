@@ -1,4 +1,4 @@
-= Startup Latch
+= Startup synchronization
 
 To synchronize the application with JavaFX readiness, one can use the `FxStartupLatch` bean.
 
