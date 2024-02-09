@@ -1,0 +1,40 @@
+= Startup Latch
+
+To synchronize the application with JavaFX readiness, one can use the `FxStartupLatch` bean.
+
+It provides an `await` method that is released when JavaFX app is ready (primary `Stage` instance is available).
+
+That is used in the inner `@RunOnFxThread` to ensure app is ready.
+
+[source, java]
+----
+@Inject
+FxStartupLatch startupLatch;
+
+// Blocking until FX env is ready
+startupLatch.await();
+
+// FX is ready
+----
+
+Alternatively, the `FxStartupEvent` can be observed.
+
+Example of a `SkipPredicated` that can be used in conjunction with a `@Scheduled`
+
+[source,java]
+----
+@Singleton
+public class FxApplicationNotStarted implements SkipPredicate {
+
+    private volatile boolean started;
+
+    void onFxStartup(@Observes final FxStartupEvent event) {
+        this.started = true;
+    }
+
+    @Override
+    public boolean test(final ScheduledExecution execution) {
+        return !this.started;
+    }
+}
+----

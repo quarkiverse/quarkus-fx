@@ -10,7 +10,12 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.VoidType;
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.fx.*;
+import io.quarkiverse.fx.FXMLLoaderProducer;
+import io.quarkiverse.fx.FxStartupLatch;
+import io.quarkiverse.fx.PrimaryStage;
+import io.quarkiverse.fx.QuarkusFxApplication;
+import io.quarkiverse.fx.RunOnFxThread;
+import io.quarkiverse.fx.RunOnFxThreadInterceptor;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -52,7 +57,7 @@ class QuarkusFxExtensionProcessor {
      */
     @BuildStep
     AdditionalBeanBuildItem startupLatch() {
-        return new AdditionalBeanBuildItem(StartupLatch.class);
+        return new AdditionalBeanBuildItem(FxStartupLatch.class);
     }
 
     @BuildStep

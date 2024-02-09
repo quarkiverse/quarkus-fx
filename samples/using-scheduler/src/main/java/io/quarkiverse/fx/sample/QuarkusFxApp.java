@@ -19,9 +19,12 @@ public class QuarkusFxApp {
 
     @Inject
     FXMLLoader fxmlLoader;
-    private AppController appController;
 
-    public void start(@Observes @PrimaryStage final Stage stage) {
+    public void start(@Observes @PrimaryStage final Stage stage) throws InterruptedException {
+
+        // Make it slow on purpose
+        Thread.sleep(3_000);
+
         Log.info("Begin start");
         stage.setOnCloseRequest(event -> {
             Platform.exit();
@@ -31,7 +34,6 @@ public class QuarkusFxApp {
         try {
             InputStream fxml = this.getClass().getResourceAsStream("/app.fxml");
             Parent fxmlParent = this.fxmlLoader.load(fxml);
-            appController = this.fxmlLoader.getController();
 
             Scene scene = new Scene(fxmlParent, 300, 200);
             stage.setScene(scene);
@@ -41,10 +43,5 @@ public class QuarkusFxApp {
             throw new RuntimeException(e);
         }
         Log.info("End start");
-    }
-
-    void onMessage(@Observes TimeEvent timeEvent) {
-        Log.infof("Time: %s;%s", timeEvent.unixTime(), timeEvent.timeString());
-        appController.onMessage(timeEvent.timeString());
     }
 }

@@ -6,18 +6,18 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 
-import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkus.logging.Log;
 import io.quarkus.scheduler.Scheduled;
-import javafx.stage.Stage;
 
 /**
  * A sample CDI bean that receives Quarkus scheduler events that are routed back to the javafx interface
  */
 @ApplicationScoped
 public class ClockEvents {
+
     @Inject
     UnixTimeProvider timeProvider;
+
     @Inject
     Event<TimeEvent> timeEvent;
 
@@ -28,20 +28,19 @@ public class ClockEvents {
      * associated with @RunOnFxThread is able to synchronize with the
      * {@linkplain io.quarkiverse.fx.FxApplication#start(javafx.stage.Stage)} completion.
      */
-    @Scheduled(every = "1s")
-    @RunOnFxThread
+    @Scheduled(every = "1s", skipExecutionIf = FxApplicationNotStarted.class)
     void timeIncrement() {
         Log.info("timeIncrement");
-        sendTimeEvent();
+        this.sendTimeEvent();
     }
 
     private void sendTimeEvent() {
         try {
-            long unixTime = timeProvider.getTime();
+            long unixTime = this.timeProvider.getTime();
             String timeString = String.format("%016x", unixTime);
             TimeEvent event = new TimeEvent(unixTime, timeString);
             Log.infof("%d/%s", unixTime, timeString);
-            timeEvent.fire(event);
+            this.timeEvent.fire(event);
         } catch (IOException e) {
             Log.error("Failed to send TimeEvent", e);
         }

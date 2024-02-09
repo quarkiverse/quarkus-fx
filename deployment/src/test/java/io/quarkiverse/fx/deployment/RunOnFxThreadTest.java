@@ -1,83 +1,72 @@
 package io.quarkiverse.fx.deployment;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import static org.awaitility.Awaitility.await;
 
-import jakarta.enterprise.context.Dependent;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 import jakarta.enterprise.event.Observes;
 
-import org.awaitility.Awaitility;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkiverse.fx.FxApplication;
 import io.quarkiverse.fx.PrimaryStage;
+import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
+import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 
-@Disabled // Disabled until #9 is fixed
 public class RunOnFxThreadTest {
 
-    private static final int LAUNCH_TIMEOUT_MS = 1_000;
+    private static final int ASYNC_RUN_TIMEOUT_MS = 500;
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest()
-            .withApplicationRoot((jar) -> jar.addClasses(Observer.class));
+    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
+
+    private static boolean primaryStageObserved = false;
+    private static Boolean regularThread;
+    private static Boolean fxThread;
 
     @Test
-    void annotatedMethodsExecuteOnFxThread() {
-        // launch
-        CompletableFuture.runAsync(() -> Application.launch(FxApplication.class));
-        // wait for stage to be observed
-        Awaitility.await().atMost(LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS).until(Observer::stageObserved);
-        // stage should not be null
-        Assertions.assertNotNull(Observer.OBSERVED_STAGE.get());
-        //
-        Assertions.assertTrue(Observer.STAGE_OBSERVER_METHOD_THREAD_IS_FX_THREAD);
-        Assertions.assertFalse(Observer.DO_ON_CURRENT_METHOD_THREAD_IS_FX_THREAD);
-        Assertions.assertTrue(Observer.DO_ON_FX_METHOD_THREAD_IS_FX_THREAD);
+    void test() {
+        // Non-blocking JavaFX launch
+        CompletableFuture.runAsync(() -> Quarkus.run(QuarkusFxApplication.class));
+
+        await()
+                .atMost(FxTestConstants.LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .until(() -> primaryStageObserved);
+
+        // Synchronous regular thread run
+        this.runOnRegularThread();
+        Assertions.assertTrue(regularThread);
+
+        // Asynchronous FX thread run
+        this.runOnFxThread();
+        Assertions.assertNull(fxThread);
+
+        await().atMost(ASYNC_RUN_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .until(() -> fxThread != null);
+
+        Assertions.assertTrue(fxThread);
     }
 
-    @Dependent
-    static class Observer {
-        public static final AtomicReference<Stage> OBSERVED_STAGE = new AtomicReference<>();
-        public static boolean STAGE_OBSERVER_METHOD_THREAD_IS_FX_THREAD;
-        public static boolean DO_ON_CURRENT_METHOD_THREAD_IS_FX_THREAD;
-        public static boolean DO_ON_FX_METHOD_THREAD_IS_FX_THREAD;
-
-        public void observeStage(@Observes @PrimaryStage final Stage stage) throws ExecutionException, InterruptedException {
-            // Observe current thread
-            STAGE_OBSERVER_METHOD_THREAD_IS_FX_THREAD = Platform.isFxApplicationThread();
-            // launch methods and observe threads
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            executor.submit(this::doOnCurrentThread).get();
-            executor.submit(this::doOnFxThread).get();
-            executor.shutdownNow();
-            // observe stage
-            Observer.OBSERVED_STAGE.set(stage);
-        }
-
-        void doOnCurrentThread() {
-            DO_ON_CURRENT_METHOD_THREAD_IS_FX_THREAD = Platform.isFxApplicationThread();
-        }
-
-        @RunOnFxThread
-        void doOnFxThread() {
-            DO_ON_FX_METHOD_THREAD_IS_FX_THREAD = Platform.isFxApplicationThread();
-        }
-
-        public static boolean stageObserved() {
-            return OBSERVED_STAGE.get() != null;
-        }
+    void observePrimaryStage(@Observes @PrimaryStage final Stage stage) {
+        Assertions.assertNotNull(stage);
+        primaryStageObserved = true;
     }
 
+    void runOnRegularThread() {
+        regularThread = !Platform.isFxApplicationThread();
+    }
+
+    @RunOnFxThread
+    void runOnFxThread() {
+        fxThread = Platform.isFxApplicationThread();
+    }
 }
