@@ -25,6 +25,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "starksm64",
+      "name": "Scott M Stark",
+      "avatar_url": "https://avatars.githubusercontent.com/u/332210?v=4",
+      "profile": "http://www.jboss.org",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
