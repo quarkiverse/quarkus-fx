@@ -17,7 +17,7 @@ import javafx.stage.Stage;
  * as a startup notification barrier.
  *
  * @see javafx.application.Application#start(Stage)
- * @see FxApplication#produceStartedFlag()
+ * @see FxApplication#start(Stage)
  */
 @Qualifier
 @Target({ ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD })

@@ -11,13 +11,13 @@ import jakarta.inject.Singleton;
 @Singleton
 public class FxStartupLatch {
 
-    private final CountDownLatch started = new CountDownLatch(1);
+    private final CountDownLatch latch = new CountDownLatch(1);
 
     public void await() throws InterruptedException {
-        this.started.await();
+        this.latch.await();
     }
 
     void onFxStartup(@Observes final FxStartupEvent event) {
-        this.started.countDown();
+        this.latch.countDown();
     }
 }

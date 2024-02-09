@@ -23,7 +23,7 @@ public class QuarkusFxApp {
     public void start(@Observes @PrimaryStage final Stage stage) throws InterruptedException {
 
         // Make it slow on purpose
-        Thread.sleep(5_000);
+        Thread.sleep(20_000);
 
         Log.info("Begin start");
         stage.setOnCloseRequest(event -> {
