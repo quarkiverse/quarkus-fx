@@ -1,2 +1,3 @@
-* xref:index.adoc[Quarkus FX]
+* xref:index.adoc[]
 * xref:run-on-fx-thread.adoc[]
+* xref:startup-synchronization.adoc[]

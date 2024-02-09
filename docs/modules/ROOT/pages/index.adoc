@@ -35,7 +35,7 @@ dependencies {
 The extension allows using cdi features in JavaFX controller classes. +
 The FXMLLoader is made a CDI bean and can be injected in your application.
 
-[source,java,subs=attributes+]
+[source,java]
 ----
 @Inject
 FXMLLoader fxmlLoader;
@@ -48,7 +48,7 @@ public void load() {
 }
 ----
 
-[source,java,subs=attributes+]
+[source,java]
 ----
 public class MyFxmlController {
 
@@ -68,7 +68,7 @@ The application will automatically be launched (thanks to a call to `javafx.appl
 
 If you need to customize the launch, you can provide a custom `@QuarkusMain`, such as :
 
-[source,java,subs=attributes+]
+[source,java]
 ----
 package io.quarkiverse.fx.fxapp;
 
@@ -89,7 +89,7 @@ public class QuarkusFxApplication implements QuarkusApplication {
 
 When the application is started, you can get obtain access to the primary `Stage` instance by observing the CDI event :
 
-[source,java,subs=attributes+]
+[source,java]
 ----
 void onStart(@Observes @PrimaryStage final Stage stage) {
   // Do something with the stage
