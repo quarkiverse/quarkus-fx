@@ -22,7 +22,7 @@ public class QuarkusFxApp {
       InputStream fxml = this.getClass().getResourceAsStream("/app.fxml");
       Parent fxmlParent = this.fxmlLoader.load(fxml);
 
-      Stage stage = event.primaryStage();
+      Stage stage = event.getPrimaryStage();
       
       Scene scene = new Scene(fxmlParent);
       stage.setScene(scene);

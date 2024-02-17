@@ -22,7 +22,7 @@ public class QuarkusFxApp {
 
     public void start(@Observes final FxStartupEvent event) {
 
-        Stage stage = event.primaryStage();
+        Stage stage = event.getPrimaryStage();
 
         stage.setOnCloseRequest(e -> {
             Platform.exit();

@@ -25,7 +25,7 @@ public class QuarkusFxApp {
         // Make it slow on purpose
         Thread.sleep(3_000);
 
-        Stage stage = event.primaryStage();
+        Stage stage = event.getPrimaryStage();
 
         Log.info("Begin start");
         stage.setOnCloseRequest(e -> {

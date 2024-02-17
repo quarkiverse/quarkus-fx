@@ -13,9 +13,9 @@ VBox vBox = new VBox();
 
 public void start(@Observes final FxStartupEvent event) {
 
-    Stage = event.primaryStage();
+    Stage = event.getPrimaryStage();
 
-    Scene scene = new Scene(vBox);
+    Scene scene = new Scene(this.vBox);
     stage.setScene(scene);
     stage.show();
 

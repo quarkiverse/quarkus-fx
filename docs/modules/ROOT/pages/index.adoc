@@ -92,6 +92,6 @@ When the application is started, you can get obtain access to the primary `Stage
 [source,java]
 ----
 void onStart(@Observes final FxStartupEvent event) {
-  Stage stage = event.primaryStage();
+  Stage stage = event.getPrimaryStage();
 }
 ----

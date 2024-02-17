@@ -56,7 +56,7 @@ public class RunOnFxThreadTest {
     }
 
     void observePrimaryStage(@Observes final FxStartupEvent event) {
-        Assertions.assertNotNull(event.primaryStage());
+        Assertions.assertNotNull(event.getPrimaryStage());
         primaryStageObserved = true;
     }
 
