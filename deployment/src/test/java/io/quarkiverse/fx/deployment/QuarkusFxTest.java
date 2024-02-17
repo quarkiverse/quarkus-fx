@@ -21,14 +21,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkiverse.fx.PrimaryStage;
+import io.quarkiverse.fx.FxStartupEvent;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 
 public class QuarkusFxTest {
 
@@ -96,8 +95,8 @@ public class QuarkusFxTest {
         }
     }
 
-    void observePrimaryStage(@Observes @PrimaryStage final Stage stage) {
-        Assertions.assertNotNull(stage);
+    void observePrimaryStage(@Observes final FxStartupEvent event) {
+        Assertions.assertNotNull(event.getPrimaryStage());
         primaryStageObserved.set(true);
     }
 }

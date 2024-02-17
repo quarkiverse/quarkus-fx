@@ -6,7 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
-import io.quarkiverse.fx.PrimaryStage;
+import io.quarkiverse.fx.FxStartupEvent;
 import io.quarkus.logging.Log;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -20,13 +20,15 @@ public class QuarkusFxApp {
     @Inject
     FXMLLoader fxmlLoader;
 
-    public void start(@Observes @PrimaryStage final Stage stage) throws InterruptedException {
+    public void start(@Observes final FxStartupEvent event) throws InterruptedException {
 
         // Make it slow on purpose
         Thread.sleep(3_000);
 
+        Stage stage = event.getPrimaryStage();
+
         Log.info("Begin start");
-        stage.setOnCloseRequest(event -> {
+        stage.setOnCloseRequest(e -> {
             Platform.exit();
             System.exit(0);
         });

@@ -1,23 +1,26 @@
 = @RunOnFxThread
 include::./includes/attributes.adoc[]
 
-`@RunOnFxThread` annotation offers for a convenient way to execute the target on JavaFx UI thread (JavaFX Application Thread).
+`@RunOnFxThread` annotation offers for a convenient way to execute the target on JavaFX UI thread (JavaFX Application Thread).
 
 Annotation can be applied on method level or on class level (to mark all methods within a class)
 
 - Example
 
-[source,java, indent=0]
+[source,java]
 ----
 VBox vBox = new VBox();
 
-public void start(@Observes @PrimaryStage final Stage stage) {
-    Scene scene = new Scene(vBox);
+public void start(@Observes final FxStartupEvent event) {
+
+    Stage = event.getPrimaryStage();
+
+    Scene scene = new Scene(this.vBox);
     stage.setScene(scene);
     stage.show();
 
     try (ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
-        executorService.submit(() -> showNode(createExpensiveNode()));
+        executorService.submit(() -> this.showNode(this.createExpensiveNode()));
     }
 }
 
@@ -26,7 +29,7 @@ Node createExpensiveNode() {//<1>
 }
 
 @RunOnFxThread
-void showNode(Node node) {//<2>
+void showNode(final Node node) {//<2>
   this.vBox.getChildren().add(node);
 }
 ----

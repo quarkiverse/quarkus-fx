@@ -87,11 +87,11 @@ public class QuarkusFxApplication implements QuarkusApplication {
 }
 ----
 
-When the application is started, you can get obtain access to the primary `Stage` instance by observing the CDI event :
+When the application is started, you can get obtain access to the primary `Stage` instance by observing the `FxStartupEvent` CDI event :
 
 [source,java]
 ----
-void onStart(@Observes @PrimaryStage final Stage stage) {
-  // Do something with the stage
+void onStart(@Observes final FxStartupEvent event) {
+  Stage stage = event.getPrimaryStage();
 }
 ----

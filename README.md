@@ -12,18 +12,18 @@ Live reload is still problematic and will be studied in the future.
 
 You will be able to register on primary stage creation event via such code example.
 ```java
-import java.io.InputStream;
-
 public class QuarkusFxApp {
 
   @Inject
   FXMLLoader fxmlLoader;
 
-  public void start(@Observes @PrimaryStage final Stage stage) {
+  public void start(@Observes final FxStartupEvent event) {
     try {
       InputStream fxml = this.getClass().getResourceAsStream("/app.fxml");
       Parent fxmlParent = this.fxmlLoader.load(fxml);
 
+      Stage stage = event.getPrimaryStage();
+      
       Scene scene = new Scene(fxmlParent);
       stage.setScene(scene);
       stage.show();
