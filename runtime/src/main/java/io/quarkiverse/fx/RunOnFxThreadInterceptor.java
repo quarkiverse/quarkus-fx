@@ -24,7 +24,7 @@ public class RunOnFxThreadInterceptor {
         LOGGER.tracef("intercepted %s on thread %s", ctx.getMethod(), Thread.currentThread());
 
         // Block thread until the startup latch has been cleared
-        // This will return immediately after the FxApplication#start has completed
+        // This will return immediately after FX is ready and primary Stage instance is available
         this.startupLatch.await();
 
         if (Platform.isFxApplicationThread()) {

@@ -2,17 +2,15 @@ package io.quarkiverse.fx;
 
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.CDI;
-import jakarta.enterprise.util.AnnotationLiteral;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
 
 /**
  * A non-CDI bean that is instantiated by the {@linkplain Application} layer. This
- * calls into the quarkus-fx application bean using a CDI event with {@linkplain Stage}
- * with a {@linkplain PrimaryStage} qualifier.
+ * calls into the quarkus-fx application bean using a CDI event with {@linkplain FxStartupEvent}
+ * that holds a {@linkplain Stage} instance.
  *
- * @see PrimaryStage
  * @see Stage
  */
 public class FxApplication extends Application {
@@ -22,14 +20,8 @@ public class FxApplication extends Application {
 
         BeanManager beanManager = CDI.current().getBeanManager();
 
-        // Broadcast the stage availability event
-        beanManager
-                .getEvent()
-                .select(new AnnotationLiteral<PrimaryStage>() {
-                })
-                .fire(primaryStage);
-
-        // Fire event that marks that the application has finished starting.
-        beanManager.getEvent().fire(new FxStartupEvent());
+        // Fire event that marks that the application has finished starting
+        // and that Stage instance is available for use
+        beanManager.getEvent().fire(new FxStartupEvent(primaryStage));
     }
 }

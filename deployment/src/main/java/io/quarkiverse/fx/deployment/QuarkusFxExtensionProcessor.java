@@ -12,7 +12,6 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.FXMLLoaderProducer;
 import io.quarkiverse.fx.FxStartupLatch;
-import io.quarkiverse.fx.PrimaryStage;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.RunOnFxThreadInterceptor;
@@ -38,16 +37,6 @@ class QuarkusFxExtensionProcessor {
     @BuildStep
     AdditionalBeanBuildItem fxmlLoader() {
         return new AdditionalBeanBuildItem(FXMLLoaderProducer.class);
-    }
-
-    /**
-     * Register the PrimaryStage qualifier
-     *
-     * @return build item for PrimaryStage
-     */
-    @BuildStep
-    AdditionalBeanBuildItem primaryStage() {
-        return new AdditionalBeanBuildItem(PrimaryStage.class);
     }
 
     /**
