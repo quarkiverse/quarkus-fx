@@ -56,9 +56,10 @@ jobs:
         run: ./mvnw -B -ntp compile
 
       - name: Run Tests
-        uses: coactions/setup-xvfb@v1
-        with:
-          run: ./mvnw -B -ntp verify
+      - run: ./mvnw -B -ntp verify
+#        uses: coactions/setup-xvfb@v1
+#        with:
+#          run: ./mvnw -B -ntp verify
 
 #      - name: Build with Maven (Native)
 #        run: ./mvnw -B install -Dnative -Dquarkus.native.container-build -Dnative.surefire.skip
