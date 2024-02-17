@@ -29,7 +29,7 @@ public class QuarkusFxApp {
       stage.show();
 
     } catch (IOException e) {
-      // TODO
+      // Handle error
     }
   }
 }
@@ -47,8 +47,7 @@ FXMLLoader loader = this.fxmlLoader.get();
 loader.setLocation(xxx);
 ```
 
-For a sample app / usage, check :
-https://github.com/CodeSimcoe/quarkus-using-fx-extension
+For some sample apps and usage, check the `samples/` directory.
 
 ## Contributors ✨
 
