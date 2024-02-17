@@ -56,7 +56,7 @@ jobs:
         run: ./mvnw -B -ntp compile
 
       - name: Run Tests
-      - run: ./mvnw -B -ntp verify
+        run: ./mvnw -B -ntp verify
 #        uses: coactions/setup-xvfb@v1
 #        with:
 #          run: ./mvnw -B -ntp verify
