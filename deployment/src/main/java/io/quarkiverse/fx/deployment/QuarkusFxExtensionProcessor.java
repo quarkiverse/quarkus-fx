@@ -1,10 +1,12 @@
 package io.quarkiverse.fx.deployment;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.VoidType;
@@ -12,13 +14,18 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.FXMLLoaderProducer;
 import io.quarkiverse.fx.FxStartupLatch;
+import io.quarkiverse.fx.FxView;
+import io.quarkiverse.fx.FxViewRecorder;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.RunOnFxThreadInterceptor;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.arc.deployment.BeanContainerListenerBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Overridable;
+import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
@@ -84,5 +91,36 @@ class QuarkusFxExtensionProcessor {
         if (index.getAnnotations(DotName.createSimple(QuarkusMain.class.getName())).isEmpty()) {
             quarkusApplicationClass.produce(new QuarkusApplicationClassBuildItem(QuarkusFxApplication.class));
         }
+    }
+
+    @BuildStep
+    void fxView(
+            final CombinedIndexBuildItem combinedIndex,
+            final BuildProducer<FxViewBuildItem> producer) {
+
+        // Look for all @FxView annotations
+        Collection<AnnotationInstance> annotations = combinedIndex.getComputingIndex().getAnnotations(FxView.class);
+        for (AnnotationInstance annotation : annotations) {
+            ClassInfo classInfo = annotation.target().asClass();
+            LOGGER.infof("Found @FxView " + classInfo);
+            producer.produce(new FxViewBuildItem(classInfo));
+        }
+    }
+
+    @Record(ExecutionTime.STATIC_INIT)
+    @BuildStep
+    void build(
+            final List<FxViewBuildItem> fxViewItems,
+            final FxViewRecorder recorder,
+            final BuildProducer<BeanContainerListenerBuildItem> containerListenerProducer) {
+
+        System.out.println("build " + fxViewItems);
+
+        List<String> list = fxViewItems.stream()
+                .map(item -> item.getClassInfo().name().toString())
+                .toList();
+
+        recorder.process(list);
+        //        containerListenerProducer.produce(new BeanContainerListenerBuildItem(recorder.process(list)));
     }
 }
