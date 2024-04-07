@@ -120,31 +120,33 @@ class QuarkusFxExtensionProcessor {
             AnnotationValue value = annotation.value();
 
             if (value != null) {
-                // Custom value is set in annotation
+                // Custom value is set in annotation : use it
                 String customName = value.asString();
                 views.add(customName);
-                continue;
-            }
-
-            String name = target.simpleName();
-            if (name.endsWith(CONTROLLER_SUFFIX)) {
-                // Valid convention
-                LOGGER.infof(
-                        "Found controller with annotated with %s : %s",
-                        FxView.class.getName(),
-                        name);
-
-                // Remove the controller suffix
-                String baseName = name.substring(0, name.length() - CONTROLLER_SUFFIX.length());
-                views.add(baseName);
             } else {
-                LOGGER.warnf(
-                        "Type %s is annotated with %s but does not comply with naming convention (shall end with %s)",
-                        name,
-                        FxView.class.getName(),
-                        CONTROLLER_SUFFIX);
+                // Use convention
+                // If controller is named "MySampleController", expected fxml would be MySample.fxml
+                // Controller suffix is optional but shall be present to respect convention
+                String name = target.simpleName();
+                if (name.endsWith(CONTROLLER_SUFFIX)) {
+                    // Valid convention
+                    LOGGER.infof(
+                            "Found controller with annotated with %s : %s",
+                            FxView.class.getName(),
+                            name);
 
-                views.add(name);
+                    // Remove the controller suffix
+                    String baseName = name.substring(0, name.length() - CONTROLLER_SUFFIX.length());
+                    views.add(baseName);
+                } else {
+                    LOGGER.warnf(
+                            "Type %s is annotated with %s but does not comply with naming convention (shall end with %s)",
+                            name,
+                            FxView.class.getName(),
+                            CONTROLLER_SUFFIX);
+
+                    views.add(name);
+                }
             }
         }
 

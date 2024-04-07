@@ -4,7 +4,7 @@ import jakarta.enterprise.context.Dependent;
 
 import javafx.fxml.FXML;
 
-@FxView("custom-sample")
+@FxView
 @Dependent
 public class SampleController {
 

@@ -3,8 +3,10 @@ package io.quarkiverse.fx.views;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -28,24 +30,29 @@ public class FxViewRepository {
     @Inject
     Instance<FXMLLoader> fxmlLoader;
 
-    private List<FxViewData> viewInitializationData;
+    private final Map<String, FxViewData> viewDataMap = new HashMap<>();
 
-    public void setViewData(final List<FxViewData> views) {
-        this.viewInitializationData = views;
+    @Inject
+    FxViewConfig config;
+
+    private List<String> viewNames;
+
+    public void setViewNames(final List<String> views) {
+        this.viewNames = views;
     }
 
     void setupViews(@Observes final FxPreStartupEvent event) {
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-        for (FxViewData data : this.viewInitializationData) {
+        for (String name : this.viewNames) {
 
             FXMLLoader loader = this.fxmlLoader.get();
 
             // Append extensions
-            String resources = data.bundle() + ".properties";
-            String fxml = data.fxml() + ".fxml";
-            String css = data.style() + ".css";
+            String resources = this.config.bundleRoot + name;
+            String fxml = this.config.fxmlRoot + name + ".fxml";
+            String css = this.config.styleRoot + name + ".css";
 
             // Resources
             ResourceBundle bundle = null;
@@ -54,7 +61,7 @@ public class FxViewRepository {
                 LOGGER.debugf("Found resource bundle %s", bundle);
             } catch (MissingResourceException e) {
                 // No bundle
-                //
+                LOGGER.debugf("No resource bundle found for %s", bundle);
             }
 
             // Style
@@ -72,13 +79,35 @@ public class FxViewRepository {
                 if (bundle != null) {
                     loader.setResources(bundle);
                 }
-                Parent node = loader.load(stream);
+
+                // Set-up loader location (allows use of relative image path for instance)
+                URL url = classLoader.getResource(this.config.fxmlRoot);
+                loader.setLocation(url);
+
+                Parent rootNode = loader.load(stream);
                 if (styleResource != null) {
-                    node.getStylesheets().add(styleResource.toExternalForm());
+                    rootNode.getStylesheets().add(styleResource.toExternalForm());
                 }
+
+                Object controller = loader.getController();
+
+                // Register view
+                FxViewData viewData = new FxViewData(rootNode, controller);
+                this.viewDataMap.put(name, viewData);
+
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException("Failed to load Fx view " + name);
             }
         }
+    }
+
+    /**
+     * Retrieve view data associated to a given view name
+     *
+     * @param viewName : serves as view identifier
+     * @return Associated view data (node, controller)
+     */
+    public FxViewData getViewData(final String viewName) {
+        return this.viewDataMap.get(viewName);
     }
 }

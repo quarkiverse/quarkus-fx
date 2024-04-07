@@ -26,6 +26,7 @@ public class FxApplication extends Application {
 
         // Fire event that marks that the application has finished starting
         // and that Stage instance is available for use
+        // Views (if any) are available
         beanManager.getEvent().fire(new FxStartupEvent(primaryStage));
     }
 }
