@@ -1,11 +1,13 @@
 package io.quarkiverse.fx.deployment;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
@@ -14,13 +16,14 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.FXMLLoaderProducer;
 import io.quarkiverse.fx.FxStartupLatch;
-import io.quarkiverse.fx.FxView;
-import io.quarkiverse.fx.FxViewRecorder;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.RunOnFxThreadInterceptor;
+import io.quarkiverse.fx.views.FxView;
+import io.quarkiverse.fx.views.FxViewRecorder;
+import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
-import io.quarkus.arc.deployment.BeanContainerListenerBuildItem;
+import io.quarkus.arc.deployment.BeanContainerBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -34,6 +37,8 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 class QuarkusFxExtensionProcessor {
 
     private static final String FEATURE = "quarkus-fx";
+    private static final String CONTROLLER_SUFFIX = "Controller";
+
     private static final Logger LOGGER = Logger.getLogger(QuarkusFxExtensionProcessor.class);
 
     @BuildStep
@@ -54,6 +59,11 @@ class QuarkusFxExtensionProcessor {
     @BuildStep
     AdditionalBeanBuildItem startupLatch() {
         return new AdditionalBeanBuildItem(FxStartupLatch.class);
+    }
+
+    @BuildStep
+    AdditionalBeanBuildItem fxViewRepository() {
+        return new AdditionalBeanBuildItem(FxViewRepository.class);
     }
 
     @BuildStep
@@ -93,34 +103,51 @@ class QuarkusFxExtensionProcessor {
         }
     }
 
+    @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep
-    void fxView(
+    void fxViews(
             final CombinedIndexBuildItem combinedIndex,
-            final BuildProducer<FxViewBuildItem> producer) {
+            final FxViewRecorder recorder,
+            final BeanContainerBuildItem beanContainerBuildItem) {
+
+        List<String> views = new ArrayList<>();
 
         // Look for all @FxView annotations
         Collection<AnnotationInstance> annotations = combinedIndex.getComputingIndex().getAnnotations(FxView.class);
         for (AnnotationInstance annotation : annotations) {
-            ClassInfo classInfo = annotation.target().asClass();
-            LOGGER.infof("Found @FxView " + classInfo);
-            producer.produce(new FxViewBuildItem(classInfo));
+
+            ClassInfo target = annotation.target().asClass();
+            AnnotationValue value = annotation.value();
+
+            if (value != null) {
+                // Custom value is set in annotation
+                String customName = value.asString();
+                views.add(customName);
+                continue;
+            }
+
+            String name = target.simpleName();
+            if (name.endsWith(CONTROLLER_SUFFIX)) {
+                // Valid convention
+                LOGGER.infof(
+                        "Found controller with annotated with %s : %s",
+                        FxView.class.getName(),
+                        name);
+
+                // Remove the controller suffix
+                String baseName = name.substring(0, name.length() - CONTROLLER_SUFFIX.length());
+                views.add(baseName);
+            } else {
+                LOGGER.warnf(
+                        "Type %s is annotated with %s but does not comply with naming convention (shall end with %s)",
+                        name,
+                        FxView.class.getName(),
+                        CONTROLLER_SUFFIX);
+
+                views.add(name);
+            }
         }
-    }
 
-    @Record(ExecutionTime.STATIC_INIT)
-    @BuildStep
-    void build(
-            final List<FxViewBuildItem> fxViewItems,
-            final FxViewRecorder recorder,
-            final BuildProducer<BeanContainerListenerBuildItem> containerListenerProducer) {
-
-        System.out.println("build " + fxViewItems);
-
-        List<String> list = fxViewItems.stream()
-                .map(item -> item.getClassInfo().name().toString())
-                .toList();
-
-        recorder.process(list);
-        //        containerListenerProducer.produce(new BeanContainerListenerBuildItem(recorder.process(list)));
+        recorder.process(views, beanContainerBuildItem.getValue());
     }
 }

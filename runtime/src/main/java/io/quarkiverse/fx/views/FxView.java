@@ -1,4 +1,4 @@
-package io.quarkiverse.fx;
+package io.quarkiverse.fx.views;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
