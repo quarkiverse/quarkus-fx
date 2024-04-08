@@ -1,5 +1,14 @@
 package io.quarkiverse.fx.views;
 
+import io.quarkiverse.fx.FxPreStartupEvent;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import org.jboss.logging.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -11,19 +20,11 @@ import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
-
-import org.jboss.logging.Logger;
-
-import io.quarkiverse.fx.FxPreStartupEvent;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-
 @ApplicationScoped
 public class FxViewRepository {
+
+    private static final String FXML_EXT = ".fxml";
+    private static final String STYLE_EXT = ".css";
 
     private static final Logger LOGGER = Logger.getLogger(FxViewRepository.class);
 
@@ -49,14 +50,15 @@ public class FxViewRepository {
 
             FXMLLoader loader = this.fxmlLoader.get();
 
-            // Append extensions
+            // Append path and extensions
+            String fxml = this.config.fxmlRoot + name + FXML_EXT;
+            String css = this.config.styleRoot + name + STYLE_EXT;
             String resources = this.config.bundleRoot + name;
-            String fxml = this.config.fxmlRoot + name + ".fxml";
-            String css = this.config.styleRoot + name + ".css";
 
             // Resources
             ResourceBundle bundle = null;
             try {
+                LOGGER.debugf("Attempting to load resource bundle %s", resources);
                 bundle = ResourceBundle.getBundle(resources, Locale.getDefault(), classLoader);
                 LOGGER.debugf("Found resource bundle %s", bundle);
             } catch (MissingResourceException e) {
