@@ -1,9 +1,8 @@
 package io.quarkiverse.fx;
 
-import org.jboss.logging.Logger;
-
 import io.quarkus.runtime.QuarkusApplication;
 import javafx.application.Application;
+import org.jboss.logging.Logger;
 
 public class QuarkusFxApplication implements QuarkusApplication {
 
@@ -13,9 +12,6 @@ public class QuarkusFxApplication implements QuarkusApplication {
 
     @Override
     public int run(final String... args) {
-
-        System.out.println(this);
-
         if (launched) {
             LOGGER.warn("Fx application already launched : skipping call to Application.launch() method");
             return 0;

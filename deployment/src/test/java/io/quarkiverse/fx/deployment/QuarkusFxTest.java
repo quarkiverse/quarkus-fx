@@ -29,7 +29,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.Pane;
 
-public class QuarkusFxTest {
+class QuarkusFxTest {
 
     private static final int A_FANCY_TEST_VALUE = 42;
 
