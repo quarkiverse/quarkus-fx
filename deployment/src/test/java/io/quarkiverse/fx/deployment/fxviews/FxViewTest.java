@@ -21,7 +21,7 @@ class FxViewTest {
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> {
-                jar.addClasses(SampleTestController.class);
+                jar.addClasses(SampleTestController.class, SubSampleTestController.class);
                 jar.addAsResource("SampleTest.fxml");
                 jar.addAsResource("SampleTest.properties");
                 jar.addAsResource("SampleTest.css");
@@ -33,6 +33,9 @@ class FxViewTest {
 
     @Inject
     FxStartupLatch startupLatch;
+
+    @Inject
+    SubSampleTestController subSampleTestController;
 
     @Test
     void test() throws InterruptedException {
@@ -58,5 +61,7 @@ class FxViewTest {
         URI uri = URI.create(stylesheets.get(0));
         Path path = Path.of(uri);
         Assertions.assertEquals("SampleTest.css", path.getFileName().toString());
+
+        Assertions.assertNotNull(this.subSampleTestController.button);
     }
 }
