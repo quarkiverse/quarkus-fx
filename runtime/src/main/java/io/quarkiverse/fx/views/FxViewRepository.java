@@ -100,7 +100,7 @@ public class FxViewRepository {
                 this.viewDataMap.put(name, viewData);
 
             } catch (IOException e) {
-                throw new IllegalStateException("Failed to load Fx view " + name);
+                throw new IllegalStateException("Failed to load FX view " + name);
             }
         }
     }
