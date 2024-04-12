@@ -19,7 +19,7 @@ startupLatch.await();
 
 Alternatively, the `FxStartupEvent` can be observed.
 
-Example of a `SkipPredicated` that can be used in conjunction with a `@Scheduled`
+Example of a `SkipPredicate` that can be used in conjunction with a `@Scheduled`
 
 [source,java]
 ----
