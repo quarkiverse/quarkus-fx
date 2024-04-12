@@ -1,5 +1,14 @@
 package io.quarkiverse.fx.views;
 
+import io.quarkiverse.fx.FxPreStartupEvent;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import org.jboss.logging.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -10,17 +19,6 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
-
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
-
-import org.jboss.logging.Logger;
-
-import io.quarkiverse.fx.FxPreStartupEvent;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 
 @ApplicationScoped
 public class FxViewRepository {
@@ -86,6 +84,12 @@ public class FxViewRepository {
 
                 // Set-up loader location (allows use of relative image path for instance)
                 URL url = classLoader.getResource(this.config.fxmlRoot);
+                if (url == null) {
+                    url = FxViewRepository.class.getResource(this.config.fxmlRoot);
+                    if (url == null) {
+                        throw new IllegalStateException("Failed to find FXML root location : " + this.config.fxmlRoot);
+                    }
+                }
                 loader.setLocation(url);
 
                 Parent rootNode = loader.load(stream);
@@ -100,7 +104,7 @@ public class FxViewRepository {
                 this.viewDataMap.put(name, viewData);
 
             } catch (IOException e) {
-                throw new IllegalStateException("Failed to load FX view " + name);
+                throw new IllegalStateException("Failed to load FX view " + name, e);
             }
         }
     }

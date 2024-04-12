@@ -36,7 +36,8 @@ class FxViewTest {
 
     @Test
     void test() throws InterruptedException {
-        // Non-blocking launch
+
+      // Non-blocking launch
         CompletableFuture.runAsync(() -> Quarkus.run(QuarkusFxApplication.class));
 
         // Wait for readiness
