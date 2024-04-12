@@ -10,7 +10,7 @@ h|[[quarkus-fx_configuration]]link:#quarkus-fx_configuration[Configuration prope
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus.fx.fxml-root]]`link:#quarkus-fx_quarkus.fx.fxml-root[quarkus.fx.fxml-root]`
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-fxml-root]]`link:#quarkus-fx_quarkus-fx-fxml-root[quarkus.fx.fxml-root]`
 
 
 [.description]
@@ -27,7 +27,7 @@ endif::add-copy-button-to-env-var[]
 |`/`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus.fx.style-root]]`link:#quarkus-fx_quarkus.fx.style-root[quarkus.fx.style-root]`
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-style-root]]`link:#quarkus-fx_quarkus-fx-style-root[quarkus.fx.style-root]`
 
 
 [.description]
@@ -44,7 +44,7 @@ endif::add-copy-button-to-env-var[]
 |`/`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus.fx.bundle-root]]`link:#quarkus-fx_quarkus.fx.bundle-root[quarkus.fx.bundle-root]`
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-bundle-root]]`link:#quarkus-fx_quarkus-fx-bundle-root[quarkus.fx.bundle-root]`
 
 
 [.description]
