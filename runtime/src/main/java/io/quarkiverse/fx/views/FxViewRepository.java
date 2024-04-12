@@ -1,14 +1,5 @@
 package io.quarkiverse.fx.views;
 
-import io.quarkiverse.fx.FxPreStartupEvent;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import org.jboss.logging.Logger;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -19,6 +10,17 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+
+import org.jboss.logging.Logger;
+
+import io.quarkiverse.fx.FxPreStartupEvent;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 
 @ApplicationScoped
 public class FxViewRepository {

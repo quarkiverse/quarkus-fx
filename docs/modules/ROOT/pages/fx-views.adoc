@@ -2,6 +2,7 @@
 include::./includes/attributes.adoc[]
 
 `@FxView` allows usage of conventional FX Views.
+The goal is to have automatic FXML loading, as well as CSS and bundle resource just by using the `io.quarkiverse.fx.views.FxView` annotation, based on naming convention.
 
 == Naming conventions
 
@@ -26,7 +27,7 @@ Also, it is possible to use a custom filename : `@FxView("my-custom-name")` will
 
 By default, files are retrieved from the classpath root. Therefore, files directly located under `src/main/resources` will be retrieved.
 
-It is possible to customize the root directory for `.fxml`, `.css` and `.properties` files.
+It is possible to customize the root directory for `.fxml`, `.css` and `.properties` files in the `application.properties` file. Refer to properties definitions for detail.
 
 == Samples
 
