@@ -44,6 +44,9 @@ public class FxViewRepository {
         this.viewNames = views;
     }
 
+    /**
+     * Observe the pre-startup event in order to initialize and set up views
+     */
     void setupViews(@Observes final FxPreStartupEvent event) {
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -77,7 +80,7 @@ public class FxViewRepository {
 
             // FXML
             LOGGER.debugf("Loading FXML %s", fxml);
-            InputStream stream = classLoader.getResourceAsStream(fxml);
+            InputStream stream = lookupResourceAsStream(classLoader, fxml);
             Objects.requireNonNull(stream, "FXML " + fxml + " not found in classpath.");
             try {
                 if (bundle != null) {
@@ -85,12 +88,9 @@ public class FxViewRepository {
                 }
 
                 // Set-up loader location (allows use of relative image path for instance)
-                URL url = classLoader.getResource(this.config.fxmlRoot);
+                URL url = lookupResource(classLoader, this.config.fxmlRoot);
                 if (url == null) {
-                    url = FxViewRepository.class.getResource(this.config.fxmlRoot);
-                    if (url == null) {
-                        throw new IllegalStateException("Failed to find FXML root location : " + this.config.fxmlRoot);
-                    }
+                    throw new IllegalStateException("Failed to find FXML root location : " + this.config.fxmlRoot);
                 }
                 loader.setLocation(url);
 
@@ -109,6 +109,24 @@ public class FxViewRepository {
                 throw new IllegalStateException("Failed to load FX view " + name, e);
             }
         }
+    }
+
+    private static URL lookupResource(final ClassLoader classLoader, final String name) {
+        URL url = classLoader.getResource(name);
+        if (url == null) {
+            url = FxViewRepository.class.getResource(name);
+        }
+
+        return url;
+    }
+
+    private static InputStream lookupResourceAsStream(final ClassLoader classLoader, final String name) {
+        InputStream stream = classLoader.getResourceAsStream(name);
+        if (stream == null) {
+            stream = FxViewRepository.class.getResourceAsStream(name);
+        }
+
+        return stream;
     }
 
     /**

@@ -8,5 +8,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target({ ElementType.TYPE })
 public @interface FxView {
+
+    /**
+     * Defines the base name for .fxml, .css and .properties resources.
+     * If omitted, name will use convention (controller's name without the "Controller" suffix)
+     */
     String value() default "";
 }

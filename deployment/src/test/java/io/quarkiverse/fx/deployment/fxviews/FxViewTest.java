@@ -1,22 +1,20 @@
 package io.quarkiverse.fx.deployment.fxviews;
 
-import java.net.URI;
-import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
-
-import jakarta.inject.Inject;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-
 import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.views.FxViewData;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
+import jakarta.inject.Inject;
 import javafx.collections.ObservableList;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
+import java.net.URI;
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
 class FxViewTest {
 
@@ -40,7 +38,7 @@ class FxViewTest {
     SubSampleTestController subSampleTestController;
 
     @Test
-    void test() throws InterruptedException {
+    void testFxView() throws InterruptedException {
 
         // Non-blocking launch
         CompletableFuture.runAsync(() -> Quarkus.run(QuarkusFxApplication.class));
