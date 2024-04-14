@@ -1,5 +1,6 @@
 package io.quarkiverse.fx;
 
+import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.interceptor.AroundInvoke;
 import jakarta.interceptor.Interceptor;
@@ -10,6 +11,7 @@ import org.jboss.logging.Logger;
 import javafx.application.Platform;
 
 @Interceptor
+@Priority(Interceptor.Priority.APPLICATION)
 @RunOnFxThread
 public class RunOnFxThreadInterceptor {
 

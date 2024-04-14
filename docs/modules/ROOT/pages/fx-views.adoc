@@ -1,0 +1,47 @@
+= @FxView
+include::./includes/attributes.adoc[]
+
+`@FxView` allows usage of conventional FX Views.
+The goal is to have automatic FXML loading, as well as CSS and bundle resource just by using the `io.quarkiverse.fx.views.FxView` annotation, based on naming convention.
+
+== Naming conventions
+
+Marking an FX controller with such annotation allows for automatic load of :
+
+* the corresponding `.fxml`
+* the `.css` stylesheet (if any)
+* the resource bundle (if any)
+
+By default, the filename is deduced from the controller class name.
+For a controller class `MySampleController`, the extension will attempt to load :
+
+* `MySample.fxml`
+* `MySample.css`
+* `MySample.properties` or a resource corresponding to current locale such as `MySample_fr_CA.properties` for instance
+
+The `Controller` suffix is removed when deducing the filename. From a controller class named `MySample`, same filenames will be retrieved, though it is recommended as a convention to keep the `Controller` suffix.
+
+Also, it is possible to use a custom filename : `@FxView("my-custom-name")` will attempt to load files `my-custom-name.fxml`, `my-custom-name.css`, ...
+
+== Directory lookup
+
+By default, files are retrieved from the classpath root. Therefore, files directly located under `src/main/resources` will be retrieved.
+
+It is possible to customize the root directory for `.fxml`, `.css` and `.properties` files in the `application.properties` file. Refer to properties definitions for detail.
+
+== Samples
+
+Some code examples can be found under `samples/fxviews`.
+
+[source,java]
+----
+@FxView
+@Dependent
+public class SampleController {
+
+    @FXML
+    private void onButtonClick() {
+        System.out.println("onButtonClick");
+    }
+}
+----

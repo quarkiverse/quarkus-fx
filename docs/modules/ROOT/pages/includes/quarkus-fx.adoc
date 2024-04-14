@@ -1,0 +1,63 @@
+
+:summaryTableId: quarkus-fx
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[[quarkus-fx_configuration]]link:#quarkus-fx_configuration[Configuration property]
+
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-fxml-root]]`link:#quarkus-fx_quarkus-fx-fxml-root[quarkus.fx.fxml-root]`
+
+
+[.description]
+--
+Root location for fx resources (.fxml)
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_FX_FXML_ROOT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_FX_FXML_ROOT+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|`/`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-style-root]]`link:#quarkus-fx_quarkus-fx-style-root[quarkus.fx.style-root]`
+
+
+[.description]
+--
+Root location for style resources (.css)
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_FX_STYLE_ROOT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_FX_STYLE_ROOT+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|`/`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-bundle-root]]`link:#quarkus-fx_quarkus-fx-bundle-root[quarkus.fx.bundle-root]`
+
+
+[.description]
+--
+Root location for bundle resources (.properties)
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_FX_BUNDLE_ROOT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_FX_BUNDLE_ROOT+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|`/`
+
+|===

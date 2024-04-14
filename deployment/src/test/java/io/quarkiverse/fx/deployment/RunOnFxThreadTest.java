@@ -20,7 +20,7 @@ import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
 import javafx.application.Platform;
 
-public class RunOnFxThreadTest {
+class RunOnFxThreadTest {
 
     private static final int ASYNC_RUN_TIMEOUT_MS = 500;
 

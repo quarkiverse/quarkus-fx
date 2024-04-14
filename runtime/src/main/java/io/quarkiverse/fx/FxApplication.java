@@ -20,8 +20,13 @@ public class FxApplication extends Application {
 
         BeanManager beanManager = CDI.current().getBeanManager();
 
+        // Fire event that marks that Fx context is ready
+        // initializations can be performed (like FXML conventional view loading)
+        beanManager.getEvent().fire(new FxPreStartupEvent());
+
         // Fire event that marks that the application has finished starting
         // and that Stage instance is available for use
+        // Views (if any) are available
         beanManager.getEvent().fire(new FxStartupEvent(primaryStage));
     }
 }
