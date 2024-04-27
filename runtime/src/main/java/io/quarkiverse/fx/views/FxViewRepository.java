@@ -102,7 +102,7 @@ public class FxViewRepository {
                 Object controller = loader.getController();
 
                 // Register view
-                FxViewData viewData = new FxViewData(rootNode, controller);
+                FxViewData viewData = FxViewData.of(rootNode, controller);
                 this.viewDataMap.put(name, viewData);
 
             } catch (IOException e) {

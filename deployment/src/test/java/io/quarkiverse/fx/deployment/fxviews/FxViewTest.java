@@ -58,7 +58,7 @@ class FxViewTest {
         String text = controller.label.getText();
         Assertions.assertEquals("Bonjour", text);
 
-        ObservableList<String> stylesheets = viewData.rootNode().getStylesheets();
+        ObservableList<String> stylesheets = viewData.getRootNode().getStylesheets();
         Assertions.assertEquals(1, stylesheets.size());
         URI uri = URI.create(stylesheets.get(0));
         Path path = Path.of(uri);

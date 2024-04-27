@@ -130,8 +130,8 @@ class QuarkusFxExtensionProcessor {
                 String name = target.simpleName();
                 if (name.endsWith(CONTROLLER_SUFFIX)) {
                     // Valid convention
-                    LOGGER.infof(
-                            "Found controller with annotated with %s : %s",
+                    LOGGER.debugf(
+                            "Found controller annotated with %s : %s",
                             FxView.class.getName(),
                             name);
 
@@ -149,6 +149,8 @@ class QuarkusFxExtensionProcessor {
                 }
             }
         }
+
+        LOGGER.infof("Fx views : {}", views);
 
         recorder.process(views, beanContainerBuildItem.getValue());
     }
