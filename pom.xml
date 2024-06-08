@@ -19,6 +19,7 @@
   <properties>
     <quarkus.version>3.8.3</quarkus.version>
     <javafx.version>21.0.3</javafx.version>
+    <javafx.platform>linux</javafx.platform>
     <maven.compiler.release>17</maven.compiler.release>
   </properties>
   <dependencyManagement>
