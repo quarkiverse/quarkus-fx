@@ -1,5 +1,6 @@
 package io.quarkiverse.fx;
 
+import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import javafx.application.Application;
 import org.jboss.logging.Logger;
@@ -12,12 +13,26 @@ public class QuarkusFxApplication implements QuarkusApplication {
 
     @Override
     public int run(final String... args) {
+
+        // Prevent launching more than once
         if (launched) {
-            LOGGER.warn("Fx application already launched : skipping call to Application.launch() method");
+            LOGGER.warn("Fx application already launched : skipping call to Application::launch");
+            Quarkus.waitForExit();
             return 0;
         }
+
         launched = true;
-        Application.launch(FxApplication.class, args);
+
+        // Launch in a new thread to prevent blocking
+        new Thread(() -> {
+            try {
+                Application.launch(FxApplication.class, args);
+            } catch (Exception e) {
+                LOGGER.error("An exception occurred in Fx application launch", e);
+            }
+        }).start();
+
+        Quarkus.waitForExit();
         return 0;
     }
 }
