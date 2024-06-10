@@ -1,9 +1,10 @@
 package io.quarkiverse.fx;
 
+import org.jboss.logging.Logger;
+
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import javafx.application.Application;
-import org.jboss.logging.Logger;
 
 public class QuarkusFxApplication implements QuarkusApplication {
 
