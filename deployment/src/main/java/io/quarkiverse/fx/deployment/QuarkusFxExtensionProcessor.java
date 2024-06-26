@@ -1,16 +1,36 @@
 package io.quarkiverse.fx.deployment;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
+
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.AnnotationValue;
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.IndexView;
+import org.jboss.jandex.VoidType;
+import org.jboss.logging.Logger;
+
 import io.quarkiverse.fx.FXMLLoaderProducer;
 import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.RunOnFxThreadInterceptor;
+import io.quarkiverse.fx.context.FxScopeContext;
+import io.quarkiverse.fx.context.FxScoped;
 import io.quarkiverse.fx.livereload.LiveReloadRecorder;
 import io.quarkiverse.fx.views.FxView;
 import io.quarkiverse.fx.views.FxViewRecorder;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
+import io.quarkus.arc.deployment.ContextRegistrationPhaseBuildItem;
+import io.quarkus.arc.deployment.ContextRegistrationPhaseBuildItem.ContextConfiguratorBuildItem;
+import io.quarkus.arc.deployment.CustomScopeBuildItem;
+import io.quarkus.arc.processor.ContextConfigurator;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -21,19 +41,6 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
 import io.quarkus.runtime.annotations.QuarkusMain;
-import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationTarget;
-import org.jboss.jandex.AnnotationValue;
-import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.IndexView;
-import org.jboss.jandex.VoidType;
-import org.jboss.logging.Logger;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
 
 class QuarkusFxExtensionProcessor {
 
@@ -60,6 +67,22 @@ class QuarkusFxExtensionProcessor {
     @BuildStep
     AdditionalBeanBuildItem startupLatch() {
         return new AdditionalBeanBuildItem(FxStartupLatch.class);
+    }
+
+    @BuildStep
+    CustomScopeBuildItem fxScope() {
+        return new CustomScopeBuildItem(FxScoped.class);
+    }
+
+    @BuildStep
+    ContextConfiguratorBuildItem fxScopeContext(
+            final ContextRegistrationPhaseBuildItem contextRegistrationPhase) {
+
+        ContextConfigurator configurator = contextRegistrationPhase.getContext()
+                .configure(FxScoped.class)
+                .contextClass(FxScopeContext.class);
+
+        return new ContextConfiguratorBuildItem(configurator);
     }
 
     @BuildStep
@@ -113,14 +136,11 @@ class QuarkusFxExtensionProcessor {
         recorder.process(liveReloadBuildItem.isLiveReload());
     }
 
-    @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep
-    void fxViews(
+    FxViewsBuildItem lookupFxViews(
             final CombinedIndexBuildItem combinedIndex,
-            final FxViewRecorder recorder,
-            final BeanContainerBuildItem beanContainerBuildItem) {
-
-        List<String> views = new ArrayList<>();
+            final BuildProducer<AdditionalBeanBuildItem> additionalBeanProducer) {
+        List<String> viewNames = new ArrayList<>();
 
         // Look for all @FxView annotations
         Collection<AnnotationInstance> annotations = combinedIndex.getComputingIndex().getAnnotations(FxView.class);
@@ -132,7 +152,7 @@ class QuarkusFxExtensionProcessor {
             if (value != null) {
                 // Custom value is set in annotation : use it
                 String customName = value.asString();
-                views.add(customName);
+                viewNames.add(customName);
             } else {
                 // Use convention
                 // If controller is named "MySampleController", expected fxml would be MySample.fxml
@@ -147,7 +167,7 @@ class QuarkusFxExtensionProcessor {
 
                     // Remove the controller suffix
                     String baseName = name.substring(0, name.length() - CONTROLLER_SUFFIX.length());
-                    views.add(baseName);
+                    viewNames.add(baseName);
                 } else {
                     LOGGER.warnf(
                             "Type %s is annotated with %s but does not comply with naming convention (shall end with %s)",
@@ -155,13 +175,27 @@ class QuarkusFxExtensionProcessor {
                             FxView.class.getName(),
                             CONTROLLER_SUFFIX);
 
-                    views.add(name);
+                    viewNames.add(name);
                 }
             }
+
+            //
+            AdditionalBeanBuildItem additionalBeanBuildItem = new AdditionalBeanBuildItem(target.name().toString());
+            additionalBeanProducer.produce(additionalBeanBuildItem);
         }
 
-        LOGGER.infof("Fx views : {}", views);
+        LOGGER.infof("Fx viewNames : %s", viewNames);
 
-        recorder.process(views, beanContainerBuildItem.getValue());
+        return new FxViewsBuildItem(viewNames);
+    }
+
+    @Record(ExecutionTime.RUNTIME_INIT)
+    @BuildStep
+    void processViews(
+            final FxViewsBuildItem fxViewsBuildItem,
+            final FxViewRecorder recorder,
+            final BeanContainerBuildItem beanContainerBuildItem) {
+
+        recorder.process(fxViewsBuildItem.getViewNames(), beanContainerBuildItem.getValue());
     }
 }

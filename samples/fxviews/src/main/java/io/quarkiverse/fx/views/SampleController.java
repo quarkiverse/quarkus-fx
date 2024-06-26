@@ -1,11 +1,10 @@
 package io.quarkiverse.fx.views;
 
-import jakarta.enterprise.context.Dependent;
-
+import io.quarkiverse.fx.context.FxScoped;
 import javafx.fxml.FXML;
 
 @FxView
-@Dependent
+@FxScoped
 public class SampleController {
 
     @FXML

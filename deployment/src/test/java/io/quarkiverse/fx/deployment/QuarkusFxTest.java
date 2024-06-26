@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -23,10 +22,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.fx.FxStartupEvent;
 import io.quarkiverse.fx.QuarkusFxApplication;
+import io.quarkiverse.fx.context.FxScoped;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 
 class QuarkusFxTest {
@@ -35,8 +36,13 @@ class QuarkusFxTest {
 
     private static final String FXML_CONTENT = """
             <?xml version="1.0" encoding="UTF-8"?>
+            <?import javafx.scene.control.Label?>
             <?import javafx.scene.layout.Pane?>
-            <Pane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="%s" />
+            <Pane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="%s">
+              <children>
+                <Label fx:id="sampleLabel" />
+              </children>
+            </Pane>
             """.formatted(TestController.class.getName());
 
     private static final AtomicBoolean primaryStageObserved = new AtomicBoolean(false);
@@ -50,11 +56,14 @@ class QuarkusFxTest {
         }
     }
 
-    @Singleton
+    @FxScoped
     public static class TestController {
 
         @Inject
         TestService testService;
+
+        @FXML
+        Label sampleLabel;
 
         @FXML
         void initialize() {
@@ -88,6 +97,9 @@ class QuarkusFxTest {
             InputStream fxmlStream = new ByteArrayInputStream(FXML_CONTENT.getBytes());
             Pane pane = this.fxmlLoader.load(fxmlStream);
             Assertions.assertNotNull(pane);
+            Assertions.assertNotNull(this.fxmlLoader.getController());
+            Assertions.assertInstanceOf(TestController.class, this.fxmlLoader.getController());
+            Assertions.assertNotNull(((TestController) this.fxmlLoader.getController()).sampleLabel);
             Assertions.assertTrue(testControllerInitialized.get());
             Assertions.assertEquals(A_FANCY_TEST_VALUE, testServiceAnswer.get());
         } catch (IOException e) {

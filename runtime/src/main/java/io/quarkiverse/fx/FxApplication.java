@@ -2,6 +2,7 @@ package io.quarkiverse.fx;
 
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.inject.spi.CDI;
+
 import javafx.application.Application;
 import javafx.stage.Stage;
 

@@ -22,7 +22,7 @@ class FxViewTest {
 
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
-            .withApplicationRoot((jar) -> {
+            .withApplicationRoot(jar -> {
                 jar.addClasses(SampleTestController.class, SubSampleTestController.class);
                 jar.addAsResource("SampleTest.fxml");
                 jar.addAsResource("SampleTest.properties");

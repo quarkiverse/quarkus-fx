@@ -2,9 +2,9 @@ package io.quarkiverse.fx.views;
 
 import java.util.concurrent.CompletableFuture;
 
-import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 
+import io.quarkiverse.fx.context.FxScoped;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -13,7 +13,7 @@ import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
 @FxView("custom-sample")
-@Dependent
+@FxScoped
 public class YetAnotherSampleController {
 
     @Inject
@@ -26,7 +26,7 @@ public class YetAnotherSampleController {
     Label rollResultLabel;
 
     @FXML
-    public void initialize() {
+    private void initialize() {
         Stage stage = new Stage();
         Scene scene = new Scene(this.root);
         stage.setScene(scene);

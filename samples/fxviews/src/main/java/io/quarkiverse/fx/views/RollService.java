@@ -3,9 +3,9 @@ package io.quarkiverse.fx.views;
 import java.security.SecureRandom;
 import java.util.Random;
 
-import jakarta.inject.Singleton;
+import jakarta.enterprise.context.ApplicationScoped;
 
-@Singleton
+@ApplicationScoped
 public class RollService {
 
     private static final Random RANDOM = new SecureRandom();

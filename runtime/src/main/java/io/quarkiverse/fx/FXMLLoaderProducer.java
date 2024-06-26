@@ -6,6 +6,7 @@ import jakarta.inject.Inject;
 
 import javafx.fxml.FXMLLoader;
 
+//@ApplicationScoped
 public class FXMLLoaderProducer {
 
     @Inject
@@ -14,7 +15,7 @@ public class FXMLLoaderProducer {
     @Produces
     FXMLLoader produceFXMLLoader() {
         FXMLLoader loader = new FXMLLoader();
-        loader.setControllerFactory(param -> this.instance.select(param).get());
+        loader.setControllerFactory(type -> this.instance.select(type).get());
         loader.setClassLoader(Thread.currentThread().getContextClassLoader());
         return loader;
     }
