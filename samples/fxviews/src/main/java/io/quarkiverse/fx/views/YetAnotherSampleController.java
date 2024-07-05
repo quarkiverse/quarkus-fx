@@ -35,6 +35,9 @@ public class YetAnotherSampleController {
 
     @FXML
     private void handleClickMeAction() {
+
+        System.out.println(this.rollService);
+
         // Roll a d20
         System.out.println(Thread.currentThread().getContextClassLoader());
         System.out.println(Thread.currentThread());

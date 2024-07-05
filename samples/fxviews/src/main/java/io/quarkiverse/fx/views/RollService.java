@@ -1,9 +1,9 @@
 package io.quarkiverse.fx.views;
 
+import jakarta.enterprise.context.ApplicationScoped;
+
 import java.security.SecureRandom;
 import java.util.Random;
-
-import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class RollService {
@@ -13,6 +13,9 @@ public class RollService {
     public int roll() {
         System.out.println(Thread.currentThread().getContextClassLoader());
         System.out.println(Thread.currentThread());
-        return RANDOM.nextInt(0, 21);
+        System.out.println("RollService instance : " + this);
+        int value = RANDOM.nextInt(0, 21);
+        System.out.println("Roll : " + value);
+        return value + 100;
     }
 }
