@@ -2,7 +2,6 @@ package io.quarkiverse.fx;
 
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.CDI;
-
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.stage.Stage;
@@ -16,12 +15,13 @@ import javafx.stage.Stage;
  */
 public class FxApplication extends Application {
 
+    private static Application application;
     private static HostServices hostServices;
 
     @Override
     public void start(final Stage primaryStage) {
 
-        hostServices = this.getHostServices();
+        application = this;
 
         BeanManager beanManager = CDI.current().getBeanManager();
 
@@ -36,6 +36,9 @@ public class FxApplication extends Application {
     }
 
     public static HostServices getHostServicesInstance() {
+        if (hostServices == null) {
+            hostServices = application.getHostServices();
+        }
         return hostServices;
     }
 }
