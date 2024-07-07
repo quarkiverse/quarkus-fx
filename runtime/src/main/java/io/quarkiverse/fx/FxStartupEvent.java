@@ -4,7 +4,7 @@ import javafx.stage.Stage;
 
 /**
  * Event used to indicate that the FX application has started.
- * Holds the {@linkplain Stage} instance.
+ * Holds the {@link Stage} instance.
  */
 public class FxStartupEvent {
 

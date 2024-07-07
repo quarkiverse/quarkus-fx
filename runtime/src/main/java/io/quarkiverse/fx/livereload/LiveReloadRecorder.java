@@ -1,8 +1,7 @@
 package io.quarkiverse.fx.livereload;
 
-import org.jboss.logging.Logger;
-
 import io.quarkus.runtime.annotations.Recorder;
+import org.jboss.logging.Logger;
 
 @Recorder
 public class LiveReloadRecorder {
@@ -12,5 +11,7 @@ public class LiveReloadRecorder {
     public void process(final boolean liveReload) {
         // Prepared for later
         LOGGER.debugf("Fx live reload : %b", liveReload);
+
+        System.out.println("LiveReloadRecorder " + liveReload);
     }
 }

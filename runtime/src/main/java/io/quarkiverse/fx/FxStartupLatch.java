@@ -6,7 +6,7 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Singleton;
 
 /**
- * A singleton for a startup latch used by {@linkplain FxApplication} and {@linkplain RunOnFxThreadInterceptor}
+ * A singleton for a startup latch used by {@link FxApplication} and {@link RunOnFxThreadInterceptor}
  */
 @Singleton
 public class FxStartupLatch {

@@ -1,10 +1,8 @@
 package io.quarkiverse.fx.views;
 
-import java.util.concurrent.CompletableFuture;
-
-import jakarta.inject.Inject;
-
 import io.quarkiverse.fx.context.FxScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -12,12 +10,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
+import java.util.concurrent.CompletableFuture;
+
 @FxView("custom-sample")
 @FxScoped
 public class YetAnotherSampleController {
 
     @Inject
-    RollService rollService;
+    Instance<RollService> rollService;
 
     @FXML
     Parent root;
@@ -44,7 +44,10 @@ public class YetAnotherSampleController {
 
         CompletableFuture.runAsync(() -> {
             ClassLoader cl = Thread.currentThread().getContextClassLoader();
-            int roll = this.rollService.roll();
+
+            RollService s = this.rollService.get();
+            System.out.println(s);
+            int roll = s.roll();
 
             Platform.runLater(() -> {
                 Thread.currentThread().setContextClassLoader(cl);

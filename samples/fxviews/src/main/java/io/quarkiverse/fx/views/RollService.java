@@ -16,6 +16,6 @@ public class RollService {
         System.out.println("RollService instance : " + this);
         int value = RANDOM.nextInt(0, 21);
         System.out.println("Roll : " + value);
-        return value + 100;
+        return value;
     }
 }

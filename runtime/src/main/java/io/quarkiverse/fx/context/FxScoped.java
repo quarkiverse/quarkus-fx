@@ -10,5 +10,6 @@ import jakarta.inject.Scope;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Scope
+//@NormalScope
 public @interface FxScoped {
 }
