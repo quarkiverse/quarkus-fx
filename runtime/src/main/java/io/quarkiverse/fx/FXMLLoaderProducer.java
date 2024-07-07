@@ -1,11 +1,13 @@
 package io.quarkiverse.fx;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 
 import javafx.fxml.FXMLLoader;
 
+@ApplicationScoped
 public class FXMLLoaderProducer {
 
     @Inject

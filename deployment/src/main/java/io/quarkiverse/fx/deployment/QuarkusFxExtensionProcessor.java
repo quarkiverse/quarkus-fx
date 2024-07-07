@@ -16,6 +16,7 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.FXMLLoaderProducer;
 import io.quarkiverse.fx.FxStartupLatch;
+import io.quarkiverse.fx.HostServicesProducer;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.RunOnFxThreadInterceptor;
@@ -51,6 +52,11 @@ class QuarkusFxExtensionProcessor {
     @BuildStep
     AdditionalBeanBuildItem fxmlLoader() {
         return new AdditionalBeanBuildItem(FXMLLoaderProducer.class);
+    }
+
+    @BuildStep
+    AdditionalBeanBuildItem hostServices() {
+        return new AdditionalBeanBuildItem(HostServicesProducer.class);
     }
 
     /**

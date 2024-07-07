@@ -2,6 +2,7 @@ package io.quarkiverse.fx;
 
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.CDI;
+
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.stage.Stage;
@@ -28,7 +29,7 @@ public class FxApplication extends Application {
 
         // Fire event that marks that Fx context is ready
         // initializations can be performed (like FXML conventional view loading)
-        beanManager.getEvent().fire(new FxPreStartupEvent());
+        beanManager.getEvent().fire(new FxPreStartupEvent(this));
 
         // Fire event that marks that the application has finished starting
         // and that Stage instance is available for use
@@ -38,6 +39,7 @@ public class FxApplication extends Application {
 
     /**
      * Retrieve the {@link HostServices} instance by delegation to {@link Application}
+     *
      * @return HostServices provider
      */
     public static HostServices getHostServicesInstance() {

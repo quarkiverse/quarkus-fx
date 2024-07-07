@@ -27,6 +27,9 @@ class FxStartupTest {
     @Inject
     FxStartupLatch latch;
 
+    @Inject
+    HostServices hostServices;
+
     @Test
     @Timeout(value = 5)
     void test() {
@@ -40,6 +43,9 @@ class FxStartupTest {
             // Ensure HostServices instance is made available
             HostServices hostServices = FxApplication.getHostServicesInstance();
             Assertions.assertNotNull(hostServices);
+
+            // Also by using injection
+            Assertions.assertNotNull(this.hostServices);
 
         } catch (InterruptedException e) {
             Assertions.fail(e);
