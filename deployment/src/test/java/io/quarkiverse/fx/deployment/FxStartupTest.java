@@ -42,7 +42,10 @@ class FxStartupTest {
             // Ensure HostServices instance is made available by using injection
             Assertions.assertNotNull(this.hostServices);
 
-        } catch (InterruptedException e) {
+            // Invoke service
+            this.hostServices.getCodeBase();
+
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }
