@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkiverse.fx.FxApplication;
 import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkus.runtime.Quarkus;
@@ -40,11 +39,7 @@ class FxStartupTest {
         try {
             this.latch.await();
 
-            // Ensure HostServices instance is made available
-            HostServices hostServices = FxApplication.getHostServicesInstance();
-            Assertions.assertNotNull(hostServices);
-
-            // Also by using injection
+            // Ensure HostServices instance is made available by using injection
             Assertions.assertNotNull(this.hostServices);
 
         } catch (InterruptedException e) {

@@ -3,6 +3,7 @@ package io.quarkiverse.fx;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Produces;
+
 import javafx.application.Application;
 import javafx.application.HostServices;
 
