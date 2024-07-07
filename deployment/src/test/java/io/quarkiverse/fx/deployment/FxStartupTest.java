@@ -15,6 +15,7 @@ import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
+import javafx.application.HostServices;
 
 class FxStartupTest {
 
@@ -25,6 +26,9 @@ class FxStartupTest {
     @Inject
     FxStartupLatch latch;
 
+    @Inject
+    HostServices hostServices;
+
     @Test
     @Timeout(value = 5)
     void test() {
@@ -34,7 +38,14 @@ class FxStartupTest {
 
         try {
             this.latch.await();
-        } catch (InterruptedException e) {
+
+            // Ensure HostServices instance is made available by using injection
+            Assertions.assertNotNull(this.hostServices);
+
+            // Invoke service
+            this.hostServices.getCodeBase();
+
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }
