@@ -21,7 +21,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkiverse.fx.FxStartupEvent;
+import io.quarkiverse.fx.FxApplicationStartupEvent;
+import io.quarkiverse.fx.FxPostStartupEvent;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
@@ -39,6 +40,7 @@ class QuarkusFxTest {
             <Pane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="%s" />
             """.formatted(TestController.class.getName());
 
+    private static final AtomicBoolean applicationObserved = new AtomicBoolean(false);
     private static final AtomicBoolean primaryStageObserved = new AtomicBoolean(false);
     private static final AtomicBoolean testControllerInitialized = new AtomicBoolean(false);
     private static final AtomicInteger testServiceAnswer = new AtomicInteger(0);
@@ -82,6 +84,10 @@ class QuarkusFxTest {
 
         await()
                 .atMost(FxTestConstants.LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .until(applicationObserved::get);
+
+        await()
+                .atMost(FxTestConstants.LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS)
                 .until(primaryStageObserved::get);
 
         try {
@@ -95,7 +101,13 @@ class QuarkusFxTest {
         }
     }
 
-    void observePrimaryStage(@Observes final FxStartupEvent event) {
+    void observeApplication(@Observes final FxApplicationStartupEvent event) {
+        Assertions.assertNotNull(event.getApplication());
+        Assertions.assertFalse(primaryStageObserved.get());
+        applicationObserved.set(true);
+    }
+
+    void observePrimaryStage(@Observes final FxPostStartupEvent event) {
         Assertions.assertNotNull(event.getPrimaryStage());
         primaryStageObserved.set(true);
     }

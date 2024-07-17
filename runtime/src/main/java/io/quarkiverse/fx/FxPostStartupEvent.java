@@ -6,11 +6,11 @@ import javafx.stage.Stage;
  * Event used to indicate that the FX application has started.
  * Holds the {@linkplain Stage} instance.
  */
-public class FxStartupEvent {
+public final class FxPostStartupEvent {
 
     private final Stage primaryStage;
 
-    FxStartupEvent(final Stage primaryStage) {
+    FxPostStartupEvent(final Stage primaryStage) {
         this.primaryStage = primaryStage;
     }
 

@@ -17,7 +17,7 @@ public class FxStartupLatch {
         this.latch.await();
     }
 
-    void onFxStartup(@Observes final FxStartupEvent event) {
+    void onFxStartup(@Observes final FxPostStartupEvent event) {
         this.latch.countDown();
     }
 }

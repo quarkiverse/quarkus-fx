@@ -1,9 +1,14 @@
 package io.quarkiverse.fx.deployment.fxviews;
 
+import static org.awaitility.Awaitility.await;
+
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
 import org.junit.jupiter.api.Assertions;
@@ -11,7 +16,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.fx.FxStartupLatch;
+import io.quarkiverse.fx.FxViewLoadEvent;
 import io.quarkiverse.fx.QuarkusFxApplication;
+import io.quarkiverse.fx.deployment.FxTestConstants;
 import io.quarkiverse.fx.views.FxViewData;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.runtime.Quarkus;
@@ -39,6 +46,8 @@ class FxViewTest {
     @Inject
     SubSampleTestController subSampleTestController;
 
+    private static final AtomicBoolean eventObserved = new AtomicBoolean(false);
+
     @Test
     void testFxView() throws InterruptedException {
 
@@ -47,6 +56,10 @@ class FxViewTest {
 
         // Wait for readiness
         this.startupLatch.await();
+
+        await()
+                .atMost(FxTestConstants.LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .until(eventObserved::get);
 
         FxViewData viewData = this.viewRepository.getViewData("SampleTest");
         Assertions.assertNotNull(viewData);
@@ -65,5 +78,9 @@ class FxViewTest {
         Assertions.assertEquals("SampleTest.css", path.getFileName().toString());
 
         Assertions.assertNotNull(this.subSampleTestController.button);
+    }
+
+    void observeEvent(@Observes final FxViewLoadEvent event) {
+        eventObserved.set(true);
     }
 }

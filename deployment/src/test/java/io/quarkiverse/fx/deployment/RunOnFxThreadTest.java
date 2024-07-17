@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkiverse.fx.FxStartupEvent;
+import io.quarkiverse.fx.FxPostStartupEvent;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkus.runtime.Quarkus;
@@ -55,7 +55,7 @@ class RunOnFxThreadTest {
         Assertions.assertTrue(fxThread);
     }
 
-    void observePrimaryStage(@Observes final FxStartupEvent event) {
+    void observePrimaryStage(@Observes final FxPostStartupEvent event) {
         Assertions.assertNotNull(event.getPrimaryStage());
         primaryStageObserved = true;
     }

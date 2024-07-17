@@ -18,7 +18,7 @@ import jakarta.inject.Inject;
 
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.fx.FxPreStartupEvent;
+import io.quarkiverse.fx.FxViewLoadEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 
@@ -47,7 +47,7 @@ public class FxViewRepository {
     /**
      * Observe the pre-startup event in order to initialize and set up views
      */
-    void setupViews(@Observes final FxPreStartupEvent event) {
+    void setupViews(@Observes final FxViewLoadEvent event) {
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
