@@ -7,8 +7,10 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 
 /**
- * A non-CDI bean that is instantiated by the {@link Application} layer. This
- * calls into the quarkus-fx application bean using a CDI event with {@link FxStartupEvent}
+ * A non-CDI bean that is instantiated by the {@link Application} layer.
+ * This calls into the quarkus-fx application bean using CDI events :
+ * {@link FxApplicationStartupEvent} : {@link Application} is created
+ * {@link FxPostStartupEvent} : {@link Application} is ready and {@link Stage} available
  * that holds a {@link Stage} instance.
  *
  * @see Stage

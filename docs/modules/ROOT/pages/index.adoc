@@ -87,11 +87,35 @@ public class QuarkusFxApplication implements QuarkusApplication {
 }
 ----
 
-When the application is started, you can get obtain access to the primary `Stage` instance by observing the `FxStartupEvent` CDI event :
+When the application is started, two main events are fired in sequence :
+
+* `FxApplicationStartupEvent` indicates that the `Application` is created and available
+* `FxPostStartupEvent` indicates that the `Application` is ready as well as the `Stage` instance.
 
 [source,java]
 ----
-void onStart(@Observes final FxStartupEvent event) {
+void onApplicationStartup(@Observes final FxApplicationStartupEvent event) {
+  Application application = event.getApplication();
+}
+----
+
+[source,java]
+----
+void onPostStartup(@Observes final FxPostStartupEvent event) {
   Stage stage = event.getPrimaryStage();
+}
+----
+
+== Injecting `HostServices`
+
+The `HostServices` instance which is obtained via `Application::getHostServices` can also be injected by using the `@Inject` annotation.
+
+[source,java]
+----
+@ApplicationScoped
+public class MyBean {
+
+  @Inject
+  HostServices hostServices;
 }
 ----
