@@ -12,7 +12,7 @@ This extension allows you to use https://openjfx.io/[Java FX] to your Quarkus ap
 
 In order to use this extension, you need to add the `io.quarkiverse.fx:quarkus-fx` dependency to your project.
 
-Maven
+.Maven
 [source,xml,subs=attributes+]
 ----
 <dependency>
@@ -22,7 +22,7 @@ Maven
 </dependency>
 ----
 
-Gradle
+.Gradle
 [source,groovy,subs=attributes+]
 ----
 dependencies {
@@ -35,6 +35,7 @@ dependencies {
 The extension allows using cdi features in JavaFX controller classes. +
 The FXMLLoader is made a CDI bean and can be injected in your application.
 
+.Loading FXML with injected `FXMLLoader`
 [source,java]
 ----
 @Inject
@@ -48,6 +49,7 @@ public void load() {
 }
 ----
 
+.Controller
 [source,java]
 ----
 public class MyFxmlController {
@@ -64,10 +66,11 @@ public class MyFxmlController {
 
 == Startup
 
-The application will automatically be launched (thanks to a call to `javafx.application.Application::launch`) when the extension is present. +
+The application will automatically be launched (thanks to a call to `javafx.application.Application::launch`) when the extension is present.
 
 If you need to customize the launch, you can provide a custom `@QuarkusMain`, such as :
 
+.Custom main
 [source,java]
 ----
 package io.quarkiverse.fx.fxapp;
@@ -87,11 +90,35 @@ public class QuarkusFxApplication implements QuarkusApplication {
 }
 ----
 
-When the application is started, you can get obtain access to the primary `Stage` instance by observing the `FxStartupEvent` CDI event :
+When the application is started, two main events are fired in sequence :
+
+* `FxApplicationStartupEvent` indicates that the `Application` is created and available,
+* `FxPostStartupEvent` indicates that the `Application` is ready as well as the `Stage` instance.
 
 [source,java]
 ----
-void onStart(@Observes final FxStartupEvent event) {
+void onApplicationStartup(@Observes final FxApplicationStartupEvent event) {
+  Application application = event.getApplication();
+}
+----
+
+[source,java]
+----
+void onPostStartup(@Observes final FxPostStartupEvent event) {
   Stage stage = event.getPrimaryStage();
+}
+----
+
+== Injecting `HostServices`
+
+The `HostServices` instance which is obtained via `Application::getHostServices` can also be injected by using the `@Inject` annotation.
+
+[source,java]
+----
+@ApplicationScoped
+public class MyBean {
+
+  @Inject
+  HostServices hostServices;
 }
 ----

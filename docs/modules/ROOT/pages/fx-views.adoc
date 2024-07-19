@@ -25,9 +25,25 @@ Also, it is possible to use a custom filename : `@FxView("my-custom-name")` will
 
 == Directory lookup
 
-By default, files are retrieved from the classpath root. Therefore, files directly located under `src/main/resources` will be retrieved.
+By default, files are retrieved from the classpath root.
+Therefore, files directly located under `src/main/resources` will be retrieved.
 
-It is possible to customize the root directory for `.fxml`, `.css` and `.properties` files in the `application.properties` file. Refer to properties definitions for detail.
+It is possible to customize the root directory for `.fxml`, `.css` and `.properties` files in the `application.properties` file.
+
+.application.properties
+----
+#FXML
+quarkus.fx.fxml-root=/fxml/ <1>
+
+# Style
+quarkus.fx.style-root=/style/ <2>
+
+# I18n
+quarkus.fx.bundle-root=/i18n/ <3>
+----
+<1> FXML lookup directory (default = "/")
+<2> Style / CSS lookup directory (default = "/")
+<3> Bundle / internationalization lookup directory (default = "/")
 
 == Samples
 

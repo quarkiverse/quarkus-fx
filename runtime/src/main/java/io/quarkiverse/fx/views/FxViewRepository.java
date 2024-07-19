@@ -56,9 +56,9 @@ public class FxViewRepository {
             FXMLLoader loader = this.fxmlLoader.get();
 
             // Append path and extensions
-            String fxml = this.config.fxmlRoot + name + FXML_EXT;
-            String css = this.config.styleRoot + name + STYLE_EXT;
-            String resources = this.config.bundleRoot + name;
+            String fxml = this.config.fxmlRoot() + name + FXML_EXT;
+            String css = this.config.styleRoot() + name + STYLE_EXT;
+            String resources = this.config.bundleRoot() + name;
 
             // Resources
             ResourceBundle bundle = null;
@@ -88,9 +88,9 @@ public class FxViewRepository {
                 }
 
                 // Set-up loader location (allows use of relative image path for instance)
-                URL url = lookupResource(classLoader, this.config.fxmlRoot);
+                URL url = lookupResource(classLoader, this.config.fxmlRoot());
                 if (url == null) {
-                    throw new IllegalStateException("Failed to find FXML root location : " + this.config.fxmlRoot);
+                    throw new IllegalStateException("Failed to find FXML root location : " + this.config.fxmlRoot());
                 }
                 loader.setLocation(url);
 
