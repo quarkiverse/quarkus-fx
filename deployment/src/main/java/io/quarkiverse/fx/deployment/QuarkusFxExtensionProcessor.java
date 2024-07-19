@@ -40,6 +40,8 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 class QuarkusFxExtensionProcessor {
 
     private static final String FEATURE = "quarkus-fx";
+
+    // Controller suffix naming convention (optional)
     private static final String CONTROLLER_SUFFIX = "Controller";
 
     private static final Logger LOGGER = Logger.getLogger(QuarkusFxExtensionProcessor.class);
@@ -59,11 +61,6 @@ class QuarkusFxExtensionProcessor {
         return new AdditionalBeanBuildItem(HostServicesProducer.class);
     }
 
-    /**
-     * Register the FxApplication so the startup latch producer method is found
-     *
-     * @return build item for FxApplication
-     */
     @BuildStep
     AdditionalBeanBuildItem startupLatch() {
         return new AdditionalBeanBuildItem(FxStartupLatch.class);
@@ -108,6 +105,8 @@ class QuarkusFxExtensionProcessor {
         // Otherwise, provide a default QuarkusFxApplication that launches the FX application
         if (index.getAnnotations(DotName.createSimple(QuarkusMain.class.getName())).isEmpty()) {
             quarkusApplicationClass.produce(new QuarkusApplicationClassBuildItem(QuarkusFxApplication.class));
+        } else {
+            LOGGER.info("Existing @QuarkusMain annotation were found, Quarkus-FX will not generate QuarkusFxApplication.");
         }
     }
 
