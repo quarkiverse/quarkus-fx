@@ -8,7 +8,7 @@
 This Quarkus extension allows you to use JavaFX in your Quarkus application. \
 It will allow component injection in FX Controllers and will allow you to use CDI events to register on primary stage creation.
 
-Live reload is still problematic and will be studied in the future.
+Please refer to documentation available at https://docs.quarkiverse.io/quarkus-fx/dev/index.html
 
 You will be able to register on primary stage creation event via such code example.
 ```java
@@ -17,7 +17,7 @@ public class QuarkusFxApp {
   @Inject
   FXMLLoader fxmlLoader;
 
-  public void start(@Observes final FxStartupEvent event) {
+  public void start(@Observes final FxPostStartupEvent event) {
     try {
       InputStream fxml = this.getClass().getResourceAsStream("/app.fxml");
       Parent fxmlParent = this.fxmlLoader.load(fxml);
