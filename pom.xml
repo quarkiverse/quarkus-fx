@@ -15,6 +15,12 @@
         <module>deployment</module>
         <module>runtime</module>
         <module>docs</module>
+
+        <!-- Samples -->
+<!--        <module>samples/fxviews</module>-->
+<!--        <module>samples/using-picocli</module>-->
+<!--        <module>samples/using-rest</module>-->
+<!--        <module>samples/using-scheduler</module>-->
     </modules>
     <properties>
         <quarkus.version>3.8.5</quarkus.version>

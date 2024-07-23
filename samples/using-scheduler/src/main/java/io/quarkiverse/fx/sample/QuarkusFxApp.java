@@ -6,7 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
-import io.quarkiverse.fx.FxStartupEvent;
+import io.quarkiverse.fx.FxPostStartupEvent;
 import io.quarkus.logging.Log;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -20,7 +20,7 @@ public class QuarkusFxApp {
     @Inject
     FXMLLoader fxmlLoader;
 
-    public void start(@Observes final FxStartupEvent event) throws InterruptedException {
+    public void start(@Observes final FxPostStartupEvent event) throws InterruptedException {
 
         // Make it slow on purpose
         Thread.sleep(3_000);

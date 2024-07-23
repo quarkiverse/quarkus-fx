@@ -7,7 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
-import io.quarkiverse.fx.FxStartupEvent;
+import io.quarkiverse.fx.FxPostStartupEvent;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -20,7 +20,7 @@ public class QuarkusFxApp {
     @Inject
     FXMLLoader fxmlLoader;
 
-    public void start(@Observes final FxStartupEvent event) {
+    public void start(@Observes final FxPostStartupEvent event) {
 
         Stage stage = event.getPrimaryStage();
 
