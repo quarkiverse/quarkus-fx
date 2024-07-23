@@ -17,7 +17,7 @@ startupLatch.await();
 // FX is ready
 ----
 
-Alternatively, the `FxStartupEvent` can be observed.
+Alternatively, the `FxApplicationStartupEvent` or `FxPostStartupEvent` events can be observed.
 
 Example of a `SkipPredicate` that can be used in conjunction with a `@Scheduled`
 
@@ -28,7 +28,7 @@ public class FxApplicationNotStarted implements SkipPredicate {
 
     private volatile boolean started;
 
-    void onFxStartup(@Observes final FxStartupEvent event) {
+    void onFxStartup(@Observes final FxPostStartupEvent event) {
         this.started = true;
     }
 

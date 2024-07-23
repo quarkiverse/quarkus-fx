@@ -9,9 +9,9 @@ Annotation can be applied on method level or on class level (to mark all methods
 
 [source,java]
 ----
-VBox vBox = new VBox();
+private final VBox vBox = new VBox();
 
-public void start(@Observes final FxStartupEvent event) {
+public void start(@Observes final FxPostStartupEvent event) {
 
     Stage = event.getPrimaryStage();
 
@@ -19,19 +19,19 @@ public void start(@Observes final FxStartupEvent event) {
     stage.setScene(scene);
     stage.show();
 
-    try (ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
+    try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
         executorService.submit(() -> this.showNode(this.createExpensiveNode()));
     }
 }
 
-Node createExpensiveNode() {//<1>
+Node createExpensiveNode() { //<1>
     return new Label(LocalTime.now().toString());
 }
 
 @RunOnFxThread
-void showNode(final Node node) {//<2>
+void showNode(final Node node) { //<2>
   this.vBox.getChildren().add(node);
 }
 ----
 <1> `createExpensiveNode` method will be executed in a thread from executor service
-<2> `showNode` method will be executed on JavaFx UI thread (JavaFX Application Thread)
+<2> `showNode` method will be executed on JavaFX UI thread (JavaFX Application Thread)
