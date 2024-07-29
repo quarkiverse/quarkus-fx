@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import io.quarkiverse.fx.FxPostStartupEvent;
 import io.quarkiverse.fx.FxStartupLatch;
-import io.quarkiverse.fx.FxViewLoadEvent;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.deployment.FxTestConstants;
 import io.quarkiverse.fx.views.FxViewData;
@@ -80,7 +80,7 @@ class FxViewTest {
         Assertions.assertNotNull(this.subSampleTestController.button);
     }
 
-    void observeEvent(@Observes final FxViewLoadEvent event) {
+    void observeEvent(@Observes final FxPostStartupEvent event) {
         eventObserved.set(true);
     }
 }
