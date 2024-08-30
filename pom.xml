@@ -15,15 +15,9 @@
         <module>deployment</module>
         <module>runtime</module>
         <module>docs</module>
-
-        <!-- Samples -->
-<!--        <module>samples/fxviews</module>-->
-<!--        <module>samples/using-picocli</module>-->
-<!--        <module>samples/using-rest</module>-->
-<!--        <module>samples/using-scheduler</module>-->
     </modules>
     <properties>
-        <quarkus.version>3.8.5</quarkus.version>
+        <quarkus.version>3.8.6</quarkus.version>
         <javafx.version>22.0.2</javafx.version>
         <maven.compiler.release>17</maven.compiler.release>
     </properties>
