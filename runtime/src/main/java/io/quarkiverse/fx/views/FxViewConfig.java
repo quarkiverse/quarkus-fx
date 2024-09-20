@@ -28,14 +28,8 @@ public interface FxViewConfig {
     String bundleRoot();
 
     /**
-     * Location for main resources (allowing stylesheet live reload)
+     * Location for main resources (allowing stylesheet live reload in dev mode)
      */
     @WithDefault("src/main/resources/")
     String mainResources();
-
-    /**
-     * Location for test resources (allowing stylesheet live reload)
-     */
-    @WithDefault("src/test/resources/")
-    String testResources();
 }

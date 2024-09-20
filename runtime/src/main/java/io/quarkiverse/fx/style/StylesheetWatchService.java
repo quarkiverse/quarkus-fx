@@ -11,6 +11,7 @@ import java.nio.file.WatchService;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import io.quarkus.logging.Log;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 
@@ -44,7 +45,7 @@ public final class StylesheetWatchService {
             try {
                 performBlockingWatch(watchService, stylesheets, stylesheetExternalForm);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Log.error("Stylesheet file watch got interrupted", e);
                 Thread.currentThread().interrupt();
             }
         });

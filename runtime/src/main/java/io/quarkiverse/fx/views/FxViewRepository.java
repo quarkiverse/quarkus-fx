@@ -53,8 +53,12 @@ public class FxViewRepository {
      */
     void setupViews(@Observes final FxViewLoadEvent event) {
 
-        LaunchMode launchMode = LaunchMode.current();
-        boolean devOrTest = launchMode.isDevOrTest();
+        // Skip processing if no FX view is set
+        if (this.viewNames.isEmpty()) {
+            return;
+        }
+
+        boolean dev = LaunchMode.current() == LaunchMode.DEVELOPMENT;
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
@@ -81,10 +85,8 @@ public class FxViewRepository {
             // Style
             String style = null;
             LOGGER.debugf("Attempting to load css %s", css);
-            if (devOrTest) {
-                String directory = launchMode == LaunchMode.DEVELOPMENT ? this.config.mainResources()
-                        : this.config.testResources();
-                Path devPath = Paths.get(directory + css);
+            if (dev) {
+                Path devPath = Paths.get(this.config.mainResources() + css);
                 if (devPath.toFile().exists()) {
                     style = devPath.toString();
                 }
@@ -114,7 +116,7 @@ public class FxViewRepository {
 
                 Parent rootNode = loader.load(stream);
                 if (style != null) {
-                    if (devOrTest) {
+                    if (dev) {
                         // Stylesheet live reload in dev mode
                         StylesheetWatchService.setStyleAndStartWatchingTask(rootNode::getStylesheets, style);
                     } else {
