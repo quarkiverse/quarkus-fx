@@ -60,4 +60,38 @@ endif::add-copy-button-to-env-var[]
 --|string 
 |`/`
 
+
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-main-resources]]`link:#quarkus-fx_quarkus-fx-main-resources[quarkus.fx.main-resources]`
+
+
+[.description]
+--
+Location for main resources (allowing stylesheet live reload)
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_FX_MAIN_RESOURCES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_FX_MAIN_RESOURCES+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|`src/main/resources/`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-test-resources]]`link:#quarkus-fx_quarkus-fx-test-resources[quarkus.fx.test-resources]`
+
+
+[.description]
+--
+Location for test resources (allowing stylesheet live reload)
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_FX_TEST_RESOURCES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_FX_TEST_RESOURCES+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|`src/test/resources/`
+
 |===
