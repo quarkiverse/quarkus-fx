@@ -28,6 +28,12 @@ public interface FxViewConfig {
     String bundleRoot();
 
     /**
+     * Enable (or disable) stylesheet live reload in dev mode
+     */
+    @WithDefault("true")
+    boolean stylesheetReload();
+
+    /**
      * Location for main resources (allowing stylesheet live reload in dev mode)
      */
     @WithDefault("src/main/resources/")

@@ -61,6 +61,23 @@ endif::add-copy-button-to-env-var[]
 |`/`
 
 
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-stylesheet-reload]]`link:#quarkus-fx_quarkus-fx-stylesheet-reload[quarkus.fx.stylesheet-reload]`
+
+
+[.description]
+--
+Enable (or disable) stylesheet live reload in dev mode
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_FX_STYLESHEET_RELOAD+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_FX_STYLESHEET_RELOAD+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`true`
+
+
 a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-main-resources]]`link:#quarkus-fx_quarkus-fx-main-resources[quarkus.fx.main-resources]`
 
 
