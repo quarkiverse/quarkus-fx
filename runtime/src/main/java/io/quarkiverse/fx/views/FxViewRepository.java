@@ -3,6 +3,8 @@ package io.quarkiverse.fx.views;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -19,6 +21,8 @@ import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.FxViewLoadEvent;
+import io.quarkiverse.fx.style.StylesheetWatchService;
+import io.quarkus.runtime.LaunchMode;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 
@@ -49,6 +53,13 @@ public class FxViewRepository {
      */
     void setupViews(@Observes final FxViewLoadEvent event) {
 
+        // Skip processing if no FX view is set
+        if (this.viewNames.isEmpty()) {
+            return;
+        }
+
+        boolean stylesheetReload = LaunchMode.current() == LaunchMode.DEVELOPMENT && this.config.stylesheetReload();
+
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
         for (String name : this.viewNames) {
@@ -72,10 +83,19 @@ public class FxViewRepository {
             }
 
             // Style
+            String style = null;
             LOGGER.debugf("Attempting to load css %s", css);
-            URL styleResource = classLoader.getResource(css);
-            if (styleResource != null) {
-                LOGGER.debugf("Found css %s", css);
+            if (stylesheetReload) {
+                Path devPath = Paths.get(this.config.mainResources() + css);
+                if (devPath.toFile().exists()) {
+                    style = devPath.toString();
+                }
+            } else {
+                URL styleResource = classLoader.getResource(css);
+                if (styleResource != null) {
+                    LOGGER.debugf("Found css %s", css);
+                    style = styleResource.toExternalForm();
+                }
             }
 
             // FXML
@@ -95,8 +115,14 @@ public class FxViewRepository {
                 loader.setLocation(url);
 
                 Parent rootNode = loader.load(stream);
-                if (styleResource != null) {
-                    rootNode.getStylesheets().add(styleResource.toExternalForm());
+                if (style != null) {
+                    if (stylesheetReload) {
+                        // Stylesheet live reload in dev mode
+                        StylesheetWatchService.setStyleAndStartWatchingTask(rootNode::getStylesheets, style);
+                    } else {
+                        // Regular setting (no live reload)
+                        rootNode.getStylesheets().add(style);
+                    }
                 }
 
                 Object controller = loader.getController();
