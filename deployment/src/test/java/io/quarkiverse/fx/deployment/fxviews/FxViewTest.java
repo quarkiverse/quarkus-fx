@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
+import javafx.scene.Parent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -71,7 +72,8 @@ class FxViewTest {
         String text = controller.label.getText();
         Assertions.assertEquals("Bonjour", text);
 
-        ObservableList<String> stylesheets = viewData.getRootNode().getStylesheets();
+        Parent rootNode = viewData.getRootNode();
+        ObservableList<String> stylesheets = rootNode.getStylesheets();
         Assertions.assertEquals(1, stylesheets.size());
         URI uri = URI.create(stylesheets.get(0));
         Path path = Path.of(uri);

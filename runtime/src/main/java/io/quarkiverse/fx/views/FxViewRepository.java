@@ -18,13 +18,18 @@ import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
+import javafx.collections.ObservableList;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.FxViewLoadEvent;
 import io.quarkiverse.fx.style.StylesheetWatchService;
 import io.quarkus.runtime.LaunchMode;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Dialog;
+import javafx.stage.Window;
 
 @ApplicationScoped
 public class FxViewRepository {
@@ -114,14 +119,17 @@ public class FxViewRepository {
                 }
                 loader.setLocation(url);
 
-                Parent rootNode = loader.load(stream);
+                Object rootNode = loader.load(stream);
                 if (style != null) {
-                    if (stylesheetReload) {
-                        // Stylesheet live reload in dev mode
-                        StylesheetWatchService.setStyleAndStartWatchingTask(rootNode::getStylesheets, style);
-                    } else {
-                        // Regular setting (no live reload)
-                        rootNode.getStylesheets().add(style);
+                    ObservableList<String> styleSheets = getFxmlObjectStyleSheets(rootNode);
+                    if (styleSheets != null) {
+                        if (stylesheetReload) {
+                            // Stylesheet live reload in dev mode
+                            StylesheetWatchService.setStyleAndStartWatchingTask(() -> styleSheets, style);
+                        } else {
+                            // Regular setting (no live reload)
+                            styleSheets.add(style);
+                        }
                     }
                 }
 
@@ -153,6 +161,20 @@ public class FxViewRepository {
         }
 
         return stream;
+    }
+
+    private static ObservableList<String> getFxmlObjectStyleSheets(Object rootNode) {
+        ObservableList<String> stylesheets = null;
+        if (rootNode instanceof Parent p) {
+            stylesheets = p.getStylesheets();
+        } else if (rootNode instanceof Window w) {
+            stylesheets = w.getScene().getStylesheets();
+        } else if (rootNode instanceof Scene s) {
+            stylesheets = s.getStylesheets();
+        } else if (rootNode instanceof Dialog<?> d) {
+            stylesheets = d.getDialogPane().getStylesheets();
+        }
+        return stylesheets;
     }
 
     /**
