@@ -2,6 +2,10 @@ package io.quarkiverse.fx.views;
 
 import javafx.scene.Parent;
 
+import java.net.URL;
+import java.util.ResourceBundle;
+import java.util.function.Consumer;
+
 /**
  * Combination of loaded FXML elements.
  * Provides convenient accessors with automatic casts.
@@ -18,8 +22,13 @@ public interface FxViewData {
      */
     <T> T getController();
 
-    static FxViewData of(final Parent rootNode, final Object controller) {
-        return new FxViewDataImpl(rootNode, controller);
+    URL getFxmlLocation();
+    ResourceBundle getBundle();
+    Consumer<Parent> getStyleApplier();
+
+    static FxViewData of(final Parent rootNode, final Object controller, final URL fxmlLocation,
+                         final ResourceBundle bundle, final Consumer<Parent> styleApplier) {
+        return new FxViewDataImpl(rootNode, controller, fxmlLocation, bundle, styleApplier);
     }
 
     /**
@@ -28,7 +37,8 @@ public interface FxViewData {
      * @param rootNode : the UI root element
      * @param controller : associated controller
      */
-    record FxViewDataImpl(Parent rootNode, Object controller) implements FxViewData {
+    record FxViewDataImpl(Parent rootNode, Object controller, URL fxmlLocation,
+                          ResourceBundle bundle, Consumer<Parent> styleApplier) implements FxViewData {
         @Override
         @SuppressWarnings("unchecked")
         public <T extends Parent> T getRootNode() {
@@ -42,6 +52,21 @@ public interface FxViewData {
         @SuppressWarnings("unchecked")
         public <T> T getController() {
             return (T) this.controller;
+        }
+
+        @Override
+        public URL getFxmlLocation() {
+            return this.fxmlLocation;
+        }
+
+        @Override
+        public ResourceBundle getBundle() {
+            return this.bundle;
+        }
+
+        @Override
+        public Consumer<Parent> getStyleApplier() {
+            return this.styleApplier;
         }
     }
 }

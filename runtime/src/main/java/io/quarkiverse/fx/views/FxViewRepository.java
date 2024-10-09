@@ -1,5 +1,17 @@
 package io.quarkiverse.fx.views;
 
+import io.quarkiverse.fx.FxViewLoadEvent;
+import io.quarkiverse.fx.style.StylesheetWatchService;
+import io.quarkus.logging.Log;
+import io.quarkus.runtime.LaunchMode;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import org.jboss.logging.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -12,19 +24,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
-
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
-
-import org.jboss.logging.Logger;
-
-import io.quarkiverse.fx.FxViewLoadEvent;
-import io.quarkiverse.fx.style.StylesheetWatchService;
-import io.quarkus.runtime.LaunchMode;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
+import java.util.function.Consumer;
 
 @ApplicationScoped
 public class FxViewRepository {
@@ -115,20 +115,30 @@ public class FxViewRepository {
                 loader.setLocation(url);
 
                 Parent rootNode = loader.load(stream);
-                if (style != null) {
-                    if (stylesheetReload) {
-                        // Stylesheet live reload in dev mode
-                        StylesheetWatchService.setStyleAndStartWatchingTask(rootNode::getStylesheets, style);
-                    } else {
-                        // Regular setting (no live reload)
-                        rootNode.getStylesheets().add(style);
+
+                final String stylesheet = style;
+                Consumer<Parent> styleApplier = node -> {
+                    if (stylesheet != null) {
+                        if (stylesheetReload) {
+                            // Stylesheet live reload in dev mode
+                            try {
+                                StylesheetWatchService.setStyleAndStartWatchingTask(node::getStylesheets, stylesheet);
+                            } catch (IOException e) {
+                                Log.errorf(e, "Failed to load stylesheet (%s)", stylesheet);
+                            }
+                        } else {
+                            // Regular setting (no live reload)
+                            node.getStylesheets().add(stylesheet);
+                        }
                     }
-                }
+                };
+                styleApplier.accept(rootNode);
+
 
                 Object controller = loader.getController();
 
                 // Register view
-                FxViewData viewData = FxViewData.of(rootNode, controller);
+                FxViewData viewData = FxViewData.of(rootNode, controller, url, bundle, styleApplier);
                 this.viewDataMap.put(name, viewData);
 
             } catch (IOException e) {
