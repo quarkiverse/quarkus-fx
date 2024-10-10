@@ -163,8 +163,8 @@ public class FxViewRepository {
         return stream;
     }
 
-    private static ObservableList<String> getFxmlObjectStyleSheets(Object rootNode) {
-        ObservableList<String> stylesheets = null;
+    private static ObservableList<String> getFxmlObjectStyleSheets(final Object rootNode) {
+        ObservableList<String> stylesheets;
         if (rootNode instanceof Parent p) {
             stylesheets = p.getStylesheets();
         } else if (rootNode instanceof Window w) {
@@ -173,6 +173,8 @@ public class FxViewRepository {
             stylesheets = s.getStylesheets();
         } else if (rootNode instanceof Dialog<?> d) {
             stylesheets = d.getDialogPane().getStylesheets();
+        } else {
+            stylesheets = null;
         }
         return stylesheets;
     }

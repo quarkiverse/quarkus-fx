@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Dialog?>
+<?import javafx.scene.control.DialogPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<Dialog xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" width="720.0" height="480.0"
+        fx:id="dialog" fx:controller="io.quarkiverse.fx.deployment.fxviews.SampleDialogController">
+   <dialogPane>
+      <DialogPane>
+         <content>
+            <BorderPane>
+               <center>
+                  <Label text="Hello World"/>
+               </center>
+            </BorderPane>
+         </content>
+      </DialogPane>
+   </dialogPane>
+</Dialog>
