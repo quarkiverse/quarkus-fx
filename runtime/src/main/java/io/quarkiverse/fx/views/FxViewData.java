@@ -1,7 +1,5 @@
 package io.quarkiverse.fx.views;
 
-import javafx.scene.Parent;
-
 /**
  * Combination of loaded FXML elements.
  * Provides convenient accessors with automatic casts.
@@ -11,14 +9,14 @@ public interface FxViewData {
     /**
      * Root UI element accessor with automatic cast
      */
-    <T extends Parent> T getRootNode();
+    <T> T getRootNode();
 
     /**
      * Controller accessor with automatic cast
      */
     <T> T getController();
 
-    static FxViewData of(final Parent rootNode, final Object controller) {
+    static FxViewData of(final Object rootNode, final Object controller) {
         return new FxViewDataImpl(rootNode, controller);
     }
 
@@ -28,10 +26,10 @@ public interface FxViewData {
      * @param rootNode : the UI root element
      * @param controller : associated controller
      */
-    record FxViewDataImpl(Parent rootNode, Object controller) implements FxViewData {
+    record FxViewDataImpl(Object rootNode, Object controller) implements FxViewData {
         @Override
         @SuppressWarnings("unchecked")
-        public <T extends Parent> T getRootNode() {
+        public <T> T getRootNode() {
             return (T) this.rootNode;
         }
 
