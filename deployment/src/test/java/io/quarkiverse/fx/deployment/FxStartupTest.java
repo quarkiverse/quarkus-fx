@@ -1,9 +1,11 @@
 package io.quarkiverse.fx.deployment;
 
-import java.util.concurrent.CompletableFuture;
-
+import io.quarkiverse.fx.FxStartupLatch;
+import io.quarkiverse.fx.QuarkusFxApplication;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.test.QuarkusUnitTest;
 import jakarta.inject.Inject;
-
+import javafx.application.HostServices;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Assertions;
@@ -11,11 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkiverse.fx.FxStartupLatch;
-import io.quarkiverse.fx.QuarkusFxApplication;
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.test.QuarkusUnitTest;
-import javafx.application.HostServices;
+import java.util.concurrent.CompletableFuture;
 
 class FxStartupTest {
 

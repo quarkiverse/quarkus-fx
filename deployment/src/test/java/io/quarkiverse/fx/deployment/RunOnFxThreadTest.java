@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 
 import jakarta.enterprise.event.Observes;
 
+import jakarta.inject.Inject;
+import javafx.stage.Stage;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Assertions;
@@ -32,6 +34,9 @@ class RunOnFxThreadTest {
     private static Boolean regularThread;
     private static Boolean fxThread;
 
+    @Inject
+    Stage primaryStage;
+
     @Test
     void test() {
         // Non-blocking JavaFX launch
@@ -53,6 +58,7 @@ class RunOnFxThreadTest {
                 .until(() -> fxThread != null);
 
         Assertions.assertTrue(fxThread);
+        checkInjectedPrimaryStage();
     }
 
     void observePrimaryStage(@Observes final FxPostStartupEvent event) {
@@ -67,5 +73,11 @@ class RunOnFxThreadTest {
     @RunOnFxThread
     void runOnFxThread() {
         fxThread = Platform.isFxApplicationThread();
+    }
+
+    @RunOnFxThread
+    void checkInjectedPrimaryStage() {
+        // Ensure primaryStage instance is made available by using injection
+        Assertions.assertNotNull(this.primaryStage);
     }
 }

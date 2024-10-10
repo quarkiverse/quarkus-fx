@@ -123,6 +123,20 @@ public class MyBean {
 }
 ----
 
+== Injecting `primaryStage`
+
+The primary stage can also be injected by using the `@Inject` annotation.
+
+[source,java]
+----
+@ApplicationScoped
+public class MyBean {
+
+  @Inject
+  Stage primaryStage;
+}
+----
+
 == Properties
 
 include::includes/quarkus-fx.adoc[]
