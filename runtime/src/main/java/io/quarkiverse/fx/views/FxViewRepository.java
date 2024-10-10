@@ -42,10 +42,10 @@ public class FxViewRepository {
     @Inject
     FxViewConfig config;
 
-    private List<String> viewNames;
+    private List<FxViewLocation> viewLocations;
 
-    public void setViewNames(final List<String> views) {
-        this.viewNames = views;
+    public void setViewLocations(final List<FxViewLocation> viewLocations) {
+        this.viewLocations = viewLocations;
     }
 
     /**
@@ -54,7 +54,7 @@ public class FxViewRepository {
     void setupViews(@Observes final FxViewLoadEvent event) {
 
         // Skip processing if no FX view is set
-        if (this.viewNames.isEmpty()) {
+        if (this.viewLocations.isEmpty()) {
             return;
         }
 
@@ -62,14 +62,17 @@ public class FxViewRepository {
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-        for (String name : this.viewNames) {
+        for (var viewLocation : this.viewLocations) {
 
             FXMLLoader loader = this.fxmlLoader.get();
 
             // Append path and extensions
-            String fxml = this.config.fxmlRoot() + name + FXML_EXT;
-            String css = this.config.styleRoot() + name + STYLE_EXT;
-            String resources = this.config.bundleRoot() + name;
+            String fxml = viewLocation.fxmlLocation().isBlank() ?
+                          this.config.fxmlRoot() + viewLocation.baseName() + FXML_EXT : viewLocation.fxmlLocation();
+            String css = viewLocation.styleLocation().isBlank() ?
+                         this.config.styleRoot() + viewLocation.baseName() + STYLE_EXT : viewLocation.styleLocation();
+            String resources = viewLocation.bundleLocation().isBlank() ?
+                               this.config.bundleRoot() + viewLocation.baseName() : viewLocation.bundleLocation();
 
             // Resources
             ResourceBundle bundle = null;
@@ -129,10 +132,10 @@ public class FxViewRepository {
 
                 // Register view
                 FxViewData viewData = FxViewData.of(rootNode, controller);
-                this.viewDataMap.put(name, viewData);
+                this.viewDataMap.put(viewLocation.baseName(), viewData);
 
             } catch (IOException e) {
-                throw new IllegalStateException("Failed to load FX view " + name, e);
+                throw new IllegalStateException("Failed to load FX view " + viewLocation.baseName(), e);
             }
         }
     }
