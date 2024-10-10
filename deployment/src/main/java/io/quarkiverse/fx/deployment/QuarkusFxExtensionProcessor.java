@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.quarkiverse.fx.views.FxViewLocation;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationValue;
@@ -126,7 +127,7 @@ class QuarkusFxExtensionProcessor {
             final FxViewRecorder recorder,
             final BeanContainerBuildItem beanContainerBuildItem) {
 
-        List<String> views = new ArrayList<>();
+        List<FxViewLocation> viewLocations = new ArrayList<>();
 
         // Look for all @FxView annotations
         Collection<AnnotationInstance> annotations = combinedIndex.getComputingIndex().getAnnotations(FxView.class);
@@ -134,11 +135,18 @@ class QuarkusFxExtensionProcessor {
 
             ClassInfo target = annotation.target().asClass();
             AnnotationValue value = annotation.value();
+            AnnotationValue fxmlLocationValue = annotation.value("fxmlLocation");
+            AnnotationValue styleLocationValue = annotation.value("styleLocation");
+            AnnotationValue bundleLocationValue = annotation.value("bundleLocation");
+
+            String fxmlLocation = fxmlLocationValue != null ? fxmlLocationValue.asString() : "";
+            String styleLocation = styleLocationValue != null ? styleLocationValue.asString() : "";
+            String bundleLocation = bundleLocationValue != null ? bundleLocationValue.asString() : "";
 
             if (value != null) {
                 // Custom value is set in annotation : use it
                 String customName = value.asString();
-                views.add(customName);
+                viewLocations.add(new FxViewLocation(customName, fxmlLocation, styleLocation, bundleLocation));
             } else {
                 // Use convention
                 // If controller is named "MySampleController", expected fxml would be MySample.fxml
@@ -153,7 +161,7 @@ class QuarkusFxExtensionProcessor {
 
                     // Remove the controller suffix
                     String baseName = name.substring(0, name.length() - CONTROLLER_SUFFIX.length());
-                    views.add(baseName);
+                    viewLocations.add(new FxViewLocation(baseName, fxmlLocation, styleLocation, bundleLocation));
                 } else {
                     LOGGER.warnf(
                             "Type %s is annotated with %s but does not comply with naming convention (shall end with %s)",
@@ -161,13 +169,13 @@ class QuarkusFxExtensionProcessor {
                             FxView.class.getName(),
                             CONTROLLER_SUFFIX);
 
-                    views.add(name);
+                    viewLocations.add(new FxViewLocation(name, fxmlLocation, styleLocation, bundleLocation));
                 }
             }
         }
 
-        LOGGER.infof("Fx views : {}", views);
+        LOGGER.infof("Fx views : {}", viewLocations);
 
-        recorder.process(views, beanContainerBuildItem.getValue());
+        recorder.process(viewLocations, beanContainerBuildItem.getValue());
     }
 }
