@@ -4,6 +4,7 @@ import java.util.concurrent.CompletableFuture;
 
 import jakarta.inject.Inject;
 
+import javafx.stage.Stage;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Assertions;
@@ -29,6 +30,9 @@ class FxStartupTest {
     @Inject
     HostServices hostServices;
 
+    @Inject
+    Stage primaryStage;
+
     @Test
     @Timeout(value = 5)
     void test() {
@@ -44,6 +48,9 @@ class FxStartupTest {
 
             // Invoke service
             this.hostServices.getCodeBase();
+
+            // Ensure primaryStage instance is made available by using injection
+            Assertions.assertNotNull(this.primaryStage);
 
         } catch (Exception e) {
             Assertions.fail(e);

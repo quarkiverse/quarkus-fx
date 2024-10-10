@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.quarkiverse.fx.PrimaryStageProducer;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationValue;
@@ -59,6 +60,11 @@ class QuarkusFxExtensionProcessor {
     @BuildStep
     AdditionalBeanBuildItem hostServices() {
         return new AdditionalBeanBuildItem(HostServicesProducer.class);
+    }
+
+    @BuildStep
+    AdditionalBeanBuildItem primaryStage() {
+        return new AdditionalBeanBuildItem(PrimaryStageProducer.class);
     }
 
     @BuildStep
