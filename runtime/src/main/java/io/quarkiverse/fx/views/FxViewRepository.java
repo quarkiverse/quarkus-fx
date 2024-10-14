@@ -18,14 +18,13 @@ import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
-import javafx.collections.ObservableList;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.FxViewLoadEvent;
 import io.quarkiverse.fx.style.StylesheetWatchService;
 import io.quarkus.runtime.LaunchMode;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Dialog;
@@ -122,14 +121,12 @@ public class FxViewRepository {
                 Object rootNode = loader.load(stream);
                 if (style != null) {
                     ObservableList<String> styleSheets = getFxmlObjectStyleSheets(rootNode);
-                    if (styleSheets != null) {
-                        if (stylesheetReload) {
-                            // Stylesheet live reload in dev mode
-                            StylesheetWatchService.setStyleAndStartWatchingTask(() -> styleSheets, style);
-                        } else {
-                            // Regular setting (no live reload)
-                            styleSheets.add(style);
-                        }
+                    if (stylesheetReload) {
+                        // Stylesheet live reload in dev mode
+                        StylesheetWatchService.setStyleAndStartWatchingTask(() -> styleSheets, style);
+                    } else {
+                        // Regular setting (no live reload)
+                        styleSheets.add(style);
                     }
                 }
 
@@ -174,7 +171,8 @@ public class FxViewRepository {
         } else if (rootNode instanceof Dialog<?> d) {
             stylesheets = d.getDialogPane().getStylesheets();
         } else {
-            stylesheets = null;
+            String message = "rootNode shall be a valid UI root component (Parent, Window, Scene or Dialog)";
+            throw new IllegalArgumentException(message);
         }
         return stylesheets;
     }

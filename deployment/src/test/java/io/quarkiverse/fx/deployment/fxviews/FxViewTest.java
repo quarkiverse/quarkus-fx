@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
-import javafx.scene.Parent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -25,6 +24,7 @@ import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
 import javafx.collections.ObservableList;
+import javafx.scene.Parent;
 
 class FxViewTest {
 
