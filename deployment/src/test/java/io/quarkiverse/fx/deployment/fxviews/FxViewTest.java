@@ -24,6 +24,7 @@ import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
 import javafx.collections.ObservableList;
+import javafx.scene.Parent;
 
 class FxViewTest {
 
@@ -31,10 +32,17 @@ class FxViewTest {
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> {
                 jar.addClasses(SampleTestController.class, SubSampleTestController.class);
+                jar.addClasses(SampleStageController.class, SampleDialogController.class, SampleSceneController.class);
                 jar.addAsResource("SampleTest.fxml");
                 jar.addAsResource("SampleTest.properties");
                 jar.addAsResource("SampleTest.css");
                 jar.addAsResource("SubSampleTest.fxml");
+                jar.addAsResource("SampleStage.css");
+                jar.addAsResource("SampleStage.fxml");
+                jar.addAsResource("SampleDialog.css");
+                jar.addAsResource("SampleDialog.fxml");
+                jar.addAsResource("SampleScene.css");
+                jar.addAsResource("SampleScene.fxml");
             });
 
     @Inject
@@ -45,6 +53,15 @@ class FxViewTest {
 
     @Inject
     SubSampleTestController subSampleTestController;
+
+    @Inject
+    SampleStageController sampleStageController;
+
+    @Inject
+    SampleDialogController sampleDialogController;
+
+    @Inject
+    SampleSceneController sampleSceneController;
 
     private static final AtomicBoolean eventObserved = new AtomicBoolean(false);
 
@@ -71,13 +88,17 @@ class FxViewTest {
         String text = controller.label.getText();
         Assertions.assertEquals("Bonjour", text);
 
-        ObservableList<String> stylesheets = viewData.getRootNode().getStylesheets();
+        Parent rootNode = viewData.getRootNode();
+        ObservableList<String> stylesheets = rootNode.getStylesheets();
         Assertions.assertEquals(1, stylesheets.size());
         URI uri = URI.create(stylesheets.get(0));
         Path path = Path.of(uri);
         Assertions.assertEquals("SampleTest.css", path.getFileName().toString());
 
         Assertions.assertNotNull(this.subSampleTestController.button);
+        Assertions.assertNotNull(this.sampleStageController.stage);
+        Assertions.assertNotNull(this.sampleDialogController.dialog);
+        Assertions.assertNotNull(this.sampleSceneController.scene);
     }
 
     void observeEvent(@Observes final FxPostStartupEvent event) {

@@ -23,8 +23,12 @@ import org.jboss.logging.Logger;
 import io.quarkiverse.fx.FxViewLoadEvent;
 import io.quarkiverse.fx.style.StylesheetWatchService;
 import io.quarkus.runtime.LaunchMode;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Dialog;
+import javafx.stage.Window;
 
 @ApplicationScoped
 public class FxViewRepository {
@@ -114,14 +118,15 @@ public class FxViewRepository {
                 }
                 loader.setLocation(url);
 
-                Parent rootNode = loader.load(stream);
+                Object rootNode = loader.load(stream);
                 if (style != null) {
+                    ObservableList<String> styleSheets = getFxmlObjectStyleSheets(rootNode);
                     if (stylesheetReload) {
                         // Stylesheet live reload in dev mode
-                        StylesheetWatchService.setStyleAndStartWatchingTask(rootNode::getStylesheets, style);
+                        StylesheetWatchService.setStyleAndStartWatchingTask(() -> styleSheets, style);
                     } else {
                         // Regular setting (no live reload)
-                        rootNode.getStylesheets().add(style);
+                        styleSheets.add(style);
                     }
                 }
 
@@ -153,6 +158,23 @@ public class FxViewRepository {
         }
 
         return stream;
+    }
+
+    private static ObservableList<String> getFxmlObjectStyleSheets(final Object rootNode) {
+        ObservableList<String> stylesheets;
+        if (rootNode instanceof Parent p) {
+            stylesheets = p.getStylesheets();
+        } else if (rootNode instanceof Window w) {
+            stylesheets = w.getScene().getStylesheets();
+        } else if (rootNode instanceof Scene s) {
+            stylesheets = s.getStylesheets();
+        } else if (rootNode instanceof Dialog<?> d) {
+            stylesheets = d.getDialogPane().getStylesheets();
+        } else {
+            String message = "rootNode shall be a valid UI root component (Parent, Window, Scene or Dialog)";
+            throw new IllegalArgumentException(message);
+        }
+        return stylesheets;
     }
 
     /**
