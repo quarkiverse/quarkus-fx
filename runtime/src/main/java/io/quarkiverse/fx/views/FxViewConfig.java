@@ -28,6 +28,24 @@ public interface FxViewConfig {
     String bundleRoot();
 
     /**
+     * Default directory name for fx resources
+     */
+    @WithDefault("fxml")
+    String fxmlDirectoryName();
+
+    /**
+     * Default directory name for fx resources
+     */
+    @WithDefault("style")
+    String styleDirectoryName();
+
+    /**
+     * Default directory name for bundle resources (.properties)
+     */
+    @WithDefault("i18n")
+    String bundleDirectoryName();
+
+    /**
      * Enable (or disable) stylesheet live reload in dev mode
      */
     @WithDefault("true")

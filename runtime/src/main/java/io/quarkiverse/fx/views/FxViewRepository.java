@@ -1,5 +1,20 @@
 package io.quarkiverse.fx.views;
 
+import io.quarkiverse.fx.FxViewLoadEvent;
+import io.quarkiverse.fx.style.StylesheetWatchService;
+import io.quarkus.runtime.LaunchMode;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Dialog;
+import javafx.stage.Window;
+import org.jboss.logging.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -12,23 +27,6 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
-
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
-
-import org.jboss.logging.Logger;
-
-import io.quarkiverse.fx.FxViewLoadEvent;
-import io.quarkiverse.fx.style.StylesheetWatchService;
-import io.quarkus.runtime.LaunchMode;
-import javafx.collections.ObservableList;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Dialog;
-import javafx.stage.Window;
 
 @ApplicationScoped
 public class FxViewRepository {
@@ -76,14 +74,24 @@ public class FxViewRepository {
             String resources = this.config.bundleRoot() + name;
 
             // Resources
-            ResourceBundle bundle = null;
+            ResourceBundle bundle;
             try {
                 LOGGER.debugf("Attempting to load resource bundle %s", resources);
                 bundle = ResourceBundle.getBundle(resources, Locale.getDefault(), classLoader);
                 LOGGER.debugf("Found resource bundle %s", bundle);
             } catch (MissingResourceException e) {
-                // No bundle
-                LOGGER.debugf("No resource bundle found for %s", bundle);
+                // Look for alternate (in directory named after view name)
+                String alternateResources = resources + "." + name;
+
+                try {
+                    LOGGER.debugf("Attempting to load resource bundle %s", resources);
+                    bundle = ResourceBundle.getBundle(alternateResources, Locale.getDefault(), classLoader);
+                    LOGGER.debugf("Found resource bundle %s", bundle);
+                } catch (MissingResourceException ee) {
+                    // No bundle
+                    bundle = null;
+                    LOGGER.debugf("No resource bundle found for %s", name);
+                }
             }
 
             // Style
@@ -93,19 +101,39 @@ public class FxViewRepository {
                 Path devPath = Paths.get(this.config.mainResources() + css);
                 if (devPath.toFile().exists()) {
                     style = devPath.toString();
+                } else {
+                    String alternateCss = this.config.styleRoot() + name + "/" + name + STYLE_EXT;
+                    Path alternateDevPath = Paths.get(this.config.mainResources() + alternateCss);
+                    if (alternateDevPath.toFile().exists()) {
+                        style = alternateDevPath.toString();
+                    }
                 }
             } else {
                 URL styleResource = classLoader.getResource(css);
                 if (styleResource != null) {
                     LOGGER.debugf("Found css %s", css);
                     style = styleResource.toExternalForm();
+                } else {
+                    // Look for alternate (in directory named after view name)
+                    String alternateCss = this.config.styleRoot() + name + "/" + name + STYLE_EXT;
+                    URL alternateStyleResource = classLoader.getResource(alternateCss);
+                    if (alternateStyleResource != null) {
+                        LOGGER.debugf("Found css %s", css);
+                        style = alternateStyleResource.toExternalForm();
+                    }
                 }
             }
 
             // FXML
             LOGGER.debugf("Loading FXML %s", fxml);
             InputStream stream = lookupResourceAsStream(classLoader, fxml);
-            Objects.requireNonNull(stream, "FXML " + fxml + " not found in classpath.");
+            if (stream == null) {
+                // Look for alternate (in directory named after view name)
+                String alternateFxml = this.config.fxmlRoot() + name + "/" + name + FXML_EXT;
+                stream = lookupResourceAsStream(classLoader, alternateFxml);
+                Objects.requireNonNull(stream, "FXML " + fxml + " not found in classpath.");
+            }
+
             try {
                 if (bundle != null) {
                     loader.setResources(bundle);
