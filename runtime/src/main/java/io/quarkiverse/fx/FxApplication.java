@@ -1,5 +1,6 @@
 package io.quarkiverse.fx;
 
+import io.quarkiverse.fx.views.FxViewRepository;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.CDI;
 
@@ -21,6 +22,7 @@ public class FxApplication extends Application {
     public void start(final Stage primaryStage) {
 
         BeanManager beanManager = CDI.current().getBeanManager();
+        FxViewRepository fxViewRepository = CDI.current().select(FxViewRepository.class).get();
 
         // Fire event that marks that Fx context is ready
         // initializations can be performed, application instance is available
@@ -28,6 +30,9 @@ public class FxApplication extends Application {
 
         // FXML conventional views loading
         beanManager.getEvent().fire(new FxViewLoadEvent());
+
+        // Set the primary stage
+        fxViewRepository.setPrimaryStage(primaryStage);
 
         // Fire event that marks that the application has finished starting
         // and that Stage instance is available for use

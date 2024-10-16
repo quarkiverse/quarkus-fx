@@ -123,6 +123,25 @@ public class MyBean {
 }
 ----
 
+== Accessing the primary stage
+
+The primary stage can be accessed by injecting `FxViewRepository`.
+
+[source,java]
+----
+@ApplicationScoped
+public class MyBean {
+
+  @Inject
+  FxViewRepository fxViewRepository;
+
+  void doSomething() {
+    Stage primaryStage = fxViewRepository.getPrimaryStage();
+    primaryStage.setTitle("App Title");
+  }
+}
+----
+
 == Properties
 
 include::includes/quarkus-fx.adoc[]

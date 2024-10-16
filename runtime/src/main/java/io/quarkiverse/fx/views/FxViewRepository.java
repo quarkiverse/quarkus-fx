@@ -18,6 +18,7 @@ import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
+import javafx.stage.Stage;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.FxViewLoadEvent;
@@ -47,9 +48,18 @@ public class FxViewRepository {
     FxViewConfig config;
 
     private List<String> viewNames;
+    private Stage primaryStage;
 
     public void setViewNames(final List<String> views) {
         this.viewNames = views;
+    }
+
+    public void setPrimaryStage(final Stage stage) {
+        this.primaryStage = stage;
+    }
+
+    public Stage getPrimaryStage() {
+        return this.primaryStage;
     }
 
     /**

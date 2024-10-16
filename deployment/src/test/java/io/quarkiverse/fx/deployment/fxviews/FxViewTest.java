@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
+import javafx.stage.Stage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -77,6 +78,9 @@ class FxViewTest {
         await()
                 .atMost(FxTestConstants.LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS)
                 .until(eventObserved::get);
+
+        Stage primaryStage = this.viewRepository.getPrimaryStage();
+        Assertions.assertNotNull(primaryStage);
 
         FxViewData viewData = this.viewRepository.getViewData("SampleTest");
         Assertions.assertNotNull(viewData);
