@@ -1,22 +1,5 @@
 package io.quarkiverse.fx.views;
 
-import io.quarkiverse.fx.FxPostStartupEvent;
-import io.quarkiverse.fx.FxViewLoadEvent;
-import io.quarkiverse.fx.style.StylesheetWatchService;
-import io.quarkus.runtime.LaunchMode;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
-import javafx.collections.ObservableList;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Dialog;
-import javafx.stage.Stage;
-import javafx.stage.Window;
-import org.jboss.logging.Logger;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -29,6 +12,25 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+
+import org.jboss.logging.Logger;
+
+import io.quarkiverse.fx.FxPostStartupEvent;
+import io.quarkiverse.fx.FxViewLoadEvent;
+import io.quarkiverse.fx.style.StylesheetWatchService;
+import io.quarkus.runtime.LaunchMode;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Dialog;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 @ApplicationScoped
 public class FxViewRepository {
@@ -55,9 +57,11 @@ public class FxViewRepository {
     }
 
     /**
-     * Observe the pre-startup event in order to initialize and set up views
+     * Observe the view load event in order to initialize and set up views
      */
     void setupViews(@Observes final FxViewLoadEvent event) {
+
+        this.primaryStage = event.getPrimaryStage();
 
         // Skip processing if no FX view is set
         if (this.viewNames.isEmpty()) {
@@ -173,13 +177,6 @@ public class FxViewRepository {
                 throw new IllegalStateException("Failed to load FX view " + name, e);
             }
         }
-    }
-
-    /**
-     * Listens for startup event then store primary Stage instance
-     */
-    void setupPrimaryStage(@Observes final FxPostStartupEvent event) {
-        this.primaryStage = event.getPrimaryStage();
     }
 
     private static URL lookupResource(final ClassLoader classLoader, final String name) {
