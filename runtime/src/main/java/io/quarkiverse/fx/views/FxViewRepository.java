@@ -69,9 +69,10 @@ public class FxViewRepository {
             FXMLLoader loader = this.fxmlLoader.get();
 
             // Append path and extensions
-            String fxml = this.config.fxmlRoot() + name + FXML_EXT;
-            String css = this.config.styleRoot() + name + STYLE_EXT;
-            String resources = this.config.bundleRoot() + name;
+            String viewsRoot = this.config.viewsRoot() + "/";
+            String fxml = viewsRoot + name + FXML_EXT;
+            String css = viewsRoot + name + STYLE_EXT;
+            String resources = viewsRoot + name;
 
             // Resources
             ResourceBundle bundle;
@@ -102,7 +103,7 @@ public class FxViewRepository {
                 if (devPath.toFile().exists()) {
                     style = devPath.toString();
                 } else {
-                    String alternateCss = this.config.styleRoot() + name + "/" + name + STYLE_EXT;
+                    String alternateCss = viewsRoot + name + "/" + name + STYLE_EXT;
                     Path alternateDevPath = Paths.get(this.config.mainResources() + alternateCss);
                     if (alternateDevPath.toFile().exists()) {
                         style = alternateDevPath.toString();
@@ -115,7 +116,7 @@ public class FxViewRepository {
                     style = styleResource.toExternalForm();
                 } else {
                     // Look for alternate (in directory named after view name)
-                    String alternateCss = this.config.styleRoot() + name + "/" + name + STYLE_EXT;
+                    String alternateCss = viewsRoot + name + "/" + name + STYLE_EXT;
                     URL alternateStyleResource = classLoader.getResource(alternateCss);
                     if (alternateStyleResource != null) {
                         LOGGER.debugf("Found css %s", css);
@@ -129,7 +130,7 @@ public class FxViewRepository {
             InputStream stream = lookupResourceAsStream(classLoader, fxml);
             if (stream == null) {
                 // Look for alternate (in directory named after view name)
-                String alternateFxml = this.config.fxmlRoot() + name + "/" + name + FXML_EXT;
+                String alternateFxml = viewsRoot + name + "/" + name + FXML_EXT;
                 stream = lookupResourceAsStream(classLoader, alternateFxml);
                 Objects.requireNonNull(stream, "FXML " + fxml + " not found in classpath.");
             }
@@ -140,9 +141,9 @@ public class FxViewRepository {
                 }
 
                 // Set-up loader location (allows use of relative image path for instance)
-                URL url = lookupResource(classLoader, this.config.fxmlRoot());
+                URL url = lookupResource(classLoader, viewsRoot);
                 if (url == null) {
-                    throw new IllegalStateException("Failed to find FXML root location : " + this.config.fxmlRoot());
+                    throw new IllegalStateException("Failed to find FXML viewsRoot location : " + viewsRoot);
                 }
                 loader.setLocation(url);
 

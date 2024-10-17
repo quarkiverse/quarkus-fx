@@ -29,19 +29,15 @@ class FxViewTest {
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> {
-                jar.addClasses(SampleTestController.class, SubSampleTestController.class);
-                jar.addClasses(SampleStageController.class, SampleDialogController.class, SampleSceneController.class);
-                jar.addAsResource("SampleTest/SampleTest.fxml");
-                jar.addAsResource("SampleTest/SampleTest.properties");
-                jar.addAsResource("SampleTest/SampleTest.css");
-                jar.addAsResource("SubSampleTest.fxml");
-                jar.addAsResource("SampleStage.css");
-                jar.addAsResource("SampleStage.fxml");
-                jar.addAsResource("SampleDialog.css");
-                jar.addAsResource("SampleDialog.fxml");
-                jar.addAsResource("SampleScene.css");
-                jar.addAsResource("SampleScene.fxml");
-            });
+                jar.addClasses(
+                        SampleTestController.class,
+                        SubSampleTestController.class,
+                        SampleStageController.class,
+                        SampleDialogController.class,
+                        SampleSceneController.class);
+                jar.addAsResource("views");
+            })
+            .overrideConfigKey("quarkus.fx.views-root", "views");
 
     @Inject
     FxViewRepository viewRepository;

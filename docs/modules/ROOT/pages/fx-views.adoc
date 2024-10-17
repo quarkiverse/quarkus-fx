@@ -10,7 +10,7 @@ Marking an FX controller with such annotation allows for automatic load of :
 
 * the corresponding `.fxml`
 * the `.css` stylesheet (if any)
-* the resource bundle (if any)
+* the `.properties` resource bundle (if any)
 
 By default, the filename is deduced from the controller class name.
 For a controller class `MySampleController`, the extension will attempt to load :
@@ -21,29 +21,55 @@ For a controller class `MySampleController`, the extension will attempt to load 
 
 The `Controller` suffix is removed when deducing the filename. From a controller class named `MySample`, same filenames will be retrieved, though it is recommended as a convention to keep the `Controller` suffix.
 
-Also, it is possible to use a custom filename : `@FxView("my-custom-name")` will attempt to load files `my-custom-name.fxml`, `my-custom-name.css`, ...
+Also, it is possible to use a custom filename : `@FxView("my-custom-name")` will attempt to load files `my-custom-name.fxml`, `my-custom-name.css` and resource bundle with name `my-custom-name`.
 
 == Directory lookup
 
 By default, files are retrieved from the classpath root.
 Therefore, files directly located under `src/main/resources` will be retrieved.
 
-It is possible to customize the root directory for `.fxml`, `.css` and `.properties` files in the `application.properties` file.
+It can be customised by specifying the property `fx-views-root` (`/` by default).
 
-.application.properties
+If we define this property with value `views` :
+
+[source,properties]
 ----
-#FXML
-quarkus.fx.fxml-root=/fxml/ <1>
-
-# Style
-quarkus.fx.style-root=/style/ <2>
-
-# I18n
-quarkus.fx.bundle-root=/i18n/ <3>
+fx-views-root=views
 ----
-<1> FXML lookup directory (default = "/")
-<2> Style / CSS lookup directory (default = "/")
-<3> Bundle / internationalization lookup directory (default = "/")
+
+Our project should look like this :
+
+[.literal]
+----
+src/
+└── main/
+    └── resources/
+        └── views/
+            ├── Home.fxml
+            ├── Home.css
+            ├── Home.properties
+            ├── About.fxml
+            ├── About.css
+            └── About.properties
+----
+
+If the view is not found in the root directory, it will look under the subdirectory corresponding to the view name, allowing to have a better organized application (one directory per view).
+
+[.literal]
+----
+src/
+└── main/
+    └── resources/
+        └── views/
+            ├── Home/
+            │   ├── Home.fxml
+            │   ├── Home.css
+            │   └── Home.properties
+            └── About/
+                ├── About.fxml
+                ├── About.css
+                └── About.properties
+----
 
 == Samples
 
