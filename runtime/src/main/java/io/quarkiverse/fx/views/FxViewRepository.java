@@ -1,5 +1,22 @@
 package io.quarkiverse.fx.views;
 
+import io.quarkiverse.fx.FxPostStartupEvent;
+import io.quarkiverse.fx.FxViewLoadEvent;
+import io.quarkiverse.fx.style.StylesheetWatchService;
+import io.quarkus.runtime.LaunchMode;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Dialog;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import org.jboss.logging.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -13,23 +30,6 @@ import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
-
-import org.jboss.logging.Logger;
-
-import io.quarkiverse.fx.FxViewLoadEvent;
-import io.quarkiverse.fx.style.StylesheetWatchService;
-import io.quarkus.runtime.LaunchMode;
-import javafx.collections.ObservableList;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Dialog;
-import javafx.stage.Window;
-
 @ApplicationScoped
 public class FxViewRepository {
 
@@ -41,12 +41,14 @@ public class FxViewRepository {
     @Inject
     Instance<FXMLLoader> fxmlLoader;
 
-    private final Map<String, FxViewData> viewDataMap = new HashMap<>();
-
     @Inject
     FxViewConfig config;
 
+    private final Map<String, FxViewData> viewDataMap = new HashMap<>();
+
     private List<String> viewNames;
+
+    private Stage primaryStage;
 
     public void setViewNames(final List<String> views) {
         this.viewNames = views;
@@ -173,6 +175,13 @@ public class FxViewRepository {
         }
     }
 
+    /**
+     * Listens for startup event then store primary Stage instance
+     */
+    void setupPrimaryStage(@Observes final FxPostStartupEvent event) {
+        this.primaryStage = event.getPrimaryStage();
+    }
+
     private static URL lookupResource(final ClassLoader classLoader, final String name) {
         URL url = classLoader.getResource(name);
         if (url == null) {
@@ -216,5 +225,12 @@ public class FxViewRepository {
      */
     public FxViewData getViewData(final String viewName) {
         return this.viewDataMap.get(viewName);
+    }
+
+    /**
+     * Retrieve primary {@link Stage} instance (only available after {@link FxPostStartupEvent} is triggered)
+     */
+    public Stage getPrimaryStage() {
+        return this.primaryStage;
     }
 }
