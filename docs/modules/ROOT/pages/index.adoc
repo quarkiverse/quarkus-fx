@@ -4,7 +4,7 @@ include::./includes/attributes.adoc[]
 :diataxis-type: reference
 :categories: miscellaneous
 
-:extension-status: experimental
+:extension-status: preview
 
 This extension allows you to use https://openjfx.io/[Java FX] in your Quarkus application.
 
@@ -32,7 +32,7 @@ dependencies {
 
 == Usage
 
-The extension allows using cdi features in JavaFX controller classes. +
+The extension allows using CDI features in JavaFX controller classes. +
 The `FXMLLoader` is made a CDI bean and can be injected in your application.
 
 .Loading FXML with injected `FXMLLoader`

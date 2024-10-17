@@ -10,22 +10,11 @@ import io.smallrye.config.WithDefault;
 public interface FxViewConfig {
 
     /**
-     * Root location for fx resources (.fxml)
+     * Root location for fx views.
+     * The extension will look for fx views from this root directory.
      */
     @WithDefault("/")
-    String fxmlRoot();
-
-    /**
-     * Root location for style resources (.css)
-     */
-    @WithDefault("/")
-    String styleRoot();
-
-    /**
-     * Root location for bundle resources (.properties)
-     */
-    @WithDefault("/")
-    String bundleRoot();
+    String viewsRoot();
 
     /**
      * Enable (or disable) stylesheet live reload in dev mode

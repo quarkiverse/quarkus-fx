@@ -27,7 +27,7 @@ public class FxApplication extends Application {
         beanManager.getEvent().fire(new FxApplicationStartupEvent(this));
 
         // FXML conventional views loading
-        beanManager.getEvent().fire(new FxViewLoadEvent());
+        beanManager.getEvent().fire(new FxViewLoadEvent(primaryStage));
 
         // Fire event that marks that the application has finished starting
         // and that Stage instance is available for use

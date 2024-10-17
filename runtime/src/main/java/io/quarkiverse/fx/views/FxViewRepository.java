@@ -1,22 +1,5 @@
 package io.quarkiverse.fx.views;
 
-import io.quarkiverse.fx.FxPostStartupEvent;
-import io.quarkiverse.fx.FxViewLoadEvent;
-import io.quarkiverse.fx.style.StylesheetWatchService;
-import io.quarkus.runtime.LaunchMode;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
-import javafx.collections.ObservableList;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Dialog;
-import javafx.stage.Stage;
-import javafx.stage.Window;
-import org.jboss.logging.Logger;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -29,6 +12,25 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+
+import org.jboss.logging.Logger;
+
+import io.quarkiverse.fx.FxPostStartupEvent;
+import io.quarkiverse.fx.FxViewLoadEvent;
+import io.quarkiverse.fx.style.StylesheetWatchService;
+import io.quarkus.runtime.LaunchMode;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Dialog;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 @ApplicationScoped
 public class FxViewRepository {
@@ -55,9 +57,11 @@ public class FxViewRepository {
     }
 
     /**
-     * Observe the pre-startup event in order to initialize and set up views
+     * Observe the view load event in order to initialize and set up views
      */
     void setupViews(@Observes final FxViewLoadEvent event) {
+
+        this.primaryStage = event.getPrimaryStage();
 
         // Skip processing if no FX view is set
         if (this.viewNames.isEmpty()) {
@@ -73,19 +77,30 @@ public class FxViewRepository {
             FXMLLoader loader = this.fxmlLoader.get();
 
             // Append path and extensions
-            String fxml = this.config.fxmlRoot() + name + FXML_EXT;
-            String css = this.config.styleRoot() + name + STYLE_EXT;
-            String resources = this.config.bundleRoot() + name;
+            String viewsRoot = this.config.viewsRoot() + "/";
+            String fxml = viewsRoot + name + FXML_EXT;
+            String css = viewsRoot + name + STYLE_EXT;
+            String resources = viewsRoot + name;
 
             // Resources
-            ResourceBundle bundle = null;
+            ResourceBundle bundle;
             try {
                 LOGGER.debugf("Attempting to load resource bundle %s", resources);
                 bundle = ResourceBundle.getBundle(resources, Locale.getDefault(), classLoader);
                 LOGGER.debugf("Found resource bundle %s", bundle);
             } catch (MissingResourceException e) {
-                // No bundle
-                LOGGER.debugf("No resource bundle found for %s", bundle);
+                // Look for alternate (in directory named after view name)
+                String alternateResources = resources + "." + name;
+
+                try {
+                    LOGGER.debugf("Attempting to load resource bundle %s", resources);
+                    bundle = ResourceBundle.getBundle(alternateResources, Locale.getDefault(), classLoader);
+                    LOGGER.debugf("Found resource bundle %s", bundle);
+                } catch (MissingResourceException ee) {
+                    // No bundle
+                    bundle = null;
+                    LOGGER.debugf("No resource bundle found for %s", name);
+                }
             }
 
             // Style
@@ -95,28 +110,48 @@ public class FxViewRepository {
                 Path devPath = Paths.get(this.config.mainResources() + css);
                 if (devPath.toFile().exists()) {
                     style = devPath.toString();
+                } else {
+                    String alternateCss = viewsRoot + name + "/" + name + STYLE_EXT;
+                    Path alternateDevPath = Paths.get(this.config.mainResources() + alternateCss);
+                    if (alternateDevPath.toFile().exists()) {
+                        style = alternateDevPath.toString();
+                    }
                 }
             } else {
                 URL styleResource = classLoader.getResource(css);
                 if (styleResource != null) {
                     LOGGER.debugf("Found css %s", css);
                     style = styleResource.toExternalForm();
+                } else {
+                    // Look for alternate (in directory named after view name)
+                    String alternateCss = viewsRoot + name + "/" + name + STYLE_EXT;
+                    URL alternateStyleResource = classLoader.getResource(alternateCss);
+                    if (alternateStyleResource != null) {
+                        LOGGER.debugf("Found css %s", css);
+                        style = alternateStyleResource.toExternalForm();
+                    }
                 }
             }
 
             // FXML
             LOGGER.debugf("Loading FXML %s", fxml);
             InputStream stream = lookupResourceAsStream(classLoader, fxml);
-            Objects.requireNonNull(stream, "FXML " + fxml + " not found in classpath.");
+            if (stream == null) {
+                // Look for alternate (in directory named after view name)
+                String alternateFxml = viewsRoot + name + "/" + name + FXML_EXT;
+                stream = lookupResourceAsStream(classLoader, alternateFxml);
+                Objects.requireNonNull(stream, "FXML " + fxml + " not found in classpath.");
+            }
+
             try {
                 if (bundle != null) {
                     loader.setResources(bundle);
                 }
 
                 // Set-up loader location (allows use of relative image path for instance)
-                URL url = lookupResource(classLoader, this.config.fxmlRoot());
+                URL url = lookupResource(classLoader, viewsRoot);
                 if (url == null) {
-                    throw new IllegalStateException("Failed to find FXML root location : " + this.config.fxmlRoot());
+                    throw new IllegalStateException("Failed to find FXML viewsRoot location : " + viewsRoot);
                 }
                 loader.setLocation(url);
 
@@ -142,13 +177,6 @@ public class FxViewRepository {
                 throw new IllegalStateException("Failed to load FX view " + name, e);
             }
         }
-    }
-
-    /**
-     * Listens for startup event then store primary Stage instance
-     */
-    void setupPrimaryStage(@Observes final FxPostStartupEvent event) {
-        this.primaryStage = event.getPrimaryStage();
     }
 
     private static URL lookupResource(final ClassLoader classLoader, final String name) {
