@@ -16,42 +16,6 @@ public interface FxViewConfig {
     @WithDefault("/")
     String viewsRoot();
 
-    //    /**
-    //     * Root location for fx resources (.fxml)
-    //     */
-    //    @WithDefault("/")
-    //    String fxmlRoot();
-    //
-    //    /**
-    //     * Root location for style resources (.css)
-    //     */
-    //    @WithDefault("/")
-    //    String styleRoot();
-    //
-    //    /**
-    //     * Root location for bundle resources (.properties)
-    //     */
-    //    @WithDefault("/")
-    //    String bundleRoot();
-
-    /**
-     * Default directory name for fx resources
-     */
-    @WithDefault("fxml")
-    String fxmlDirectoryName();
-
-    /**
-     * Default directory name for fx resources
-     */
-    @WithDefault("style")
-    String styleDirectoryName();
-
-    /**
-     * Default directory name for bundle resources (.properties)
-     */
-    @WithDefault("i18n")
-    String bundleDirectoryName();
-
     /**
      * Enable (or disable) stylesheet live reload in dev mode
      */
