@@ -59,4 +59,4 @@ jobs:
         uses: coactions/setup-xvfb@v1
 
       - name: Run Tests
-        run: ./mvnw -B -ntp verify
+        run: xvfb-run ./mvnw -B -ntp verify
