@@ -3,9 +3,9 @@ include::./includes/attributes.adoc[]
 
 `@RunOnFxThread` annotation offers for a convenient way to execute the target on JavaFX UI thread (JavaFX Application Thread).
 
-Annotation can be applied on method level or on class level (to mark all methods within a class)
+Annotation can be applied at method level or at class level (to mark all methods within a class)
 
-- Example
+Example
 
 [source,java]
 ----
