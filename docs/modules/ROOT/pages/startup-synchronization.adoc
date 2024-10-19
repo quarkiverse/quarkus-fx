@@ -11,6 +11,8 @@ That is used in the inner `@RunOnFxThread` to ensure app is ready.
 @Inject
 FxStartupLatch startupLatch;
 
+/* *** */
+
 // Blocking until FX env is ready
 startupLatch.await();
 
