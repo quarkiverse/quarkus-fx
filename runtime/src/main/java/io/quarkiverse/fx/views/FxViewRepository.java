@@ -93,7 +93,7 @@ public class FxViewRepository {
                 String alternateResources = resources + "." + name;
 
                 try {
-                    LOGGER.debugf("Attempting to load resource bundle %s", resources);
+                    LOGGER.debugf("Attempting to load resource bundle %s", alternateResources);
                     bundle = ResourceBundle.getBundle(alternateResources, Locale.getDefault(), classLoader);
                     LOGGER.debugf("Found resource bundle %s", bundle);
                 } catch (MissingResourceException ee) {
