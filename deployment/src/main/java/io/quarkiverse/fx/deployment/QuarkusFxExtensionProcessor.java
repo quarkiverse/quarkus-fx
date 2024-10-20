@@ -166,7 +166,7 @@ class QuarkusFxExtensionProcessor {
             }
         }
 
-        LOGGER.infof("Fx views : {}", views);
+        LOGGER.infof("Fx views : %s", views);
 
         recorder.process(views, beanContainerBuildItem.getValue());
     }
