@@ -1,9 +1,11 @@
 package io.quarkiverse.fx.sample;
 
+import java.util.List;
+
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 
-import javafx.application.Platform;
+import io.quarkiverse.fx.RunOnFxThread;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -40,18 +42,25 @@ public class PeopleTabController {
         this.fetchButton.setDisable(true);
 
         this.appService.getPeople()
-                .onFailure().invoke(failure -> Platform.runLater(() -> {
-                    this.peopleListView.getItems().clear();
-                    this.countLabel.setText("Error fetching people");
-                    this.progressIndicator.setVisible(false);
-                })).onItem()
+                .onFailure().invoke(this::handleFailure)
+                .onItem()
                 .transform(PeopleResult::results)
                 .subscribe()
-                .with(people -> Platform.runLater(() -> {
-                    this.peopleListView.getItems().setAll(people);
-                    this.countLabel.setText(people.size() + " people fetched");
-                    this.progressIndicator.setVisible(false);
-                    this.fetchButton.setDisable(false);
-                }));
+                .with(this::update);
+    }
+
+    @RunOnFxThread
+    void handleFailure(final Throwable failure) {
+        this.peopleListView.getItems().clear();
+        this.countLabel.setText("Error fetching people");
+        this.progressIndicator.setVisible(false);
+    }
+
+    @RunOnFxThread
+    void update(final List<People> people) {
+        this.peopleListView.getItems().setAll(people);
+        this.countLabel.setText(people.size() + " people fetched");
+        this.progressIndicator.setVisible(false);
+        this.fetchButton.setDisable(false);
     }
 }

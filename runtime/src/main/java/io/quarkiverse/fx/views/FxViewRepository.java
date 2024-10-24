@@ -77,7 +77,11 @@ public class FxViewRepository {
             FXMLLoader loader = this.fxmlLoader.get();
 
             // Append path and extensions
-            String viewsRoot = this.config.viewsRoot() + "/";
+            String viewsRoot = this.config.viewsRoot();
+            // Append "/" if not present
+            if (!viewsRoot.endsWith("/")) {
+                viewsRoot += "/";
+            }
             String fxml = viewsRoot + name + FXML_EXT;
             String css = viewsRoot + name + STYLE_EXT;
             String resources = viewsRoot + name;
