@@ -1,4 +1,4 @@
-package io.quarkiverse.fx.deployment.fxviews;
+package io.quarkiverse.fx.deployment.fxviews.controllers;
 
 import jakarta.inject.Singleton;
 
@@ -11,5 +11,5 @@ import javafx.scene.Scene;
 public class SampleSceneController {
 
     @FXML
-    Scene scene;
+    public Scene scene;
 }

@@ -27,4 +27,12 @@ public interface FxViewConfig {
      */
     @WithDefault("src/main/resources/")
     String mainResources();
+
+    /**
+     * Location for target classes (where .class files are located)
+     * In dev mode, if stylesheet reload is activated,
+     * app will use stylesheet from sources instead of the ones in target and monitor changes
+     */
+    @WithDefault("target/classes/")
+    String targetClasses();
 }

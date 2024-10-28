@@ -5,7 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.BorderPane?>
 <Dialog xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" width="720.0" height="480.0"
-        fx:id="dialog" fx:controller="io.quarkiverse.fx.deployment.fxviews.SampleDialogController">
+        fx:id="dialog" fx:controller="io.quarkiverse.fx.deployment.fxviews.controllers.SampleDialogController">
    <dialogPane>
       <DialogPane>
          <content>

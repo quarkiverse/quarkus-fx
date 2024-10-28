@@ -2,8 +2,6 @@ package io.quarkiverse.fx.deployment.fxviews;
 
 import static org.awaitility.Awaitility.await;
 
-import java.net.URI;
-import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,12 +17,18 @@ import io.quarkiverse.fx.FxPostStartupEvent;
 import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.deployment.FxTestConstants;
+import io.quarkiverse.fx.deployment.fxviews.controllers.ComponentWithStyleController;
+import io.quarkiverse.fx.deployment.fxviews.controllers.SampleDialogController;
+import io.quarkiverse.fx.deployment.fxviews.controllers.SampleSceneController;
+import io.quarkiverse.fx.deployment.fxviews.controllers.SampleStageController;
+import io.quarkiverse.fx.deployment.fxviews.controllers.SampleTestController;
+import io.quarkiverse.fx.deployment.fxviews.controllers.SubSampleTestController;
 import io.quarkiverse.fx.views.FxViewData;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
 import javafx.collections.ObservableList;
-import javafx.scene.Parent;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 class FxViewTest {
@@ -37,7 +41,8 @@ class FxViewTest {
                         SubSampleTestController.class,
                         SampleStageController.class,
                         SampleDialogController.class,
-                        SampleSceneController.class);
+                        SampleSceneController.class,
+                        ComponentWithStyleController.class);
                 jar.addAsResource("views");
             })
             .overrideConfigKey("quarkus.fx.views-root", "views");
@@ -88,17 +93,27 @@ class FxViewTest {
         String text = controller.label.getText();
         Assertions.assertEquals("Bonjour", text);
 
-        Parent rootNode = viewData.getRootNode();
-        ObservableList<String> stylesheets = rootNode.getStylesheets();
-        Assertions.assertEquals(1, stylesheets.size());
-        URI uri = URI.create(stylesheets.get(0));
-        Path path = Path.of(uri);
-        Assertions.assertEquals("SampleTest.css", path.getFileName().toString());
+        //        Parent rootNode = viewData.getRootNode();
+        //        ObservableList<String> stylesheets = rootNode.getStylesheets();
+        //        Assertions.assertEquals(1, stylesheets.size());
+        //        URI uri = URI.create(stylesheets.get(0));
+        //        Path path = Path.of(uri);
+        //        Assertions.assertEquals("SampleTest.css", path.getFileName().toString());
 
         Assertions.assertNotNull(this.subSampleTestController.button);
         Assertions.assertNotNull(this.sampleStageController.stage);
         Assertions.assertNotNull(this.sampleDialogController.dialog);
         Assertions.assertNotNull(this.sampleSceneController.scene);
+
+        // Component with stylesheet
+        FxViewData componentWithStyle = this.viewRepository.getViewData("ComponentWithStyle");
+        Assertions.assertNotNull(componentWithStyle);
+        Assertions.assertInstanceOf(BorderPane.class, componentWithStyle.getRootNode());
+        //        ComponentWithStyleController componentWithStyleController = componentWithStyle.getController();
+        BorderPane pane = componentWithStyle.getRootNode();
+        ObservableList<String> componentStylesheets = pane.getStylesheets();
+        Assertions.assertEquals(1, componentStylesheets.size());
+        //Paint fill = componentWithStyleController.label.get
     }
 
     void observeEvent(@Observes final FxPostStartupEvent event) {

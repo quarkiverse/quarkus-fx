@@ -1,4 +1,4 @@
-package io.quarkiverse.fx.deployment.fxviews;
+package io.quarkiverse.fx.deployment.fxviews.controllers;
 
 import jakarta.inject.Singleton;
 
@@ -12,7 +12,7 @@ import javafx.scene.control.Label;
 public class SampleTestController {
 
     @FXML
-    Label label;
+    public Label label;
 
     boolean initialized;
 

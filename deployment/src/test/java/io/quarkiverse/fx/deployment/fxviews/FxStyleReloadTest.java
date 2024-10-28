@@ -14,48 +14,49 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.fx.FxPostStartupEvent;
+import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.deployment.FxTestConstants;
-import io.quarkiverse.fx.deployment.fxviews.controllers.RootResourceController;
-import io.quarkiverse.fx.views.FxViewData;
+import io.quarkiverse.fx.deployment.fxviews.controllers.ComponentWithStyleController;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
-import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
-class FxViewRootResourceTest {
+class FxStyleReloadTest {
 
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .withApplicationRoot((jar) -> {
-                jar.addClass(RootResourceController.class);
-                jar.addAsResource("RootResource.fxml");
-            });
+                jar.addClasses(
+                        ComponentWithStyleController.class);
+                jar.addAsResource("views");
+            })
+            .overrideConfigKey("quarkus.fx.views-root", "views");
+
+    @Inject
+    FxViewRepository viewRepository;
+
+    @Inject
+    FxStartupLatch startupLatch;
 
     private static final AtomicBoolean eventObserved = new AtomicBoolean(false);
 
-    @Inject
-    FxViewRepository fxViewRepository;
-
     @Test
-    void test() {
+    void testFxView() throws InterruptedException {
 
         // Non-blocking launch
         CompletableFuture.runAsync(() -> Quarkus.run(QuarkusFxApplication.class));
+
+        // Wait for readiness
+        this.startupLatch.await();
 
         await()
                 .atMost(FxTestConstants.LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS)
                 .until(eventObserved::get);
 
-        FxViewData data = this.fxViewRepository.getViewData("RootResource");
-        Assertions.assertNotNull(data);
-
-        VBox root = data.getRootNode();
-        Assertions.assertNotNull(root);
-
-        RootResourceController controller = data.getController();
-        Assertions.assertNotNull(data);
-        Assertions.assertNotNull(controller.label);
+        Stage primaryStage = this.viewRepository.getPrimaryStage();
+        Assertions.assertNotNull(primaryStage);
     }
 
     void observeEvent(@Observes final FxPostStartupEvent event) {

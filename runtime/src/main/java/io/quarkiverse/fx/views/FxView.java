@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 public @interface FxView {
 
     /**
-     * Defines the base name for .fxml, .css and .properties resources.
+     * Defines the base name for .fxml and .properties resources.
      * If omitted, name will use convention (controller's name without the "Controller" suffix)
      */
     String value() default "";
