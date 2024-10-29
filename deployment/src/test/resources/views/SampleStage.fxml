@@ -2,7 +2,7 @@
 
 <?import javafx.stage.Stage?>
 <Stage xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" width="1024.0" height="768.0"
-       fx:id="stage" fx:controller="io.quarkiverse.fx.deployment.fxviews.SampleStageController">
+       fx:id="stage" fx:controller="io.quarkiverse.fx.deployment.fxviews.controllers.SampleStageController">
    <scene>
       <fx:include source="SampleScene.fxml" />
    </scene>

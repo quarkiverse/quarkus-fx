@@ -1,4 +1,4 @@
-package io.quarkiverse.fx.deployment.fxviews;
+package io.quarkiverse.fx.deployment.fxviews.controllers;
 
 import jakarta.inject.Singleton;
 
@@ -11,5 +11,5 @@ import javafx.scene.control.Button;
 public class SubSampleTestController {
 
     @FXML
-    Button button;
+    public Button button;
 }

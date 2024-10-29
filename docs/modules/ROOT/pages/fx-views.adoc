@@ -2,26 +2,24 @@
 include::./includes/attributes.adoc[]
 
 `@FxView` allows usage of conventional FX Views.
-The goal is to have automatic FXML loading, as well as CSS and bundle resource just by using the `io.quarkiverse.fx.views.FxView` annotation, based on naming convention.
+The goal is to have automatic FXML loading, as well i18n bundle resources just by using the `io.quarkiverse.fx.views.FxView` annotation, based on naming convention.
 
 == Naming conventions
 
 Marking an FX controller with such annotation allows for automatic load of :
 
 * the corresponding `.fxml`
-* the `.css` stylesheet (if any)
 * the `.properties` resource bundle (if any)
 
 By default, the filename is deduced from the controller class name.
 For a controller class `MySampleController`, the extension will attempt to load :
 
 * `MySample.fxml`
-* `MySample.css`
 * `MySample.properties` or a resource corresponding to current locale such as `MySample_fr_CA.properties` for instance
 
 The `Controller` suffix is removed when deducing the filename. From a controller class named `MySample`, same filenames will be retrieved, though it is recommended as a convention to keep the `Controller` suffix.
 
-Also, it is possible to use a custom filename : `@FxView("my-custom-name")` will attempt to load files `my-custom-name.fxml`, `my-custom-name.css` and resource bundle with name `my-custom-name`.
+Also, it is possible to use a custom filename : `@FxView("my-custom-name")` will attempt to load files `my-custom-name.fxml` and resource bundle with name `my-custom-name`.
 
 == Directory lookup
 
@@ -37,7 +35,7 @@ If we define this property with value `views` :
 fx-views-root=views
 ----
 
-Our project should look like this :
+Our project could look like this :
 
 [.literal]
 ----
@@ -52,6 +50,7 @@ src/
             ├── About.css
             └── About.properties
 ----
+_(Stylesheets can use different names)_
 
 If the view is not found in the root directory, it will look under the subdirectory corresponding to the view name, allowing to have a better organized application (one directory per view).
 
@@ -86,4 +85,40 @@ public class SampleController {
         System.out.println("onButtonClick");
     }
 }
+----
+
+== Stylesheet live reload
+
+It is possible to enable automatic live reload for stylesheets (`.css` files).
+The live reload strategy can be configured with the property `quarkus.fx.stylesheet-reload-strategy`.
+Possibles values are :
+
+* `NEVER` : never live reload stylesheets
+* `DEV` : live reload is enabled in dev mode
+* `ALWAYS` : live reload is always enabled
+
+When live reload is active, any change made to a stylesheet file in the source directory will be immediately applied.
+
+The properties `quarkus.fx.source-resources` (default: `src/main/resources/`) and `quarkus.fx.target-resources` (default: `target/classes/`) define the source and target directories, enabling the stylesheet in the source directory to replace the one in use.
+
+[.literal]
+----
+src/
+└── main/
+    └── resources/
+        └── views/
+            └── Home/
+                └── Home.css
+target/
+└── classes/
+    └── views/
+        └── Home/
+            └── Home.css
+----
+
+The utility class `StylesheetWatchService` can also be used to set up live reload explicitly.
+
+[source,java]
+----
+StylesheetWatchService.setStyleAndStartWatchingTask(() -> component.getStylesheets(), path);
 ----

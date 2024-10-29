@@ -2,8 +2,7 @@
 
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
-
-<VBox alignment="CENTER" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.quarkiverse.fx.deployment.fxviews.SampleTestController">
+<VBox alignment="CENTER" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.quarkiverse.fx.deployment.fxviews.controllers.SampleTestController">
    <children>
       <Label fx:id="label" text="%label.text" />
       <fx:include source="SubSampleTest.fxml" />

@@ -23,10 +23,14 @@ public interface FxViewData {
     /**
      * FxViewData immutable implementation
      *
-     * @param rootNode : the UI root element
+     * @param rootNode : the UI root element (of Object type because it can be any of Stage, Scene, Dialog, Parent, ...)
      * @param controller : associated controller
      */
     record FxViewDataImpl(Object rootNode, Object controller) implements FxViewData {
+
+        /**
+         * Root node accessor with automatic cast
+         */
         @Override
         @SuppressWarnings("unchecked")
         public <T> T getRootNode() {

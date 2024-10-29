@@ -1,4 +1,4 @@
-package io.quarkiverse.fx.deployment.fxviews;
+package io.quarkiverse.fx.deployment.fxviews.controllers;
 
 import jakarta.inject.Singleton;
 
@@ -8,8 +8,8 @@ import javafx.scene.control.Label;
 
 @FxView
 @Singleton
-public class RootResourceController {
+public class ComponentWithStyleController {
 
     @FXML
-    Label label;
+    public Label label;
 }

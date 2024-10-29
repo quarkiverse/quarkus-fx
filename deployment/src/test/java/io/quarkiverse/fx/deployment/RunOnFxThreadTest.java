@@ -2,10 +2,7 @@ package io.quarkiverse.fx.deployment;
 
 import static org.awaitility.Awaitility.await;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-
-import jakarta.enterprise.event.Observes;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -13,14 +10,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkiverse.fx.FxPostStartupEvent;
-import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
-import io.quarkus.runtime.Quarkus;
+import io.quarkiverse.fx.deployment.base.FxTestBase;
 import io.quarkus.test.QuarkusUnitTest;
 import javafx.application.Platform;
 
-class RunOnFxThreadTest {
+class RunOnFxThreadTest extends FxTestBase {
 
     private static final int ASYNC_RUN_TIMEOUT_MS = 500;
 
@@ -28,18 +23,13 @@ class RunOnFxThreadTest {
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
 
-    private static boolean primaryStageObserved = false;
     private static Boolean regularThread;
     private static Boolean fxThread;
 
     @Test
     void test() {
-        // Non-blocking JavaFX launch
-        CompletableFuture.runAsync(() -> Quarkus.run(QuarkusFxApplication.class));
 
-        await()
-                .atMost(FxTestConstants.LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-                .until(() -> primaryStageObserved);
+        this.startAndWait();
 
         // Synchronous regular thread run
         this.runOnRegularThread();
@@ -53,11 +43,6 @@ class RunOnFxThreadTest {
                 .until(() -> fxThread != null);
 
         Assertions.assertTrue(fxThread);
-    }
-
-    void observePrimaryStage(@Observes final FxPostStartupEvent event) {
-        Assertions.assertNotNull(event.getPrimaryStage());
-        primaryStageObserved = true;
     }
 
     void runOnRegularThread() {
