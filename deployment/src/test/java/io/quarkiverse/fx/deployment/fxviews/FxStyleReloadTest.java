@@ -1,16 +1,18 @@
 package io.quarkiverse.fx.deployment.fxviews;
 
+import jakarta.inject.Inject;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
 import io.quarkiverse.fx.deployment.base.FxTestBase;
 import io.quarkiverse.fx.deployment.fxviews.controllers.ComponentWithStyleController;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkiverse.fx.views.StylesheetReloadStrategy;
 import io.quarkus.test.QuarkusUnitTest;
-import jakarta.inject.Inject;
 import javafx.collections.ObservableList;
 import javafx.scene.Parent;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 class FxStyleReloadTest extends FxTestBase {
 
