@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.fx.RunOnFxThread;
+import io.quarkiverse.fx.deployment.base.FxTestBase;
 import io.quarkus.test.QuarkusUnitTest;
 import javafx.application.Platform;
 

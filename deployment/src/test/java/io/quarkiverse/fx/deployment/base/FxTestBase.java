@@ -1,4 +1,4 @@
-package io.quarkiverse.fx.deployment;
+package io.quarkiverse.fx.deployment.base;
 
 import static org.awaitility.Awaitility.await;
 
@@ -14,8 +14,12 @@ import org.junit.jupiter.api.Assertions;
 import io.quarkiverse.fx.FxPostStartupEvent;
 import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.QuarkusFxApplication;
+import io.quarkiverse.fx.deployment.FxTestConstants;
 import io.quarkus.runtime.Quarkus;
 
+/**
+ * Common base for test, providing features such as startup synchronization
+ */
 public class FxTestBase {
 
     @Inject

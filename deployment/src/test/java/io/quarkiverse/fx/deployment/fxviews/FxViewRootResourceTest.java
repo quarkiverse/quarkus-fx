@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkiverse.fx.deployment.FxTestBase;
+import io.quarkiverse.fx.deployment.base.FxTestBase;
 import io.quarkiverse.fx.deployment.fxviews.controllers.RootResourceController;
 import io.quarkiverse.fx.views.FxViewData;
 import io.quarkiverse.fx.views.FxViewRepository;

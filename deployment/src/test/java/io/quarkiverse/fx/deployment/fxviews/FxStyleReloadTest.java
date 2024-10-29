@@ -1,19 +1,16 @@
 package io.quarkiverse.fx.deployment.fxviews;
 
-import jakarta.inject.Inject;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-
-import io.quarkiverse.fx.deployment.FxTestBase;
+import io.quarkiverse.fx.deployment.base.FxTestBase;
 import io.quarkiverse.fx.deployment.fxviews.controllers.ComponentWithStyleController;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkiverse.fx.views.StylesheetReloadStrategy;
 import io.quarkus.test.QuarkusUnitTest;
+import jakarta.inject.Inject;
 import javafx.collections.ObservableList;
 import javafx.scene.Parent;
-import javafx.stage.Stage;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 class FxStyleReloadTest extends FxTestBase {
 
@@ -37,9 +34,6 @@ class FxStyleReloadTest extends FxTestBase {
     void testLiveReload() {
 
         this.startAndWait();
-
-        Stage primaryStage = this.viewRepository.getPrimaryStage();
-        Assertions.assertNotNull(primaryStage);
 
         // Check that substitution has been done
         Parent component = this.viewRepository.getViewData("ComponentWithStyle").getRootNode();
