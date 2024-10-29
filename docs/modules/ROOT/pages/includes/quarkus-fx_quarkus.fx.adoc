@@ -25,35 +25,35 @@ endif::add-copy-button-to-env-var[]
 |string
 |`/`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-stylesheet-reload]] [.property-path]##link:#quarkus-fx_quarkus-fx-stylesheet-reload[`quarkus.fx.stylesheet-reload`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-stylesheet-reload-strategy]] [.property-path]##link:#quarkus-fx_quarkus-fx-stylesheet-reload-strategy[`quarkus.fx.stylesheet-reload-strategy`]##
 
 [.description]
 --
-Enable (or disable) stylesheet live reload in dev mode
+Stylesheet live reload strategy.
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_FX_STYLESHEET_RELOAD+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_FX_STYLESHEET_RELOAD_STRATEGY+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_FX_STYLESHEET_RELOAD+++`
+Environment variable: `+++QUARKUS_FX_STYLESHEET_RELOAD_STRATEGY+++`
 endif::add-copy-button-to-env-var[]
 --
-|boolean
-|`true`
+a|StylesheetReloadStrategy
+|`dev`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-main-resources]] [.property-path]##link:#quarkus-fx_quarkus-fx-main-resources[`quarkus.fx.main-resources`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-source-resources]] [.property-path]##link:#quarkus-fx_quarkus-fx-source-resources[`quarkus.fx.source-resources`]##
 
 [.description]
 --
-Location for main resources (allowing stylesheet live reload in dev mode)
+Location for source resources (allowing stylesheet live reload in dev mode)
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_FX_MAIN_RESOURCES+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_FX_SOURCE_RESOURCES+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_FX_MAIN_RESOURCES+++`
+Environment variable: `+++QUARKUS_FX_SOURCE_RESOURCES+++`
 endif::add-copy-button-to-env-var[]
 --
 |string

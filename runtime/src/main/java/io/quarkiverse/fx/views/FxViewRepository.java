@@ -65,8 +65,13 @@ public class FxViewRepository {
             return;
         }
 
+        // Determine if live reload is enabled depending on configuration and launch mode
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        boolean stylesheetReload = LaunchMode.current() == LaunchMode.DEVELOPMENT && this.config.stylesheetReload();
+        boolean stylesheetReload = switch (this.config.stylesheetReloadStrategy()) {
+            case NEVER -> false;
+            case ALWAYS -> true;
+            case DEV -> LaunchMode.current() == LaunchMode.DEVELOPMENT;
+        };
 
         for (String name : this.viewNames) {
             this.manageView(name, classLoader, stylesheetReload);
@@ -159,7 +164,7 @@ public class FxViewRepository {
                 if (targetIndex != -1) {
                     // Point to the file in sources instead
                     String relativePath = styleSheet.substring(targetIndex + targetMarker.length());
-                    String sourcesPath = this.config.mainResources() + relativePath;
+                    String sourcesPath = this.config.sourceResources() + relativePath;
 
                     LOGGER.debugf("Stylesheet live reload : substituting '%s' with '%s'", styleSheet, sourcesPath);
 

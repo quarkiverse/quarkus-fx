@@ -17,16 +17,21 @@ public interface FxViewConfig {
     String viewsRoot();
 
     /**
-     * Enable (or disable) stylesheet live reload in dev mode
+     * Stylesheet live reload strategy.
+     *
+     * @see StylesheetReloadStrategy
+     *      NEVER : never live reload stylesheets
+     *      DEV : live reload is enabled in dev mode
+     *      ALWAYS : live reload is always enabled
      */
-    @WithDefault("true")
-    boolean stylesheetReload();
+    @WithDefault("DEV")
+    StylesheetReloadStrategy stylesheetReloadStrategy();
 
     /**
-     * Location for main resources (allowing stylesheet live reload in dev mode)
+     * Location for source resources (allowing stylesheet live reload in dev mode)
      */
     @WithDefault("src/main/resources/")
-    String mainResources();
+    String sourceResources();
 
     /**
      * Location for target classes (where .class files are located)

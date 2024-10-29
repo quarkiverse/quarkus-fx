@@ -93,13 +93,6 @@ class FxViewTest {
         String text = controller.label.getText();
         Assertions.assertEquals("Bonjour", text);
 
-        //        Parent rootNode = viewData.getRootNode();
-        //        ObservableList<String> stylesheets = rootNode.getStylesheets();
-        //        Assertions.assertEquals(1, stylesheets.size());
-        //        URI uri = URI.create(stylesheets.get(0));
-        //        Path path = Path.of(uri);
-        //        Assertions.assertEquals("SampleTest.css", path.getFileName().toString());
-
         Assertions.assertNotNull(this.subSampleTestController.button);
         Assertions.assertNotNull(this.sampleStageController.stage);
         Assertions.assertNotNull(this.sampleDialogController.dialog);
@@ -109,11 +102,9 @@ class FxViewTest {
         FxViewData componentWithStyle = this.viewRepository.getViewData("ComponentWithStyle");
         Assertions.assertNotNull(componentWithStyle);
         Assertions.assertInstanceOf(BorderPane.class, componentWithStyle.getRootNode());
-        //        ComponentWithStyleController componentWithStyleController = componentWithStyle.getController();
         BorderPane pane = componentWithStyle.getRootNode();
         ObservableList<String> componentStylesheets = pane.getStylesheets();
         Assertions.assertEquals(1, componentStylesheets.size());
-        //Paint fill = componentWithStyleController.label.get
     }
 
     void observeEvent(@Observes final FxPostStartupEvent event) {
