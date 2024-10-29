@@ -59,18 +59,18 @@ endif::add-copy-button-to-env-var[]
 |string
 |`src/main/resources/`
 
-a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-target-classes]] [.property-path]##link:#quarkus-fx_quarkus-fx-target-classes[`quarkus.fx.target-classes`]##
+a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-target-resources]] [.property-path]##link:#quarkus-fx_quarkus-fx-target-resources[`quarkus.fx.target-resources`]##
 
 [.description]
 --
-Location for target classes (where .class files are located) In dev mode, if stylesheet reload is activated, app will use stylesheet from sources instead of the ones in target and monitor changes
+Location for target resources (where resources files are located after build) In dev mode, if stylesheet reload is activated, app will use stylesheet from sources instead of the ones in target and monitor changes
 
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_FX_TARGET_CLASSES+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_FX_TARGET_RESOURCES+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_FX_TARGET_CLASSES+++`
+Environment variable: `+++QUARKUS_FX_TARGET_RESOURCES+++`
 endif::add-copy-button-to-env-var[]
 --
 |string

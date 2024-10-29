@@ -155,7 +155,7 @@ public class FxViewRepository {
         ObservableList<String> styleSheets = getFxmlObjectStyleSheets(rootNode);
         if (!styleSheets.isEmpty()) {
             // Stylesheet found : manage it
-            String targetMarker = this.config.targetClasses();
+            String targetMarker = this.config.targetResources();
             for (String styleSheet : styleSheets) {
                 // Find the index of .class directory
                 int targetIndex = styleSheet.indexOf(targetMarker);

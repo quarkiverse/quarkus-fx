@@ -89,11 +89,17 @@ public class SampleController {
 
 == Stylesheet live reload
 
-In dev mode, when the `quarkus.fx.stylesheet-reload` property is set to `true` (default value), stylesheets referenced in `.fxml` via the `stylesheets` attribute will support automatic live reload.
+It is possible to enable automatic live reload for stylesheets (`.css` files).
+The live reload strategy can be configured with the property `quarkus.fx.stylesheet-reload-strategy`.
+Possibles values are :
 
-Any change made to a stylesheet file in the source directory will be immediately applied.
+* `NEVER` : never live reload stylesheets
+* `DEV` : live reload is enabled in dev mode
+* `ALWAYS` : live reload is always enabled
 
-The properties `quarkus.fx.main-resources` (default: `src/main/resources/`) and `quarkus.fx.target-classes` (default: `target/classes/`) define the source and target directories, enabling the stylesheet in the source directory to replace the one in use.
+When live reload is active, any change made to a stylesheet file in the source directory will be immediately applied.
+
+The properties `quarkus.fx.source-resources` (default: `src/main/resources/`) and `quarkus.fx.target-resources` (default: `target/classes/`) define the source and target directories, enabling the stylesheet in the source directory to replace the one in use.
 
 [.literal]
 ----
