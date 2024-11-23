@@ -39,7 +39,7 @@ ifndef::add-copy-button-to-env-var[]
 Environment variable: `+++QUARKUS_FX_STYLESHEET_RELOAD_STRATEGY+++`
 endif::add-copy-button-to-env-var[]
 --
-a|StylesheetReloadStrategy
+a|`always`, `dev`, `never`
 |`dev`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-source-resources]] [.property-path]##link:#quarkus-fx_quarkus-fx-source-resources[`quarkus.fx.source-resources`]##

@@ -6,48 +6,11 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 This Quarkus extension allows you to use JavaFX in your Quarkus application. \
-It will allow component injection in FX Controllers and will allow you to use CDI events to register on primary stage creation.
+It will allow component injection in FX Controllers as well as many other cool features.
 
 Please refer to documentation available at https://docs.quarkiverse.io/quarkus-fx/dev/index.html
 
-You will be able to register on primary stage creation event via such code example.
-```java
-public class QuarkusFxApp {
-
-  @Inject
-  FXMLLoader fxmlLoader;
-
-  public void start(@Observes final FxPostStartupEvent event) {
-    try {
-      InputStream fxml = this.getClass().getResourceAsStream("/app.fxml");
-      Parent fxmlParent = this.fxmlLoader.load(fxml);
-
-      Stage stage = event.getPrimaryStage();
-      
-      Scene scene = new Scene(fxmlParent);
-      stage.setScene(scene);
-      stage.show();
-
-    } catch (IOException e) {
-      // Handle error
-    }
-  }
-}
-```
-To load multiple FXML files, you can use :
-```java
-@Inject
-Instance<FXMLLoader> fxmlLoader;
-```
-
-Also, setting the location is required by some use cases (use of relative paths in FXML)
-```java
-FXMLLoader loader = this.fxmlLoader.get();
-// Set location for relative path resolution
-loader.setLocation(xxx);
-```
-
-For some sample apps and usage, check the `samples/` directory.
+For some sample applications and usage, check the `samples/` directory.
 
 ## Contributors ✨
 
