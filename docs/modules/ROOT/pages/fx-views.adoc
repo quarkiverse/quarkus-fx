@@ -32,7 +32,7 @@ If we define this property with value `views` :
 
 [source,properties]
 ----
-fx-views-root=views
+quarkus.fx-views-root=/views
 ----
 
 Our project could look like this :
