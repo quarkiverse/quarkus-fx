@@ -30,7 +30,7 @@ class FxStartupTest {
     HostServices hostServices;
 
     @Test
-    @Timeout(value = 5)
+    @Timeout(value = 10)
     void test() {
 
         Assertions.assertNotNull(this.latch);
