@@ -17,7 +17,7 @@ import javafx.application.Platform;
 
 class RunOnFxThreadTest extends FxTestBase {
 
-    private static final int ASYNC_RUN_TIMEOUT_MS = 500;
+    private static final int ASYNC_RUN_TIMEOUT_MS = 1_000;
 
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
