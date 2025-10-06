@@ -26,6 +26,7 @@ import io.quarkiverse.fx.views.FxViewRecorder;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -33,8 +34,14 @@ import io.quarkus.deployment.annotations.Overridable;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBundleBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourcePatternsBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
 import io.quarkus.runtime.annotations.QuarkusMain;
 
 class QuarkusFxExtensionProcessor {
@@ -169,5 +176,53 @@ class QuarkusFxExtensionProcessor {
         LOGGER.infof("Fx views : %s", views);
 
         recorder.process(views, beanContainerBuildItem.getValue());
+    }
+
+    @BuildStep
+    void indexTransitiveDependencies(BuildProducer<IndexDependencyBuildItem> index) {
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-base"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-graphics"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-controls"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-fxml"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-media"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "jdk-jsobject"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-web"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-swing"));
+    }
+
+    @BuildStep
+    void registerRuntimeInitializedClasses(BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClasses) {
+        for (String className : FxClassesAndResources.RUNTIME_INITIALIZED_CLASSES) {
+            if (QuarkusClassLoader.isClassPresentAtRuntime(className)) {
+                runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(className));
+            }
+        }
+    }
+
+    @BuildStep
+    void registerReflectiveClasses(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+        for (String className : FxClassesAndResources.REFLECTIVE_CLASSES) {
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+        }
+    }
+
+    @BuildStep
+    void registerJniRuntimeAccessClasses(BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses) {
+        jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
+                FxClassesAndResources.JNI_RUNTIME_ACCESS_CLASSES));
+    }
+
+    @BuildStep
+    public void registerNativeImageBundles(BuildProducer<NativeImageResourceBundleBuildItem> resourceBundle) {
+        for (String resourceBundleName : FxClassesAndResources.RESOURCE_BUNDLES) {
+            resourceBundle.produce(new NativeImageResourceBundleBuildItem(resourceBundleName));
+        }
+    }
+
+    @BuildStep
+    public void registerNativeImageResources(BuildProducer<NativeImageResourcePatternsBuildItem> resource) {
+        for (String resourceGlob : FxClassesAndResources.COMMON_RESOURCE_GLOBS) {
+            resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
+        }
     }
 }
