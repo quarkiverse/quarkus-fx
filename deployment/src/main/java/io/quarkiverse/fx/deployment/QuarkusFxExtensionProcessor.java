@@ -2,8 +2,11 @@ package io.quarkiverse.fx.deployment;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -42,6 +45,7 @@ import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBundleBuil
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourcePatternsBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.annotations.QuarkusMain;
 
 class QuarkusFxExtensionProcessor {
@@ -180,18 +184,24 @@ class QuarkusFxExtensionProcessor {
 
     @BuildStep
     void indexTransitiveDependencies(BuildProducer<IndexDependencyBuildItem> index) {
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-base"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-graphics"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-controls"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-fxml"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-media"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "jdk-jsobject"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-web"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-swing"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-base", "win"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-graphics", "win"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-controls", "win"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-fxml", "win"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-media", "win"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "jdk-jsobject", "win"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-web", "win"));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-swing", "win"));
     }
 
     @BuildStep
-    void registerRuntimeInitializedClasses(BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClasses) {
+    void registerRuntimeInitializedClasses(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClasses) {
+        for (var classInfo : combinedIndex.getIndex().getKnownClasses()) {
+            if (classInfo.name().toString().endsWith("$StyleableProperties")) {
+                runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(classInfo.name().toString()));
+            }
+        }
         for (String className : FxClassesAndResources.RUNTIME_INITIALIZED_CLASSES) {
             if (QuarkusClassLoader.isClassPresentAtRuntime(className)) {
                 runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(className));
@@ -200,9 +210,25 @@ class QuarkusFxExtensionProcessor {
     }
 
     @BuildStep
-    void registerReflectiveClasses(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+    void registerReflectiveClasses(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+        for (String className : FxClassesAndResources.REFLECTIVE_ROOT_CLASSES) {
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
+                    combinedIndex.getIndex().getAllKnownSubclasses(className).stream()
+                            .map(ci -> ci.name().toString())
+                            .toArray(String[]::new))
+                    .methods().fields().build());
+        }
         for (String className : FxClassesAndResources.REFLECTIVE_CLASSES) {
             reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+        }
+        for (String className : FxClassesAndResources.REFLECTIVE_INTERFACES) {
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
+                    combinedIndex.getIndex().getAllKnownImplementors(className).stream()
+                            .map(ci -> ci.name().toString())
+                            .toArray(String[]::new))
+                    .methods().fields().build());
         }
     }
 
