@@ -85,6 +85,7 @@ public interface FxClassesAndResources {
             "com.sun.glass.ui.PlatformFactory",
             "com.sun.glass.ui.View",
             "com.sun.glass.ui.Window",
+            "com.sun.scenario.effect.Effect",
             "com.sun.scenario.effect.impl.EffectPeer",
             "com.sun.scenario.effect.impl.Renderer",
             "com.sun.prism.GraphicsPipeline",
@@ -118,6 +119,10 @@ public interface FxClassesAndResources {
             "javafx.geometry.NodeOrientation",
             "javafx.geometry.Insets",
 
+            "com.sun.pisces.Transform6",
+            "com.sun.pisces.PiscesRenderer",
+            "com.sun.pisces.JavaSurface",
+            "com.sun.pisces.AbstractSurface",
             "com.sun.prism.impl.PrismSettings",
             "com.sun.prism.d3d.D3DDriverInformation",
             "com.sun.javafx.tk.quantum.QuantumToolkit",
@@ -125,6 +130,7 @@ public interface FxClassesAndResources {
             "com.sun.javafx.reflect.Trampoline",
             "com.sun.javafx.logging.jfr.JFRPulseLogger",
             "com.sun.javafx.logging.PrintLogger",
+            "com.sun.javafx.geom.Path2D",
             "com.sun.javafx.fxml.builder.JavaFXSceneBuilder",
             "com.sun.javafx.font.directwrite.D2D1_COLOR_F",
             "com.sun.javafx.font.directwrite.D2D1_MATRIX_3X2_F",
@@ -142,6 +148,7 @@ public interface FxClassesAndResources {
             "com.sun.glass.ui.Screen",
             "com.sun.javafx.PreviewFeature",
             "com.sun.glass.ui.Screen[]",
+            "com.sun.scenario.effect.impl.sw.sse.SSERendererDelegate",
 
             "io.quarkiverse.fx.FxApplication",
             "io.quarkiverse.fx.views.FxViewConfig$$CMImpl",
@@ -192,6 +199,11 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.directwrite.RECT",
             "com.sun.prism.d3d.D3DDriverInformation",
             "com.sun.prism.impl.PrismSettings",
+            "com.sun.pisces.Transform6",
+            "com.sun.pisces.PiscesRenderer",
+            "com.sun.pisces.JavaSurface",
+            "com.sun.pisces.AbstractSurface",
+            "com.sun.javafx.geom.Path2D",
     };
 
     String[] RESOURCE_BUNDLES = new String[] {
