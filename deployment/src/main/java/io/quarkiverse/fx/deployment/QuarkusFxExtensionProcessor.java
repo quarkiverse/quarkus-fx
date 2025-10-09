@@ -2,11 +2,8 @@ package io.quarkiverse.fx.deployment;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -25,6 +22,7 @@ import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.RunOnFxThreadInterceptor;
 import io.quarkiverse.fx.livereload.LiveReloadRecorder;
 import io.quarkiverse.fx.views.FxView;
+import io.quarkiverse.fx.views.FxViewConfig;
 import io.quarkiverse.fx.views.FxViewRecorder;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
@@ -43,10 +41,12 @@ import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBundleBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourcePatternsBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageSystemPropertyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
-import io.quarkus.logging.Log;
+import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import io.smallrye.common.os.OS;
 
 class QuarkusFxExtensionProcessor {
 
@@ -182,24 +182,36 @@ class QuarkusFxExtensionProcessor {
         recorder.process(views, beanContainerBuildItem.getValue());
     }
 
-    @BuildStep
+    @SuppressWarnings("deprecation")
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void indexTransitiveDependencies(BuildProducer<IndexDependencyBuildItem> index) {
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-base", "win"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-graphics", "win"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-controls", "win"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-fxml", "win"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-media", "win"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "jdk-jsobject", "win"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-web", "win"));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-swing", "win"));
+        String classifier;
+        if (OS.WINDOWS.isCurrent()) {
+            classifier = "win";
+        } else if (OS.MAC.isCurrent()) {
+            classifier = "mac";
+        } else {
+            classifier = "linux";
+        }
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-base", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-graphics", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-controls", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-fxml", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-media", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "jdk-jsobject", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-web", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-swing", classifier));
     }
 
-    @BuildStep
+    @SuppressWarnings("deprecation")
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerRuntimeInitializedClasses(CombinedIndexBuildItem combinedIndex,
             BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClasses) {
         for (var classInfo : combinedIndex.getIndex().getKnownClasses()) {
-            if (classInfo.name().toString().endsWith("$StyleableProperties")) {
-                runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(classInfo.name().toString()));
+            for (String classNameSuffix : FxClassesAndResources.RUNTIME_INITIALIZED_CLASS_SUFFIXES) {
+                if (classInfo.name().toString().endsWith(classNameSuffix)) {
+                    runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(classInfo.name().toString()));
+                }
             }
         }
         for (String className : FxClassesAndResources.RUNTIME_INITIALIZED_CLASSES) {
@@ -209,7 +221,8 @@ class QuarkusFxExtensionProcessor {
         }
     }
 
-    @BuildStep
+    @SuppressWarnings("deprecation")
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerReflectiveClasses(CombinedIndexBuildItem combinedIndex,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
         for (String className : FxClassesAndResources.REFLECTIVE_ROOT_CLASSES) {
@@ -230,25 +243,59 @@ class QuarkusFxExtensionProcessor {
                             .toArray(String[]::new))
                     .methods().fields().build());
         }
+        for (String packageName : FxClassesAndResources.REFLECTIVE_PACKAGES) {
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
+                    combinedIndex.getIndex().getClassesInPackage(packageName).stream()
+                            .map(ci -> ci.name().toString())
+                            .toArray(String[]::new))
+                    .methods().fields().build());
+        }
     }
 
-    @BuildStep
+    @SuppressWarnings("deprecation")
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerJniRuntimeAccessClasses(BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses) {
         jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
                 FxClassesAndResources.JNI_RUNTIME_ACCESS_CLASSES));
     }
 
-    @BuildStep
+    @SuppressWarnings("deprecation")
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     public void registerNativeImageBundles(BuildProducer<NativeImageResourceBundleBuildItem> resourceBundle) {
         for (String resourceBundleName : FxClassesAndResources.RESOURCE_BUNDLES) {
             resourceBundle.produce(new NativeImageResourceBundleBuildItem(resourceBundleName));
         }
     }
 
-    @BuildStep
-    public void registerNativeImageResources(BuildProducer<NativeImageResourcePatternsBuildItem> resource) {
-        for (String resourceGlob : FxClassesAndResources.COMMON_RESOURCE_GLOBS) {
+    @SuppressWarnings("deprecation")
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    public void registerNativeImageResources(FxViewConfig fxViewConfig,
+            BuildProducer<NativeImageResourcePatternsBuildItem> resource) {
+        for (String resourceGlob : FxClassesAndResources.RESOURCE_GLOBS) {
             resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
+        }
+
+        String viewsRoot = fxViewConfig.viewsRoot();
+        if (!viewsRoot.endsWith("/")) {
+            viewsRoot += "/";
+        }
+        resource.produce(NativeImageResourcePatternsBuildItem.builder()
+                .includeGlob("%s**/*.fxml".formatted(viewsRoot)).build());
+        resource.produce(NativeImageResourcePatternsBuildItem.builder()
+                .includeGlob("%s**/*.css".formatted(viewsRoot)).build());
+        resource.produce(NativeImageResourcePatternsBuildItem.builder()
+                .includeGlob("%s**/*.properties".formatted(viewsRoot)).build());
+    }
+
+    // TODO: does not work
+    @SuppressWarnings("deprecation")
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void addNativeLinkerOptions(BuildProducer<NativeImageSystemPropertyBuildItem> nativeImageSystemProperties) {
+        if (OS.WINDOWS.isCurrent()) {
+            // this prevents showing the terminal on startup
+            nativeImageSystemProperties.produce(new NativeImageSystemPropertyBuildItem(
+                    "quarkus.native.additional-build-args",
+                    "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS,-H:NativeLinkerOption=/ENTRY:mainCRTStartup"));
         }
     }
 }

@@ -1,6 +1,9 @@
 package io.quarkiverse.fx.deployment;
 
 public interface FxClassesAndResources {
+    String[] RUNTIME_INITIALIZED_CLASS_SUFFIXES = new String[] {
+            "$StyleableProperties"
+    };
     String[] RUNTIME_INITIALIZED_CLASSES = new String[] {
             "javafx.scene.Node",
             "javafx.scene.control.ListView$EditEvent",
@@ -24,6 +27,7 @@ public interface FxClassesAndResources {
             "com.sun.glass.ui.win.WinGestureSupport",
             "com.sun.glass.ui.win.WinMenuImpl",
             "com.sun.glass.ui.win.WinPixels",
+            "com.sun.glass.ui.win.WinTextRangeProvider",
             "com.sun.glass.ui.win.WinTimer",
             "com.sun.glass.ui.win.WinWindow",
             "com.sun.glass.ui.win.WinView",
@@ -74,15 +78,33 @@ public interface FxClassesAndResources {
             "javafx.scene.effect.Effect",
             "javafx.scene.transform.Transform",
             "javafx.scene.layout.ConstraintsBase",
+            "com.sun.glass.ui.Application",
+            "com.sun.glass.ui.Clipboard",
+            "com.sun.glass.ui.Cursor",
+            "com.sun.glass.ui.Pixels",
+            "com.sun.glass.ui.PlatformFactory",
+            "com.sun.glass.ui.View",
+            "com.sun.glass.ui.Window",
+            "com.sun.scenario.effect.impl.EffectPeer",
+            "com.sun.scenario.effect.impl.Renderer",
+            "com.sun.prism.GraphicsPipeline",
     };
 
     String[] REFLECTIVE_INTERFACES = new String[] {
             "javafx.event.Event",
             "javafx.css.Styleable",
+            "com.sun.scenario.effect.impl.hw.ShaderSource",
+    };
+
+    String[] REFLECTIVE_PACKAGES = new String[] {
+            "com.sun.prism.shader",
     };
 
     String[] REFLECTIVE_CLASSES = new String[] {
+            "java.nio.ByteBuffer",
+            "java.nio.ByteOrder",
             "javafx.scene.text.Font",
+            "javafx.css.Rule",
 
             // all enums that can be used in FXML
             "javafx.scene.layout.Priority",
@@ -96,66 +118,33 @@ public interface FxClassesAndResources {
             "javafx.geometry.NodeOrientation",
             "javafx.geometry.Insets",
 
-            "com.sun.scenario.effect.impl.prism.ps.PPSRenderer",
-            "com.sun.scenario.effect.impl.prism.ps.PPSLinearConvolveShadowPeer",
-            "com.sun.scenario.effect.impl.prism.ps.PPSBlend_SRC_INPeer",
-            "com.sun.scenario.effect.impl.prism.PrRenderer",
-            "com.sun.scenario.effect.impl.hw.d3d.D3DShaderSource",
-            "com.sun.prism.shader.Texture_LinearGradient_PAD_Loader",
-            "com.sun.prism.shader.Texture_Color_Loader",
-            "com.sun.prism.shader.Solid_TextureSecondPassLCD_Loader",
-            "com.sun.prism.shader.Solid_TextureRGB_Loader",
-            "com.sun.prism.shader.Solid_TextureFirstPassLCD_Loader",
-            "com.sun.prism.shader.Solid_Color_Loader",
-            "com.sun.prism.shader.FillRoundRect_LinearGradient_PAD_Loader",
-            "com.sun.prism.shader.FillRoundRect_Color_Loader",
-            "com.sun.prism.shader.FillPgram_LinearGradient_PAD_Loader",
-            "com.sun.prism.shader.FillPgram_Color_Loader",
-            "com.sun.prism.shader.DrawRoundRect_Color_Loader",
-            "com.sun.prism.shader.DrawPgram_Color_Loader",
             "com.sun.prism.impl.PrismSettings",
-            "com.sun.prism.sw.SWPipeline",
-            "com.sun.prism.d3d.D3DPipeline",
-            "com.sun.prism.GraphicsPipeline",
+            "com.sun.prism.d3d.D3DDriverInformation",
             "com.sun.javafx.tk.quantum.QuantumToolkit",
             "com.sun.javafx.scene.control.skin.Utils",
             "com.sun.javafx.reflect.Trampoline",
             "com.sun.javafx.logging.jfr.JFRPulseLogger",
             "com.sun.javafx.logging.PrintLogger",
             "com.sun.javafx.fxml.builder.JavaFXSceneBuilder",
-            "com.sun.javafx.font.directwrite.RECT",
-            "com.sun.javafx.font.directwrite.DWRITE_SCRIPT_ANALYSIS",
-            "com.sun.javafx.font.directwrite.DWRITE_MATRIX",
-            "com.sun.javafx.font.directwrite.DWRITE_GLYPH_RUN",
-            "com.sun.javafx.font.directwrite.DWRITE_GLYPH_METRICS",
-            "com.sun.javafx.font.directwrite.DWFactory",
-            "com.sun.javafx.font.directwrite.D2D1_RENDER_TARGET_PROPERTIES",
-            "com.sun.javafx.font.directwrite.D2D1_POINT_2F",
-            "com.sun.javafx.font.directwrite.D2D1_PIXEL_FORMAT",
-            "com.sun.javafx.font.directwrite.D2D1_MATRIX_3X2_F",
             "com.sun.javafx.font.directwrite.D2D1_COLOR_F",
-            "com.sun.glass.ui.win.WinWindow",
-            "com.sun.glass.ui.win.WinView",
-            "com.sun.glass.ui.win.WinSystemClipboard",
-            "com.sun.glass.ui.win.WinPlatformFactory",
+            "com.sun.javafx.font.directwrite.D2D1_MATRIX_3X2_F",
+            "com.sun.javafx.font.directwrite.D2D1_PIXEL_FORMAT",
+            "com.sun.javafx.font.directwrite.D2D1_POINT_2F",
+            "com.sun.javafx.font.directwrite.D2D1_RENDER_TARGET_PROPERTIES",
+            "com.sun.javafx.font.directwrite.DWFactory",
+            "com.sun.javafx.font.directwrite.DWRITE_GLYPH_METRICS",
+            "com.sun.javafx.font.directwrite.DWRITE_GLYPH_RUN",
+            "com.sun.javafx.font.directwrite.DWRITE_MATRIX",
+            "com.sun.javafx.font.directwrite.DWRITE_SCRIPT_ANALYSIS",
+            "com.sun.javafx.font.directwrite.RECT",
             "com.sun.glass.ui.win.WinGestureSupport",
-            "com.sun.glass.ui.win.WinDnDClipboard",
-            "com.sun.glass.ui.Window",
-            "com.sun.glass.ui.View",
             "com.sun.glass.ui.Size",
-            "com.sun.glass.ui.Pixels",
-            "com.sun.glass.ui.Cursor",
-            "com.sun.glass.ui.Clipboard",
-            "com.sun.glass.ui.Application",
-
+            "com.sun.glass.ui.Screen",
             "com.sun.javafx.PreviewFeature",
-            "com.sun.glass.ui.win.WinPixels",
-            "com.sun.glass.ui.win.WinApplication",
             "com.sun.glass.ui.Screen[]",
 
             "io.quarkiverse.fx.FxApplication",
             "io.quarkiverse.fx.views.FxViewConfig$$CMImpl",
-
             "io.quarkiverse.fx.FXMLLoaderProducer",
             "io.quarkiverse.fx.FxApplicationStartupEvent",
             "io.quarkiverse.fx.FxPostStartupEvent",
@@ -201,21 +190,18 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.directwrite.DWRITE_MATRIX",
             "com.sun.javafx.font.directwrite.DWRITE_SCRIPT_ANALYSIS",
             "com.sun.javafx.font.directwrite.RECT",
+            "com.sun.prism.d3d.D3DDriverInformation",
             "com.sun.prism.impl.PrismSettings",
     };
 
     String[] RESOURCE_BUNDLES = new String[] {
             "com.sun.javafx.scene.control.skin.resources.controls",
-            "com.sun.glass.ui.win.themes",
             "com.sun.javafx.tk.quantum.QuantumMessagesBundle",
+            "com.sun.glass.ui.win.themes",
     };
 
-    // TODO: do not include resources if the dependency is not present, specially for javafx-web which has huge library size
-    String[] COMMON_RESOURCE_GLOBS = new String[] {
-            "views/**/*.fxml",
-            "views/**/*.properties",
-            "views/**/*.css",
-
+    String[] RESOURCE_GLOBS = new String[] {
+            "META-INF/fonts.mf",
             "com/sun/javafx/scene/control/skin/modena/**",
             "com/sun/prism/d3d/hlsl/**",
             "com/sun/scenario/effect/impl/hw/d3d/hlsl/**",
