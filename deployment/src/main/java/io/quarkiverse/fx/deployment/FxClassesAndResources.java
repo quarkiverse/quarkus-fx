@@ -196,6 +196,38 @@ public interface FxClassesAndResources {
             "com.sun.scenario.effect.impl.hw.d3d.D3DShaderSource",
     };
 
+    String[] MAC_REFLECTIVE_CLASSES = new String[] {
+            "com.sun.prism.es2.ES2Pipeline",
+            "com.sun.prism.es2.ES2PhongShader",
+            "com.sun.prism.es2.ES2ResourceFactory",
+            "com.sun.prism.es2.ES2Shader",
+            "com.sun.prism.es2.MacGLFactory",
+            "com.sun.scenario.effect.impl.es2.ES2ShaderSource",
+            "com.sun.glass.ui.mac.MacApplication",
+            "com.sun.glass.ui.mac.MacPixels",
+            "com.sun.glass.ui.mac.MacView",
+            "com.sun.glass.ui.mac.MacPlatformFactory",
+            "com.sun.glass.ui.mac.MacGestureSupport",
+            "com.sun.glass.ui.mac.MacMenuBarDelegate",
+            "com.sun.glass.ui.mac.MacCommonDialogs",
+            "com.sun.glass.ui.mac.MacFileNSURL",
+            "com.sun.javafx.font.coretext.CTFactory",
+    };
+
+    String[] LINUX_REFLECTIVE_CLASSES = new String[] {
+            "com.sun.prism.es2.MonocleGLFactory",
+            "com.sun.prism.es2.ES2Pipeline",
+            "com.sun.prism.es2.ES2PhongShader",
+            "com.sun.prism.es2.ES2ResourceFactory",
+            "com.sun.prism.es2.ES2Shader",
+            "com.sun.prism.es2.X11GLFactory",
+            "com.sun.scenario.effect.impl.es2.ES2ShaderSource",
+            "com.sun.glass.ui.gtk.GtkPlatformFactory",
+            "com.sun.glass.ui.monocle.EGLPlatformFactory",
+            "com.sun.glass.ui.monocle.MonoclePlatformFactory",
+            "com.sun.javafx.font.freetype.FTFactory",
+    };
+
     String[] JNI_RUNTIME_ACCESS_CLASSES = new String[] {
             "java.lang.Boolean",
             "java.lang.Class",
@@ -224,6 +256,9 @@ public interface FxClassesAndResources {
             "com.sun.glass.ui.CommonDialogs",
             "com.sun.glass.ui.CommonDialogs$ExtensionFilter",
             "com.sun.glass.ui.CommonDialogs$FileChooserResult",
+            "com.sun.glass.ui.EventLoop",
+            "com.sun.javafx.font.FontConfigManager$FcCompFont",
+            "com.sun.javafx.font.FontConfigManager$FontConfigFont",
             "com.sun.javafx.iio.jpeg.JPEGImageLoader",
             "com.sun.javafx.iio.common.ImageLoaderImpl",
             "com.sun.pisces.Transform6",
@@ -250,6 +285,41 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.directwrite.DWRITE_SCRIPT_ANALYSIS",
             "com.sun.javafx.font.directwrite.RECT",
     };
+    String[] MAC_JNI_RUNTIME_ACCESS_CLASSES = new String[] {
+            "com.sun.glass.ui.mac.MacAccessible",
+            "com.sun.glass.ui.mac.MacAccessible$MacAction",
+            "com.sun.glass.ui.mac.MacAccessible$MacAttribute",
+            "com.sun.glass.ui.mac.MacAccessible$MacNotification",
+            "com.sun.glass.ui.mac.MacAccessible$MacOrientation",
+            "com.sun.glass.ui.mac.MacAccessible$MacRole",
+            "com.sun.glass.ui.mac.MacAccessible$MacSubrole",
+            "com.sun.glass.ui.mac.MacAccessible$MacText",
+            "com.sun.glass.ui.mac.MacVariant",
+            "com.sun.glass.ui.mac.MacApplication",
+            "com.sun.glass.ui.mac.MacCommonDialogs",
+            "com.sun.glass.ui.mac.MacCursor",
+            "com.sun.glass.ui.mac.MacGestureSupport",
+            "com.sun.glass.ui.mac.MacMenuBarDelegate",
+            "com.sun.glass.ui.mac.MacMenuDelegate",
+            "com.sun.glass.ui.mac.MacView",
+            "com.sun.glass.ui.mac.MacWindow",
+            "com.sun.javafx.font.coretext.CGAffineTransform",
+            "com.sun.javafx.font.coretext.CGPoint",
+            "com.sun.javafx.font.coretext.CGRect",
+            "com.sun.javafx.font.coretext.CGSize",
+
+    };
+    String[] LINUX_JNI_RUNTIME_ACCESS_CLASSES = new String[] {
+            "com.sun.glass.ui.gtk.GtkApplication",
+            "com.sun.glass.ui.gtk.GtkPixels",
+            "com.sun.glass.ui.gtk.GtkView",
+            "com.sun.glass.ui.gtk.GtkWindow",
+            "com.sun.javafx.font.freetype.FT_Bitmap",
+            "com.sun.javafx.font.freetype.FT_GlyphSlotRec",
+            "com.sun.javafx.font.freetype.FT_Glyph_Metrics",
+            "com.sun.javafx.font.freetype.FT_Matrix",
+            "com.sun.javafx.font.freetype.PangoGlyphString",
+    };
 
     String[] RESOURCE_BUNDLES = new String[] {
             "com.sun.javafx.scene.control.skin.resources.controls",
@@ -268,47 +338,6 @@ public interface FxClassesAndResources {
 
             // .jar files in javafx-graphics
             "javafx-swt.jar",
-
-            // Linux .so files in javafx-graphics
-            "libdecora_sse.so",
-            "libglass.so",
-            "libglassgtk3.so",
-            "libjavafx_font.so",
-            "libjavafx_font_freetype.so",
-            "libjavafx_font_pango.so",
-            "libjavafx_iio.so",
-            "libprism_common.so",
-            "libprism_es2.so",
-            "libprism_sw.so",
-
-            // Mac .dylib files in javafx-graphics
-            "libdecora_sse.dylib",
-            "libglass.dylib",
-            "libjavafx_font.dylib",
-            "libjavafx_iio.dylib",
-            "libprism_common.dylib",
-            "libprism_es2.dylib",
-            "libprism_sw.dylib",
-
-            // Linux .so files in javafx-media
-            "libavplugin-*.so",
-            "libavplugin-ffmpeg-*.so",
-            "libfxplugins.so",
-            "libgstreamer-lite.so",
-            "libjfxmedia.so",
-
-            // Mac .dylib files in javafx-media
-            "libfxplugins.dylib",
-            "libglib-lite.dylib",
-            "libgstreamer-lite.dylib",
-            "libjfxmedia.dylib",
-            "libjfxmedia_avf.dylib",
-
-            // Linux .so files in javafx-web
-            "libjfxwebkit.so",
-
-            // Mac .dylib files in javafx-media
-            "libjfxwebkit.dylib",
     };
 
     String[] WINDOWS_RESOURCE_GLOBS = new String[] {
@@ -332,5 +361,50 @@ public interface FxClassesAndResources {
 
             // Windows .dll files in javafx-web
             "jfxwebkit.dll",
+    };
+
+    String[] MAC_RESOURCE_GLOBS = new String[] {
+            // Mac .dylib files in javafx-graphics
+            "libdecora_sse.dylib",
+            "libglass.dylib",
+            "libjavafx_font.dylib",
+            "libjavafx_iio.dylib",
+            "libprism_common.dylib",
+            "libprism_es2.dylib",
+            "libprism_sw.dylib",
+
+            // Mac .dylib files in javafx-media
+            "libfxplugins.dylib",
+            "libglib-lite.dylib",
+            "libgstreamer-lite.dylib",
+            "libjfxmedia.dylib",
+            "libjfxmedia_avf.dylib",
+
+            // Mac .dylib files in javafx-media
+            "libjfxwebkit.dylib",
+    };
+
+    String[] LINUX_RESOURCE_GLOBS = new String[] {
+            // Linux .so files in javafx-graphics
+            "libdecora_sse.so",
+            "libglass.so",
+            "libglassgtk3.so",
+            "libjavafx_font.so",
+            "libjavafx_font_freetype.so",
+            "libjavafx_font_pango.so",
+            "libjavafx_iio.so",
+            "libprism_common.so",
+            "libprism_es2.so",
+            "libprism_sw.so",
+
+            // Linux .so files in javafx-media
+            "libavplugin-*.so",
+            "libavplugin-ffmpeg-*.so",
+            "libfxplugins.so",
+            "libgstreamer-lite.so",
+            "libjfxmedia.so",
+
+            // Linux .so files in javafx-web
+            "libjfxwebkit.so",
     };
 }

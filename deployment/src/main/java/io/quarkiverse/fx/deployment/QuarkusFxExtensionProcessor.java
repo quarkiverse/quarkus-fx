@@ -184,15 +184,23 @@ class QuarkusFxExtensionProcessor {
 
     @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
-    void indexTransitiveDependencies(BuildProducer<IndexDependencyBuildItem> index) {
-        String classifier;
+    void determineFxTargetPlatform(BuildProducer<FxTargetPlatformBuildItem> fxTargetPlatform) {
+        String osArch = System.getProperty("os.arch");
+        boolean is64Bit = osArch == null || (!osArch.contains("aarch") && !osArch.contains("arm"));
         if (OS.WINDOWS.isCurrent()) {
-            classifier = "win";
+            fxTargetPlatform.produce(new FxTargetPlatformBuildItem("win"));
         } else if (OS.MAC.isCurrent()) {
-            classifier = "mac";
+            fxTargetPlatform.produce(new FxTargetPlatformBuildItem(is64Bit ? "mac" : "mac-aarch64"));
         } else {
-            classifier = "linux";
+            fxTargetPlatform.produce(new FxTargetPlatformBuildItem(is64Bit ? "linux" : "linux-aarch64"));
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void indexTransitiveDependencies(FxTargetPlatformBuildItem fxTargetPlatform,
+            BuildProducer<IndexDependencyBuildItem> index) {
+        String classifier = fxTargetPlatform.getTargetPlatform();
         index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-base", classifier));
         index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-graphics", classifier));
         index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-controls", classifier));
@@ -223,7 +231,7 @@ class QuarkusFxExtensionProcessor {
 
     @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
-    void registerReflectiveClasses(CombinedIndexBuildItem combinedIndex,
+    void registerReflectiveClasses(FxTargetPlatformBuildItem fxTargetPlatform, CombinedIndexBuildItem combinedIndex,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
         for (String className : FxClassesAndResources.REFLECTIVE_ROOT_CLASSES) {
             reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
@@ -250,8 +258,16 @@ class QuarkusFxExtensionProcessor {
                             .toArray(String[]::new))
                     .methods().fields().build());
         }
-        if (OS.WINDOWS.isCurrent()) {
+        if (fxTargetPlatform.isWindows()) {
             for (String className : FxClassesAndResources.WINDOWS_REFLECTIVE_CLASSES) {
+                reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+            }
+        } else if (fxTargetPlatform.isMac()) {
+            for (String className : FxClassesAndResources.MAC_REFLECTIVE_CLASSES) {
+                reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+            }
+        } else {
+            for (String className : FxClassesAndResources.LINUX_REFLECTIVE_CLASSES) {
                 reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
             }
         }
@@ -263,22 +279,30 @@ class QuarkusFxExtensionProcessor {
 
     @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
-    void registerJniRuntimeAccessClasses(BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses) {
+    void registerJniRuntimeAccessClasses(FxTargetPlatformBuildItem fxTargetPlatform,
+                                         BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses) {
         jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
                 FxClassesAndResources.JNI_RUNTIME_ACCESS_CLASSES));
-        if (OS.WINDOWS.isCurrent()) {
+        if (fxTargetPlatform.isWindows()) {
             jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
                     FxClassesAndResources.WINDOWS_JNI_RUNTIME_ACCESS_CLASSES));
+        } else if (fxTargetPlatform.isMac()) {
+            jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
+                    FxClassesAndResources.MAC_JNI_RUNTIME_ACCESS_CLASSES));
+        } else {
+            jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
+                    FxClassesAndResources.LINUX_JNI_RUNTIME_ACCESS_CLASSES));
         }
     }
 
     @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
-    public void registerNativeImageBundles(BuildProducer<NativeImageResourceBundleBuildItem> resourceBundle) {
+    public void registerNativeImageBundles(FxTargetPlatformBuildItem fxTargetPlatform,
+                                           BuildProducer<NativeImageResourceBundleBuildItem> resourceBundle) {
         for (String resourceBundleName : FxClassesAndResources.RESOURCE_BUNDLES) {
             resourceBundle.produce(new NativeImageResourceBundleBuildItem(resourceBundleName));
         }
-        if (OS.WINDOWS.isCurrent()) {
+        if (fxTargetPlatform.isWindows()) {
             for (String resourceBundleName : FxClassesAndResources.WINDOWS_RESOURCE_BUNDLES) {
                 resourceBundle.produce(new NativeImageResourceBundleBuildItem(resourceBundleName));
             }
@@ -287,13 +311,21 @@ class QuarkusFxExtensionProcessor {
 
     @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
-    public void registerNativeImageResources(FxViewConfig fxViewConfig,
+    public void registerNativeImageResources(FxTargetPlatformBuildItem fxTargetPlatform, FxViewConfig fxViewConfig,
             BuildProducer<NativeImageResourcePatternsBuildItem> resource) {
         for (String resourceGlob : FxClassesAndResources.RESOURCE_GLOBS) {
             resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
         }
-        if (OS.WINDOWS.isCurrent()) {
+        if (fxTargetPlatform.isWindows()) {
             for (String resourceGlob : FxClassesAndResources.WINDOWS_RESOURCE_GLOBS) {
+                resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
+            }
+        } else if (fxTargetPlatform.isMac()) {
+            for (String resourceGlob : FxClassesAndResources.MAC_RESOURCE_GLOBS) {
+                resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
+            }
+        } else {
+            for (String resourceGlob : FxClassesAndResources.LINUX_RESOURCE_GLOBS) {
                 resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
             }
         }
@@ -313,8 +345,9 @@ class QuarkusFxExtensionProcessor {
     // TODO: does not work
     @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
-    void addNativeLinkerOptions(BuildProducer<NativeImageSystemPropertyBuildItem> nativeImageSystemProperties) {
-        if (OS.WINDOWS.isCurrent()) {
+    void addNativeLinkerOptions(FxTargetPlatformBuildItem fxTargetPlatform,
+                                BuildProducer<NativeImageSystemPropertyBuildItem> nativeImageSystemProperties) {
+        if (fxTargetPlatform.isWindows()) {
             // this prevents showing the terminal on startup
             nativeImageSystemProperties.produce(new NativeImageSystemPropertyBuildItem(
                     "quarkus.native.additional-build-args",
