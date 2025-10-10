@@ -53,6 +53,7 @@ public interface FxClassesAndResources {
             "com.sun.javafx.tk.quantum.PaintCollector",
             "com.sun.javafx.tk.quantum.PrismImageLoader2$AsyncImageLoader",
             "com.sun.javafx.webkit.prism.PrismGraphicsManager",
+            "com.sun.glass.utils.NativeLibLoader",
             "com.sun.marlin.DMarlinRenderingEngine",
             "com.sun.marlin.MarlinUtils",
             "com.sun.marlin.MaskMarlinAlphaConsumer",
