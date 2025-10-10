@@ -118,6 +118,7 @@ public interface FxClassesAndResources {
             "javafx.geometry.Orientation",
             "javafx.geometry.NodeOrientation",
             "javafx.geometry.Insets",
+            // TODO: add more
 
             "com.sun.pisces.Transform6",
             "com.sun.pisces.PiscesRenderer",

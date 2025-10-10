@@ -250,6 +250,10 @@ class QuarkusFxExtensionProcessor {
                             .toArray(String[]::new))
                     .methods().fields().build());
         }
+        for (var annotation : combinedIndex.getIndex().getAnnotations(FxView.class)) {
+            String className = annotation.target().asClass().name().toString();
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+        }
     }
 
     @SuppressWarnings("deprecation")
