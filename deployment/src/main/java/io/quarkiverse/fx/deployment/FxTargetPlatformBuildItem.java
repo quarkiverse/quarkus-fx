@@ -15,15 +15,15 @@ public final class FxTargetPlatformBuildItem extends SimpleBuildItem {
     }
 
     public boolean isWindows() {
-        return targetPlatform.equals("win");
+        return targetPlatform.startsWith("win");
     }
 
     public boolean isMac() {
-        return targetPlatform.equals("mac");
+        return targetPlatform.startsWith("mac");
     }
 
     public boolean isLinux() {
-        return targetPlatform.equals("linux");
+        return targetPlatform.startsWith("linux");
     }
 
     public boolean isX64() {
