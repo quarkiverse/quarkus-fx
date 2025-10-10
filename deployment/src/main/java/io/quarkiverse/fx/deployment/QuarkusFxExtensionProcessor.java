@@ -250,6 +250,11 @@ class QuarkusFxExtensionProcessor {
                             .toArray(String[]::new))
                     .methods().fields().build());
         }
+        if (OS.WINDOWS.isCurrent()) {
+            for (String className : FxClassesAndResources.WINDOWS_REFLECTIVE_CLASSES) {
+                reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+            }
+        }
         for (var annotation : combinedIndex.getIndex().getAnnotations(FxView.class)) {
             String className = annotation.target().asClass().name().toString();
             reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
@@ -261,6 +266,10 @@ class QuarkusFxExtensionProcessor {
     void registerJniRuntimeAccessClasses(BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses) {
         jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
                 FxClassesAndResources.JNI_RUNTIME_ACCESS_CLASSES));
+        if (OS.WINDOWS.isCurrent()) {
+            jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
+                    FxClassesAndResources.WINDOWS_JNI_RUNTIME_ACCESS_CLASSES));
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -268,6 +277,11 @@ class QuarkusFxExtensionProcessor {
     public void registerNativeImageBundles(BuildProducer<NativeImageResourceBundleBuildItem> resourceBundle) {
         for (String resourceBundleName : FxClassesAndResources.RESOURCE_BUNDLES) {
             resourceBundle.produce(new NativeImageResourceBundleBuildItem(resourceBundleName));
+        }
+        if (OS.WINDOWS.isCurrent()) {
+            for (String resourceBundleName : FxClassesAndResources.WINDOWS_RESOURCE_BUNDLES) {
+                resourceBundle.produce(new NativeImageResourceBundleBuildItem(resourceBundleName));
+            }
         }
     }
 
@@ -277,6 +291,11 @@ class QuarkusFxExtensionProcessor {
             BuildProducer<NativeImageResourcePatternsBuildItem> resource) {
         for (String resourceGlob : FxClassesAndResources.RESOURCE_GLOBS) {
             resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
+        }
+        if (OS.WINDOWS.isCurrent()) {
+            for (String resourceGlob : FxClassesAndResources.WINDOWS_RESOURCE_GLOBS) {
+                resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
+            }
         }
 
         String viewsRoot = fxViewConfig.viewsRoot();

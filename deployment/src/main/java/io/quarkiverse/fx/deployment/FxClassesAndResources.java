@@ -8,6 +8,7 @@ public interface FxClassesAndResources {
             "javafx.scene.Node",
             "javafx.scene.control.ListView$EditEvent",
             "javafx.scene.control.PopupControl",
+            "javafx.scene.control.SkinBase",
             "javafx.scene.control.TreeTableView$EditEvent",
             "javafx.scene.control.TreeView$EditEvent",
             "javafx.scene.control.skin.ColorPickerSkin",
@@ -15,6 +16,7 @@ public interface FxClassesAndResources {
             "javafx.scene.control.skin.ProgressIndicatorSkin",
             "javafx.scene.control.skin.TableRowSkinBase",
             "javafx.scene.control.skin.TextInputControlSkin",
+            "javafx.scene.control.skin.MenuButtonSkin",
             "javafx.stage.Screen",
             "javafx.scene.CssStyleHelper",
             "javafx.scene.web.WebEngine",
@@ -73,11 +75,14 @@ public interface FxClassesAndResources {
             "javafx.scene.control.Dialog",
             "javafx.scene.Node",
             "javafx.scene.shape.PathElement",
+            "javafx.scene.shape.Mesh",
             "javafx.scene.paint.Paint",
+            "javafx.scene.paint.Material",
             "javafx.scene.image.Image",
             "javafx.scene.effect.Effect",
             "javafx.scene.transform.Transform",
             "javafx.scene.layout.ConstraintsBase",
+            "javafx.scene.input.Clipboard",
             "com.sun.glass.ui.Application",
             "com.sun.glass.ui.Clipboard",
             "com.sun.glass.ui.Cursor",
@@ -106,18 +111,32 @@ public interface FxClassesAndResources {
             "java.nio.ByteOrder",
             "javafx.scene.text.Font",
             "javafx.css.Rule",
+            "javafx.scene.input.TouchPoint",
+            "javafx.animation.KeyFrame",
+            "javafx.animation.KeyValue",
 
             // all enums that can be used in FXML
-            "javafx.scene.layout.Priority",
-            "javafx.scene.control.TabPane$TabClosingPolicy",
-            "javafx.scene.control.TabPane$TabDragPolicy",
-            "javafx.scene.control.ScrollPane$ScrollBarPolicy",
             "javafx.geometry.Pos",
             "javafx.geometry.HPos",
             "javafx.geometry.VPos",
+            "javafx.geometry.Insets",
             "javafx.geometry.Orientation",
             "javafx.geometry.NodeOrientation",
-            "javafx.geometry.Insets",
+            "javafx.geometry.Side",
+            "javafx.scene.text.TextAlignment",
+            "javafx.scene.text.FontSmoothingType",
+            "javafx.scene.text.FontPosture",
+            "javafx.scene.text.FontWeight",
+            "javafx.scene.text.TextBoundsType",
+            "javafx.css.SizeUnits",
+            "javafx.css.StyleOrigin",
+            "javafx.scene.effect.BlurType",
+            "javafx.scene.input.MouseButton",
+            "javafx.scene.layout.Priority",
+            "javafx.scene.shape.StrokeType",
+            "javafx.scene.control.TabPane$TabClosingPolicy",
+            "javafx.scene.control.TabPane$TabDragPolicy",
+            "javafx.scene.control.ScrollPane$ScrollBarPolicy",
             // TODO: add more
 
             "com.sun.pisces.Transform6",
@@ -125,7 +144,7 @@ public interface FxClassesAndResources {
             "com.sun.pisces.JavaSurface",
             "com.sun.pisces.AbstractSurface",
             "com.sun.prism.impl.PrismSettings",
-            "com.sun.prism.d3d.D3DDriverInformation",
+
             "com.sun.javafx.tk.quantum.QuantumToolkit",
             "com.sun.javafx.scene.control.skin.Utils",
             "com.sun.javafx.reflect.Trampoline",
@@ -144,11 +163,13 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.directwrite.DWRITE_MATRIX",
             "com.sun.javafx.font.directwrite.DWRITE_SCRIPT_ANALYSIS",
             "com.sun.javafx.font.directwrite.RECT",
-            "com.sun.glass.ui.win.WinGestureSupport",
+            "com.sun.javafx.PreviewFeature",
+            "com.sun.glass.ui.CommonDialogs$ExtensionFilter",
+            "com.sun.glass.ui.CommonDialogs$FileChooserResult",
+            "com.sun.glass.ui.EventLoop",
             "com.sun.glass.ui.Size",
             "com.sun.glass.ui.Screen",
-            "com.sun.javafx.PreviewFeature",
-            "com.sun.glass.ui.Screen[]",
+            "com.sun.scenario.effect.impl.Renderer",
             "com.sun.scenario.effect.impl.sw.sse.SSERendererDelegate",
 
             "io.quarkiverse.fx.FxApplication",
@@ -163,6 +184,18 @@ public interface FxClassesAndResources {
             "io.quarkiverse.fx.views.FxViewRepository",
     };
 
+    String[] WINDOWS_REFLECTIVE_CLASSES = new String[] {
+            "com.sun.glass.ui.win.WinDnDClipboard",
+            "com.sun.glass.ui.win.WinGestureSupport",
+            "com.sun.glass.ui.win.WinPlatformFactory",
+            "com.sun.javafx.font.directwrite.DWFactory",
+            "com.sun.prism.d3d.D3DDriverInformation",
+            "com.sun.prism.d3d.D3DPipeline",
+            "com.sun.prism.d3d.D3DResourceFactory",
+            "com.sun.prism.d3d.D3DShader",
+            "com.sun.scenario.effect.impl.hw.d3d.D3DShaderSource",
+    };
+
     String[] JNI_RUNTIME_ACCESS_CLASSES = new String[] {
             "java.lang.Boolean",
             "java.lang.Class",
@@ -175,16 +208,34 @@ public interface FxClassesAndResources {
             "java.util.HashMap",
             "java.util.Map",
             "javafx.scene.paint.Color",
+            "com.sun.prism.d3d.D3DDriverInformation",
+            "com.sun.prism.impl.PrismSettings",
             "com.sun.glass.ui.Application",
             "com.sun.glass.ui.Clipboard",
             "com.sun.glass.ui.Cursor",
+            "com.sun.glass.ui.Menu",
+            "com.sun.glass.ui.MenuItem$Callback",
             "com.sun.glass.ui.Pixels",
             "com.sun.glass.ui.Screen",
             "com.sun.glass.ui.Size",
             "com.sun.glass.ui.View",
             "com.sun.glass.ui.Window",
+            "com.sun.javafx.geom.Path2D",
+            "com.sun.glass.ui.CommonDialogs",
+            "com.sun.glass.ui.CommonDialogs$ExtensionFilter",
+            "com.sun.glass.ui.CommonDialogs$FileChooserResult",
+            "com.sun.javafx.iio.jpeg.JPEGImageLoader",
+            "com.sun.javafx.iio.common.ImageLoaderImpl",
+            "com.sun.pisces.Transform6",
+            "com.sun.pisces.PiscesRenderer",
+            "com.sun.pisces.JavaSurface",
+            "com.sun.pisces.AbstractSurface",
+    };
+    String[] WINDOWS_JNI_RUNTIME_ACCESS_CLASSES = new String[] {
+            "com.sun.glass.ui.win.WinApplication",
             "com.sun.glass.ui.win.WinDnDClipboard",
             "com.sun.glass.ui.win.WinGestureSupport",
+            "com.sun.glass.ui.win.WinPixels",
             "com.sun.glass.ui.win.WinSystemClipboard",
             "com.sun.glass.ui.win.WinView",
             "com.sun.glass.ui.win.WinWindow",
@@ -198,18 +249,14 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.directwrite.DWRITE_MATRIX",
             "com.sun.javafx.font.directwrite.DWRITE_SCRIPT_ANALYSIS",
             "com.sun.javafx.font.directwrite.RECT",
-            "com.sun.prism.d3d.D3DDriverInformation",
-            "com.sun.prism.impl.PrismSettings",
-            "com.sun.pisces.Transform6",
-            "com.sun.pisces.PiscesRenderer",
-            "com.sun.pisces.JavaSurface",
-            "com.sun.pisces.AbstractSurface",
-            "com.sun.javafx.geom.Path2D",
     };
 
     String[] RESOURCE_BUNDLES = new String[] {
             "com.sun.javafx.scene.control.skin.resources.controls",
             "com.sun.javafx.tk.quantum.QuantumMessagesBundle",
+    };
+
+    String[] WINDOWS_RESOURCE_BUNDLES = new String[] {
             "com.sun.glass.ui.win.themes",
     };
 
@@ -221,18 +268,6 @@ public interface FxClassesAndResources {
 
             // .jar files in javafx-graphics
             "javafx-swt.jar",
-
-            // Windows .dll files in javafx-graphics
-            "api-ms-win-core-*.dll",
-            "api-ms-win-crt-*.dll",
-            "decora_sse.dll",
-            "glass.dll",
-            "javafx_font.dll",
-            "javafx_iio.dll",
-            "msvcp*.dll",
-            "prism_*.dll",
-            "ucrtbase.dll",
-            "vcruntime*.dll",
 
             // Linux .so files in javafx-graphics
             "libdecora_sse.so",
@@ -255,12 +290,6 @@ public interface FxClassesAndResources {
             "libprism_es2.dylib",
             "libprism_sw.dylib",
 
-            // Windows .dll files in javafx-media
-            "fxplugins.dll",
-            "glib-lite.dll",
-            "gstreamer-lite.dll",
-            "jfxmedia.dll",
-
             // Linux .so files in javafx-media
             "libavplugin-*.so",
             "libavplugin-ffmpeg-*.so",
@@ -275,13 +304,33 @@ public interface FxClassesAndResources {
             "libjfxmedia.dylib",
             "libjfxmedia_avf.dylib",
 
-            // Windows .dll files in javafx-web
-            "jfxwebkit.dll",
-
             // Linux .so files in javafx-web
             "libjfxwebkit.so",
 
             // Mac .dylib files in javafx-media
             "libjfxwebkit.dylib",
+    };
+
+    String[] WINDOWS_RESOURCE_GLOBS = new String[] {
+            // Windows .dll files in javafx-graphics
+            "api-ms-win-core-*.dll",
+            "api-ms-win-crt-*.dll",
+            "decora_sse.dll",
+            "glass.dll",
+            "javafx_font.dll",
+            "javafx_iio.dll",
+            "msvcp*.dll",
+            "prism_*.dll",
+            "ucrtbase.dll",
+            "vcruntime*.dll",
+
+            // Windows .dll files in javafx-media
+            "fxplugins.dll",
+            "glib-lite.dll",
+            "gstreamer-lite.dll",
+            "jfxmedia.dll",
+
+            // Windows .dll files in javafx-web
+            "jfxwebkit.dll",
     };
 }
