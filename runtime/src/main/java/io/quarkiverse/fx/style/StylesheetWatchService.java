@@ -1,9 +1,5 @@
 package io.quarkiverse.fx.style;
 
-import io.quarkus.logging.Log;
-import javafx.application.Platform;
-import javafx.collections.ObservableList;
-
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.FileSystems;
@@ -14,6 +10,10 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+
+import io.quarkus.logging.Log;
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
 
 /**
  * This utility class allows live CSS reload by watching filesystem changes

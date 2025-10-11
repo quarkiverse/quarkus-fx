@@ -1,9 +1,9 @@
 package io.quarkiverse.fx.views;
 
+import java.util.List;
+
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
-
-import java.util.List;
 
 @Recorder
 public class FxViewRecorder {
