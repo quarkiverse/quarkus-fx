@@ -280,7 +280,7 @@ class QuarkusFxExtensionProcessor {
     @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerJniRuntimeAccessClasses(FxTargetPlatformBuildItem fxTargetPlatform,
-                                         BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses) {
+            BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses) {
         jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
                 FxClassesAndResources.JNI_RUNTIME_ACCESS_CLASSES));
         if (fxTargetPlatform.isWindows()) {
@@ -298,7 +298,7 @@ class QuarkusFxExtensionProcessor {
     @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     public void registerNativeImageBundles(FxTargetPlatformBuildItem fxTargetPlatform,
-                                           BuildProducer<NativeImageResourceBundleBuildItem> resourceBundle) {
+            BuildProducer<NativeImageResourceBundleBuildItem> resourceBundle) {
         for (String resourceBundleName : FxClassesAndResources.RESOURCE_BUNDLES) {
             resourceBundle.produce(new NativeImageResourceBundleBuildItem(resourceBundleName));
         }
@@ -346,7 +346,7 @@ class QuarkusFxExtensionProcessor {
     @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void addNativeLinkerOptions(FxTargetPlatformBuildItem fxTargetPlatform,
-                                BuildProducer<NativeImageSystemPropertyBuildItem> nativeImageSystemProperties) {
+            BuildProducer<NativeImageSystemPropertyBuildItem> nativeImageSystemProperties) {
         if (fxTargetPlatform.isWindows()) {
             // this prevents showing the terminal on startup
             nativeImageSystemProperties.produce(new NativeImageSystemPropertyBuildItem(

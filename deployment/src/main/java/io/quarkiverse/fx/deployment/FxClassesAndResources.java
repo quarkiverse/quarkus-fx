@@ -1,10 +1,10 @@
 package io.quarkiverse.fx.deployment;
 
 public interface FxClassesAndResources {
-    String[] RUNTIME_INITIALIZED_CLASS_SUFFIXES = new String[] {
+    String[] RUNTIME_INITIALIZED_CLASS_SUFFIXES = {
             "$StyleableProperties"
     };
-    String[] RUNTIME_INITIALIZED_CLASSES = new String[] {
+    String[] RUNTIME_INITIALIZED_CLASSES = {
             "javafx.scene.CssStyleHelper",
             "javafx.scene.Node",
             "javafx.scene.control.ListView$EditEvent",
@@ -39,6 +39,7 @@ public interface FxClassesAndResources {
             "com.sun.glass.ui.win.WinTimer",
             "com.sun.glass.ui.win.WinWindow",
             "com.sun.glass.ui.win.WinView",
+            "com.sun.glass.ui.gtk.GtkApplication",
             "com.sun.glass.utils.NativeLibLoader",
             "com.sun.glass.utils.ModuleHelper",
             "com.sun.javafx.application.LauncherImpl",
@@ -83,7 +84,7 @@ public interface FxClassesAndResources {
             "com.sun.webkit.WebPage",
     };
 
-    String[] REFLECTIVE_ROOT_CLASSES = new String[] {
+    String[] REFLECTIVE_ROOT_CLASSES = {
             "javafx.stage.Window",
             "javafx.scene.control.Dialog",
             "javafx.scene.Node",
@@ -109,19 +110,20 @@ public interface FxClassesAndResources {
             "com.sun.prism.GraphicsPipeline",
     };
 
-    String[] REFLECTIVE_INTERFACES = new String[] {
+    String[] REFLECTIVE_INTERFACES = {
             "javafx.event.Event",
             "javafx.css.Styleable",
             "com.sun.scenario.effect.impl.hw.ShaderSource",
     };
 
-    String[] REFLECTIVE_PACKAGES = new String[] {
+    String[] REFLECTIVE_PACKAGES = {
             "com.sun.prism.shader",
     };
 
-    String[] REFLECTIVE_CLASSES = new String[] {
+    String[] REFLECTIVE_CLASSES = {
             "java.nio.ByteBuffer",
             "java.nio.ByteOrder",
+            "javafx.scene.control.ButtonType",
             "javafx.scene.text.Font",
             "javafx.css.Rule",
             "javafx.scene.input.TouchPoint",
@@ -150,6 +152,8 @@ public interface FxClassesAndResources {
             "javafx.scene.control.TabPane$TabClosingPolicy",
             "javafx.scene.control.TabPane$TabDragPolicy",
             "javafx.scene.control.ScrollPane$ScrollBarPolicy",
+            "javafx.scene.control.Alert$AlertType",
+            "javafx.scene.control.ButtonBar$ButtonData",
             // TODO: add more
 
             "com.sun.pisces.Transform6",
@@ -197,7 +201,7 @@ public interface FxClassesAndResources {
             "io.quarkiverse.fx.views.FxViewRepository",
     };
 
-    String[] WINDOWS_REFLECTIVE_CLASSES = new String[] {
+    String[] WINDOWS_REFLECTIVE_CLASSES = {
             "com.sun.glass.ui.win.WinDnDClipboard",
             "com.sun.glass.ui.win.WinGestureSupport",
             "com.sun.glass.ui.win.WinPlatformFactory",
@@ -209,7 +213,7 @@ public interface FxClassesAndResources {
             "com.sun.scenario.effect.impl.hw.d3d.D3DShaderSource",
     };
 
-    String[] MAC_REFLECTIVE_CLASSES = new String[] {
+    String[] MAC_REFLECTIVE_CLASSES = {
             "com.sun.prism.es2.ES2Pipeline",
             "com.sun.prism.es2.ES2PhongShader",
             "com.sun.prism.es2.ES2ResourceFactory",
@@ -227,7 +231,7 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.coretext.CTFactory",
     };
 
-    String[] LINUX_REFLECTIVE_CLASSES = new String[] {
+    String[] LINUX_REFLECTIVE_CLASSES = {
             "com.sun.prism.es2.MonocleGLFactory",
             "com.sun.prism.es2.ES2Pipeline",
             "com.sun.prism.es2.ES2PhongShader",
@@ -241,17 +245,22 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.freetype.FTFactory",
     };
 
-    String[] JNI_RUNTIME_ACCESS_CLASSES = new String[] {
+    String[] JNI_RUNTIME_ACCESS_CLASSES = {
             "java.lang.Boolean",
             "java.lang.Class",
+            "java.lang.Iterable",
             "java.lang.Object",
             "java.lang.Runnable",
             "java.lang.String",
             "java.lang.Throwable",
             "java.util.ArrayList",
             "java.util.Collections",
+            "java.util.Iterator",
             "java.util.HashMap",
+            "java.util.HashSet",
             "java.util.Map",
+            "java.util.Set",
+            "java.nio.ByteBuffer",
             "javafx.scene.paint.Color",
             "com.sun.prism.d3d.D3DDriverInformation",
             "com.sun.prism.impl.PrismSettings",
@@ -279,7 +288,7 @@ public interface FxClassesAndResources {
             "com.sun.pisces.JavaSurface",
             "com.sun.pisces.AbstractSurface",
     };
-    String[] WINDOWS_JNI_RUNTIME_ACCESS_CLASSES = new String[] {
+    String[] WINDOWS_JNI_RUNTIME_ACCESS_CLASSES = {
             "com.sun.glass.ui.win.WinApplication",
             "com.sun.glass.ui.win.WinDnDClipboard",
             "com.sun.glass.ui.win.WinGestureSupport",
@@ -298,7 +307,7 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.directwrite.DWRITE_SCRIPT_ANALYSIS",
             "com.sun.javafx.font.directwrite.RECT",
     };
-    String[] MAC_JNI_RUNTIME_ACCESS_CLASSES = new String[] {
+    String[] MAC_JNI_RUNTIME_ACCESS_CLASSES = {
             "com.sun.glass.ui.mac.MacAccessible",
             "com.sun.glass.ui.mac.MacAccessible$MacAction",
             "com.sun.glass.ui.mac.MacAccessible$MacAttribute",
@@ -322,7 +331,7 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.coretext.CGSize",
 
     };
-    String[] LINUX_JNI_RUNTIME_ACCESS_CLASSES = new String[] {
+    String[] LINUX_JNI_RUNTIME_ACCESS_CLASSES = {
             "com.sun.glass.ui.gtk.GtkApplication",
             "com.sun.glass.ui.gtk.GtkPixels",
             "com.sun.glass.ui.gtk.GtkView",
@@ -334,16 +343,16 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.freetype.PangoGlyphString",
     };
 
-    String[] RESOURCE_BUNDLES = new String[] {
+    String[] RESOURCE_BUNDLES = {
             "com.sun.javafx.scene.control.skin.resources.controls",
             "com.sun.javafx.tk.quantum.QuantumMessagesBundle",
     };
 
-    String[] WINDOWS_RESOURCE_BUNDLES = new String[] {
+    String[] WINDOWS_RESOURCE_BUNDLES = {
             "com.sun.glass.ui.win.themes",
     };
 
-    String[] RESOURCE_GLOBS = new String[] {
+    String[] RESOURCE_GLOBS = {
             "META-INF/fonts.mf",
             "com/sun/javafx/scene/control/skin/modena/**",
             "com/sun/prism/d3d/hlsl/**",
@@ -353,7 +362,7 @@ public interface FxClassesAndResources {
             "javafx-swt.jar",
     };
 
-    String[] WINDOWS_RESOURCE_GLOBS = new String[] {
+    String[] WINDOWS_RESOURCE_GLOBS = {
             // Windows .dll files in javafx-graphics
             "api-ms-win-core-*.dll",
             "api-ms-win-crt-*.dll",
@@ -376,7 +385,7 @@ public interface FxClassesAndResources {
             "jfxwebkit.dll",
     };
 
-    String[] MAC_RESOURCE_GLOBS = new String[] {
+    String[] MAC_RESOURCE_GLOBS = {
             // Mac .dylib files in javafx-graphics
             "libdecora_sse.dylib",
             "libglass.dylib",
@@ -397,7 +406,7 @@ public interface FxClassesAndResources {
             "libjfxwebkit.dylib",
     };
 
-    String[] LINUX_RESOURCE_GLOBS = new String[] {
+    String[] LINUX_RESOURCE_GLOBS = {
             // Linux .so files in javafx-graphics
             "libdecora_sse.so",
             "libglass.so",
