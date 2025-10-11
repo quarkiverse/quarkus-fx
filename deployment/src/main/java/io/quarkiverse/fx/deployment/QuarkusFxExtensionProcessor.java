@@ -1,19 +1,5 @@
 package io.quarkiverse.fx.deployment;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-
-import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationTarget;
-import org.jboss.jandex.AnnotationValue;
-import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.IndexView;
-import org.jboss.jandex.VoidType;
-import org.jboss.logging.Logger;
-
 import io.quarkiverse.fx.FXMLLoaderProducer;
 import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.HostServicesProducer;
@@ -41,12 +27,24 @@ import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBundleBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourcePatternsBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.NativeImageSystemPropertyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
 import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.smallrye.common.os.OS;
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.AnnotationValue;
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.IndexView;
+import org.jboss.jandex.VoidType;
+import org.jboss.logging.Logger;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
 
 class QuarkusFxExtensionProcessor {
 
@@ -182,7 +180,6 @@ class QuarkusFxExtensionProcessor {
         recorder.process(views, beanContainerBuildItem.getValue());
     }
 
-    @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void determineFxTargetPlatform(BuildProducer<FxTargetPlatformBuildItem> fxTargetPlatform) {
         String osArch = System.getProperty("os.arch");
@@ -196,7 +193,6 @@ class QuarkusFxExtensionProcessor {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void indexTransitiveDependencies(FxTargetPlatformBuildItem fxTargetPlatform,
             BuildProducer<IndexDependencyBuildItem> index) {
@@ -210,7 +206,6 @@ class QuarkusFxExtensionProcessor {
         index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-swing", classifier));
     }
 
-    @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerRuntimeInitializedClasses(CombinedIndexBuildItem combinedIndex,
             BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClasses) {
@@ -228,7 +223,6 @@ class QuarkusFxExtensionProcessor {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerReflectiveClasses(FxTargetPlatformBuildItem fxTargetPlatform, CombinedIndexBuildItem combinedIndex,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
@@ -276,7 +270,6 @@ class QuarkusFxExtensionProcessor {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerJniRuntimeAccessClasses(FxTargetPlatformBuildItem fxTargetPlatform,
             BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses) {
@@ -294,7 +287,6 @@ class QuarkusFxExtensionProcessor {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     public void registerNativeImageBundles(FxTargetPlatformBuildItem fxTargetPlatform,
             BuildProducer<NativeImageResourceBundleBuildItem> resourceBundle) {
@@ -308,7 +300,6 @@ class QuarkusFxExtensionProcessor {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     public void registerNativeImageResources(FxTargetPlatformBuildItem fxTargetPlatform, FxViewConfig fxViewConfig,
             BuildProducer<NativeImageResourcePatternsBuildItem> resource) {
@@ -339,18 +330,5 @@ class QuarkusFxExtensionProcessor {
                 .includeGlob("%s**/*.css".formatted(viewsRoot)).build());
         resource.produce(NativeImageResourcePatternsBuildItem.builder()
                 .includeGlob("%s**/*.properties".formatted(viewsRoot)).build());
-    }
-
-    // TODO: does not work
-    @SuppressWarnings("deprecation")
-    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
-    void addNativeLinkerOptions(FxTargetPlatformBuildItem fxTargetPlatform,
-            BuildProducer<NativeImageSystemPropertyBuildItem> nativeImageSystemProperties) {
-        if (fxTargetPlatform.isWindows()) {
-            // this prevents showing the terminal on startup
-            nativeImageSystemProperties.produce(new NativeImageSystemPropertyBuildItem(
-                    "quarkus.native.additional-build-args",
-                    "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS,-H:NativeLinkerOption=/ENTRY:mainCRTStartup"));
-        }
     }
 }

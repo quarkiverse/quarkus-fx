@@ -1,9 +1,11 @@
 package io.quarkiverse.fx.deployment;
 
 public interface FxClassesAndResources {
+
     String[] RUNTIME_INITIALIZED_CLASS_SUFFIXES = {
             "$StyleableProperties"
     };
+
     String[] RUNTIME_INITIALIZED_CLASSES = {
             "javafx.scene.CssStyleHelper",
             "javafx.scene.Node",
@@ -178,7 +180,6 @@ public interface FxClassesAndResources {
             "javafx.scene.control.ScrollPane$ScrollBarPolicy",
             "javafx.scene.control.Alert$AlertType",
             "javafx.scene.control.ButtonBar$ButtonData",
-            // TODO: add more
 
             "com.sun.pisces.Transform6",
             "com.sun.pisces.PiscesRenderer",
@@ -312,6 +313,7 @@ public interface FxClassesAndResources {
             "com.sun.pisces.JavaSurface",
             "com.sun.pisces.AbstractSurface",
     };
+
     String[] WINDOWS_JNI_RUNTIME_ACCESS_CLASSES = {
             "com.sun.glass.ui.win.WinApplication",
             "com.sun.glass.ui.win.WinDnDClipboard",
@@ -331,6 +333,7 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.directwrite.DWRITE_SCRIPT_ANALYSIS",
             "com.sun.javafx.font.directwrite.RECT",
     };
+
     String[] MAC_JNI_RUNTIME_ACCESS_CLASSES = {
             "com.sun.glass.ui.mac.MacAccessible",
             "com.sun.glass.ui.mac.MacAccessible$MacAction",
@@ -353,8 +356,8 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.coretext.CGPoint",
             "com.sun.javafx.font.coretext.CGRect",
             "com.sun.javafx.font.coretext.CGSize",
-
     };
+
     String[] LINUX_JNI_RUNTIME_ACCESS_CLASSES = {
             "com.sun.glass.ui.gtk.GtkApplication",
             "com.sun.glass.ui.gtk.GtkPixels",

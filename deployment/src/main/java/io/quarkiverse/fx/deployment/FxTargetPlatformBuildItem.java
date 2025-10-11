@@ -11,26 +11,26 @@ public final class FxTargetPlatformBuildItem extends SimpleBuildItem {
     }
 
     public String getTargetPlatform() {
-        return targetPlatform;
+        return this.targetPlatform;
     }
 
     public boolean isWindows() {
-        return targetPlatform.startsWith("win");
+        return this.targetPlatform.startsWith("win");
     }
 
     public boolean isMac() {
-        return targetPlatform.startsWith("mac");
+        return this.targetPlatform.startsWith("mac");
     }
 
     public boolean isLinux() {
-        return targetPlatform.startsWith("linux");
+        return this.targetPlatform.startsWith("linux");
     }
 
     public boolean isX64() {
-        return !targetPlatform.contains("-");
+        return !this.targetPlatform.contains("-");
     }
 
     public boolean isAarch64() {
-        return targetPlatform.endsWith("-aarch64");
+        return this.targetPlatform.endsWith("-aarch64");
     }
 }
