@@ -1,18 +1,17 @@
 package io.quarkiverse.fx.sample;
 
-import java.io.IOException;
-import java.io.InputStream;
-
+import io.quarkiverse.fx.FxPostStartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
-
-import io.quarkiverse.fx.FxPostStartupEvent;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 @ApplicationScoped
 public class QuarkusFxApp {
@@ -20,7 +19,7 @@ public class QuarkusFxApp {
     @Inject
     FXMLLoader fxmlLoader;
 
-    public void start(@Observes final FxPostStartupEvent event) {
+    public void start(@Observes FxPostStartupEvent event) {
 
         Stage stage = event.getPrimaryStage();
 

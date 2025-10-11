@@ -83,7 +83,7 @@ class QuarkusFxExtensionProcessor {
     }
 
     @BuildStep
-    AdditionalBeanBuildItem runOnFxThreadInterceptor(final CombinedIndexBuildItem combinedIndex) {
+    AdditionalBeanBuildItem runOnFxThreadInterceptor(CombinedIndexBuildItem combinedIndex) {
         Consumer<AnnotationTarget> methodChecker = target -> {
             if (!(target.asMethod().returnType() instanceof VoidType)) {
                 LOGGER.warnf("Method %s annotated with %s return value will be lost, set return type to void",
@@ -106,8 +106,8 @@ class QuarkusFxExtensionProcessor {
 
     @BuildStep
     void quarkusFxLauncher(
-            final CombinedIndexBuildItem combinedIndex,
-            @Overridable final BuildProducer<QuarkusApplicationClassBuildItem> quarkusApplicationClass) {
+            CombinedIndexBuildItem combinedIndex,
+            @Overridable BuildProducer<QuarkusApplicationClassBuildItem> quarkusApplicationClass) {
 
         IndexView index = combinedIndex.getIndex();
 
@@ -124,8 +124,8 @@ class QuarkusFxExtensionProcessor {
     @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep
     void handleLiveReload(
-            final LiveReloadBuildItem liveReloadBuildItem,
-            final LiveReloadRecorder recorder) {
+            LiveReloadBuildItem liveReloadBuildItem,
+            LiveReloadRecorder recorder) {
 
         recorder.process(liveReloadBuildItem.isLiveReload());
     }
@@ -133,9 +133,9 @@ class QuarkusFxExtensionProcessor {
     @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep
     void fxViews(
-            final CombinedIndexBuildItem combinedIndex,
-            final FxViewRecorder recorder,
-            final BeanContainerBuildItem beanContainerBuildItem) {
+            CombinedIndexBuildItem combinedIndex,
+            FxViewRecorder recorder,
+            BeanContainerBuildItem beanContainerBuildItem) {
 
         List<String> views = new ArrayList<>();
 
