@@ -47,6 +47,7 @@ public interface FxClassesAndResources {
             "com.sun.glass.ui.monocle.X",
             "com.sun.glass.utils.NativeLibLoader",
             "com.sun.glass.utils.ModuleHelper",
+            "com.sun.javafx.PlatformUtil",
             "com.sun.javafx.application.LauncherImpl",
             "com.sun.javafx.application.PlatformImpl",
             "com.sun.javafx.embed.swing.newimpl.SwingNodeInteropN",
@@ -60,9 +61,11 @@ public interface FxClassesAndResources {
             "com.sun.javafx.font.directwrite.OS",
             "com.sun.javafx.font.freetype.OSFreetype",
             "com.sun.javafx.font.freetype.OSPango",
+            "com.sun.javafx.font.freetype.PangoGlyphLayout",
             "com.sun.javafx.fxml.ModuleHelper",
             "com.sun.javafx.iio.ios.IosImageLoader",
             "com.sun.javafx.iio.jpeg.JPEGImageLoader",
+            "com.sun.javafx.property.adapter.Disposer",
             "com.sun.javafx.scene.control.LabeledHelper",
             "com.sun.javafx.scene.control.Properties",
             "com.sun.javafx.scene.control.behavior.TextInputControlBehavior",
@@ -78,13 +81,17 @@ public interface FxClassesAndResources {
             "com.sun.javafx.tk.quantum.PrismImageLoader2$AsyncImageLoader",
             "com.sun.javafx.webkit.prism.PrismGraphicsManager",
             "com.sun.marlin.DMarlinRenderingEngine",
+            "com.sun.marlin.OffHeapArray",
             "com.sun.marlin.MarlinUtils",
             "com.sun.marlin.MaskMarlinAlphaConsumer",
+            "com.sun.media.jfxmedia.logging.Logger",
             "com.sun.media.jfxmediaimpl.NativeMediaManager$NativeMediaManagerInitializer",
+            "com.sun.media.jfxmediaimpl.NativeMediaAudioClipPlayer",
             "com.sun.prism.PresentableState",
             "com.sun.prism.GraphicsPipeline",
             "com.sun.prism.d3d.D3DPipeline",
             "com.sun.prism.es2.ES2Pipeline",
+            "com.sun.prism.es2.GLFactory",
             "com.sun.prism.j2d.print.J2DPrinterJob",
             "com.sun.prism.impl.BaseResourcePool",
             "com.sun.prism.impl.PrismSettings",
@@ -92,9 +99,13 @@ public interface FxClassesAndResources {
             "com.sun.prism.sw.SWPipeline",
             "com.sun.scenario.animation.AbstractPrimaryTimer",
             "com.sun.scenario.effect.impl.sw.sse.SSERendererDelegate",
-            "com.sun.webkit.WCWidget",
+            "com.sun.webkit.Disposer",
+            "com.sun.webkit.WCPluginWidget",
             "com.sun.webkit.WCWidget",
             "com.sun.webkit.WebPage",
+            "com.sun.webkit.network.HTTP2Loader",
+            "com.sun.webkit.network.NetworkContext",
+            "com.sun.webkit.plugin.PluginManager",
     };
 
     String[] REFLECTIVE_ROOT_CLASSES = {
@@ -359,6 +370,7 @@ public interface FxClassesAndResources {
     String[] RESOURCE_BUNDLES = {
             "com.sun.javafx.scene.control.skin.resources.controls",
             "com.sun.javafx.tk.quantum.QuantumMessagesBundle",
+            "MediaErrors",
     };
 
     String[] WINDOWS_RESOURCE_BUNDLES = {
@@ -370,6 +382,8 @@ public interface FxClassesAndResources {
             "com/sun/javafx/scene/control/skin/modena/**",
             "com/sun/prism/d3d/hlsl/**",
             "com/sun/scenario/effect/impl/hw/d3d/hlsl/**",
+            "glsl/*.frag",
+            "glsl/main.vert",
 
             // .jar files in javafx-graphics
             "javafx-swt.jar",

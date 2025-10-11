@@ -206,7 +206,6 @@ class QuarkusFxExtensionProcessor {
         index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-controls", classifier));
         index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-fxml", classifier));
         index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-media", classifier));
-        index.produce(new IndexDependencyBuildItem("org.openjfx", "jdk-jsobject", classifier));
         index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-web", classifier));
         index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-swing", classifier));
     }
