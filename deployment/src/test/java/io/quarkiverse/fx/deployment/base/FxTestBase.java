@@ -46,7 +46,7 @@ public class FxTestBase {
         Assertions.assertTrue(eventObserved.get());
     }
 
-    void observeEvent(@Observes final FxPostStartupEvent event) {
+    void observeEvent(@Observes FxPostStartupEvent event) {
         eventObserved.set(true);
     }
 }

@@ -11,7 +11,7 @@ Example
 ----
 private final VBox vBox = new VBox();
 
-public void start(@Observes final FxPostStartupEvent event) {
+public void start(@Observes FxPostStartupEvent event) {
 
     Stage = event.getPrimaryStage();
 
@@ -29,9 +29,8 @@ Node createExpensiveNode() { //<1>
 }
 
 @RunOnFxThread
-void showNode(final Node node) { //<2>
-  this.vBox.getChildren().add(node);
-}
+void showNode(Node node) { //<2>
+  this.vBox.getChildren().add(nod
 ----
 <1> `createExpensiveNode` method will be executed in a thread from executor service
 <2> `showNode` method will be executed on JavaFX UI thread (JavaFX Application Thread)

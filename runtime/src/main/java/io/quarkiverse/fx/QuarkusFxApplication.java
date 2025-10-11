@@ -13,7 +13,7 @@ public class QuarkusFxApplication implements QuarkusApplication {
     private static boolean launched = false;
 
     @Override
-    public int run(final String... args) {
+    public int run(String... args) {
 
         // Prevent launching more than once
         if (launched) {

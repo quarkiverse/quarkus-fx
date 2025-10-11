@@ -49,14 +49,14 @@ public class FxViewRepository {
 
     private Stage primaryStage;
 
-    public void setViewNames(final List<String> views) {
+    public void setViewNames(List<String> views) {
         this.viewNames = views;
     }
 
     /**
      * Observe the view load event in order to initialize and set up views
      */
-    void setupViews(@Observes final FxViewLoadEvent event) {
+    void setupViews(@Observes FxViewLoadEvent event) {
 
         this.primaryStage = event.getPrimaryStage();
 
@@ -78,7 +78,7 @@ public class FxViewRepository {
         }
     }
 
-    private void manageView(final String name, final ClassLoader classLoader, final boolean stylesheetReload) {
+    private void manageView(String name, ClassLoader classLoader, boolean stylesheetReload) {
         FXMLLoader loader = this.fxmlLoader.get();
 
         // Append path and extensions
@@ -151,7 +151,7 @@ public class FxViewRepository {
         }
     }
 
-    private void manageStylesheetLiveReload(final Object rootNode) throws IOException {
+    private void manageStylesheetLiveReload(Object rootNode) throws IOException {
         ObservableList<String> styleSheets = getFxmlObjectStyleSheets(rootNode);
         if (!styleSheets.isEmpty()) {
             // Stylesheet found : manage it
@@ -177,7 +177,7 @@ public class FxViewRepository {
         }
     }
 
-    private static URL lookupResource(final ClassLoader classLoader, final String name) {
+    private static URL lookupResource(ClassLoader classLoader, String name) {
         URL url = classLoader.getResource(name);
         if (url == null) {
             url = FxViewRepository.class.getResource(name);
@@ -186,7 +186,7 @@ public class FxViewRepository {
         return url;
     }
 
-    private static InputStream lookupResourceAsStream(final ClassLoader classLoader, final String name) {
+    private static InputStream lookupResourceAsStream(ClassLoader classLoader, String name) {
         InputStream stream = classLoader.getResourceAsStream(name);
         if (stream == null) {
             stream = FxViewRepository.class.getResourceAsStream(name);
@@ -195,7 +195,7 @@ public class FxViewRepository {
         return stream;
     }
 
-    private static ObservableList<String> getFxmlObjectStyleSheets(final Object rootNode) {
+    private static ObservableList<String> getFxmlObjectStyleSheets(Object rootNode) {
         ObservableList<String> stylesheets;
         if (rootNode instanceof Parent p) {
             stylesheets = p.getStylesheets();
@@ -218,7 +218,7 @@ public class FxViewRepository {
      * @param viewName : serves as view identifier
      * @return Associated view data (node, controller)
      */
-    public FxViewData getViewData(final String viewName) {
+    public FxViewData getViewData(String viewName) {
         return this.viewDataMap.get(viewName);
     }
 

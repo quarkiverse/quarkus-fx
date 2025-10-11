@@ -83,7 +83,7 @@ import javafx.application.Application;
 @QuarkusMain
 public class QuarkusFxApplication implements QuarkusApplication {
     @Override
-    public int run(final String... args) {
+    public int run(String... args) {
         Application.launch(FxApplication.class, args);
         return 0;
     }
@@ -97,14 +97,14 @@ When the application is started, two main events are fired in sequence :
 
 [source,java]
 ----
-void onApplicationStartup(@Observes final FxApplicationStartupEvent event) {
+void onApplicationStartup(@Observes FxApplicationStartupEvent event) {
   Application application = event.getApplication();
 }
 ----
 
 [source,java]
 ----
-void onPostStartup(@Observes final FxPostStartupEvent event) {
+void onPostStartup(@Observes FxPostStartupEvent event) {
   Stage stage = event.getPrimaryStage();
 }
 ----

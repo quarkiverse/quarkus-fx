@@ -16,7 +16,7 @@ public interface FxViewData {
      */
     <T> T getController();
 
-    static FxViewData of(final Object rootNode, final Object controller) {
+    static FxViewData of(Object rootNode, Object controller) {
         return new FxViewDataImpl(rootNode, controller);
     }
 

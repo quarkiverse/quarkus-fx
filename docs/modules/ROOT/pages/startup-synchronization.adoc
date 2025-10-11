@@ -30,13 +30,12 @@ public class FxApplicationNotStarted implements SkipPredicate {
 
     private volatile boolean started;
 
-    void onFxStartup(@Observes final FxPostStartupEvent event) {
+    void onFxStartup(@Observes FxPostStartupEvent event) {
         this.started = true;
     }
 
     @Override
-    public boolean test(final ScheduledExecution execution) {
+    public boolean test(ScheduledExecution execution) {
         return !this.started;
-    }
-}
+
 ----

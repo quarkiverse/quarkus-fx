@@ -12,7 +12,7 @@ public class HostServicesProducer {
 
     private Application application;
 
-    void observeFxPreStartupEvent(@Observes final FxApplicationStartupEvent event) {
+    void observeFxPreStartupEvent(@Observes FxApplicationStartupEvent event) {
         this.application = event.getApplication();
     }
 

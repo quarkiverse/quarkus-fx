@@ -5,7 +5,6 @@ import static org.awaitility.Awaitility.await;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,14 +22,13 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.fx.FxApplicationStartupEvent;
 import io.quarkiverse.fx.FxPostStartupEvent;
-import io.quarkiverse.fx.QuarkusFxApplication;
-import io.quarkus.runtime.Quarkus;
+import io.quarkiverse.fx.deployment.base.FxTestBase;
 import io.quarkus.test.QuarkusUnitTest;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.Pane;
 
-class QuarkusFxTest {
+class QuarkusFxTest extends FxTestBase {
 
     private static final int A_FANCY_TEST_VALUE = 42;
 
@@ -79,8 +77,8 @@ class QuarkusFxTest {
 
     @Test
     void testFXMLLaunchAndLoad() {
-        // Non-blocking JavaFX launch
-        CompletableFuture.runAsync(() -> Quarkus.run(QuarkusFxApplication.class));
+
+        this.startAndWait();
 
         await()
                 .atMost(FxTestConstants.LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS)
@@ -101,13 +99,13 @@ class QuarkusFxTest {
         }
     }
 
-    void observeApplication(@Observes final FxApplicationStartupEvent event) {
+    void observeApplication(@Observes FxApplicationStartupEvent event) {
         Assertions.assertNotNull(event.getApplication());
         Assertions.assertFalse(primaryStageObserved.get());
         applicationObserved.set(true);
     }
 
-    void observePrimaryStage(@Observes final FxPostStartupEvent event) {
+    void observePrimaryStage(@Observes FxPostStartupEvent event) {
         Assertions.assertNotNull(event.getPrimaryStage());
         primaryStageObserved.set(true);
     }
