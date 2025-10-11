@@ -145,3 +145,34 @@ public class MyBean {
 == Properties
 
 include::includes/quarkus-fx.adoc[]
+
+== Native support
+
+Initial native support has been added, to build an executable with GraalVM.
+In order to build the application as a native executable, you can run the following maven command :
+
+[source]
+----
+mvn install -Dnative
+----
+
+Environment variable GRAALVM_HOME has to be set, pointing to your GraalVM installation.
+
+The extension automatically configures reflection and runtime initialization of the JavaFX components, for supported operating systems (Windows, Mac & Linux).
+
+NOTE: Please report any found bug by opening an issue at https://github.com/quarkiverse/quarkus-fx/issues
+
+You will also need to build your application reachability metadata.
+To do so, you can :
+
+Run the application using GraalVM to collect reachability metadata:
+
+[source]
+----
+%GRAALVM_HOME%\bin\java -agentlib:native-image-agent=config-output-dir=tracing-output -jar quarkus-run.jar
+----
+
+Try to load all UI components in the application and do all possible interactions.
+Upon exit, `tracing-output/reachability-metadata.json` will be generated.
+
+Copy `tracing-output/reachability-metadata.json` to `src/main/resources/META-INF/native-image/{groupId}/{artifcatId}/reachability-metadata.json`
