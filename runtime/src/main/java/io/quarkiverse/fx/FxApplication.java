@@ -2,7 +2,6 @@ package io.quarkiverse.fx;
 
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.CDI;
-
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -18,7 +17,7 @@ import javafx.stage.Stage;
 public class FxApplication extends Application {
 
     @Override
-    public void start(final Stage primaryStage) {
+    public void start(Stage primaryStage) {
 
         BeanManager beanManager = CDI.current().getBeanManager();
 

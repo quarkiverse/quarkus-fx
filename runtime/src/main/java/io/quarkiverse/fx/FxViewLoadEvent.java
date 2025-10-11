@@ -6,7 +6,7 @@ public final class FxViewLoadEvent {
 
     private final Stage primaryStage;
 
-    FxViewLoadEvent(final Stage primaryStage) {
+    FxViewLoadEvent(Stage primaryStage) {
         // Package-private constructor
         this.primaryStage = primaryStage;
     }

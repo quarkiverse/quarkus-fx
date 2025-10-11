@@ -1,16 +1,15 @@
 package io.quarkiverse.fx.sample;
 
-import java.util.List;
-
+import io.quarkiverse.fx.RunOnFxThread;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
-
-import io.quarkiverse.fx.RunOnFxThread;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressIndicator;
+
+import java.util.List;
 
 @Dependent
 public class PeopleTabController {
@@ -50,14 +49,14 @@ public class PeopleTabController {
     }
 
     @RunOnFxThread
-    void handleFailure(final Throwable failure) {
+    void handleFailure(Throwable failure) {
         this.peopleListView.getItems().clear();
         this.countLabel.setText("Error fetching people");
         this.progressIndicator.setVisible(false);
     }
 
     @RunOnFxThread
-    void update(final List<People> people) {
+    void update(List<People> people) {
         this.peopleListView.getItems().setAll(people);
         this.countLabel.setText(people.size() + " people fetched");
         this.progressIndicator.setVisible(false);

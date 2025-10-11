@@ -1,21 +1,19 @@
 package io.quarkiverse.fx.deployment.base;
 
-import static org.awaitility.Awaitility.await;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
-
-import org.junit.jupiter.api.Assertions;
-
 import io.quarkiverse.fx.FxPostStartupEvent;
 import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.deployment.FxTestConstants;
 import io.quarkus.runtime.Quarkus;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.awaitility.Awaitility.await;
 
 /**
  * Common base for test, providing features such as startup synchronization
@@ -46,7 +44,7 @@ public class FxTestBase {
         Assertions.assertTrue(eventObserved.get());
     }
 
-    void observeEvent(@Observes final FxPostStartupEvent event) {
+    void observeEvent(@Observes FxPostStartupEvent event) {
         eventObserved.set(true);
     }
 }

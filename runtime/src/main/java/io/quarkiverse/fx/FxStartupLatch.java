@@ -1,9 +1,9 @@
 package io.quarkiverse.fx;
 
-import java.util.concurrent.CountDownLatch;
-
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Singleton;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * A singleton for a startup latch used by {@linkplain FxApplication} and {@linkplain RunOnFxThreadInterceptor}
@@ -17,7 +17,7 @@ public class FxStartupLatch {
         this.latch.await();
     }
 
-    void onFxStartup(@Observes final FxApplicationStartupEvent event) {
+    void onFxStartup(@Observes FxApplicationStartupEvent event) {
         this.latch.countDown();
     }
 }

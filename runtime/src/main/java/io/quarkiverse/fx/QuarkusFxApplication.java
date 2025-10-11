@@ -1,10 +1,9 @@
 package io.quarkiverse.fx;
 
-import org.jboss.logging.Logger;
-
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import javafx.application.Application;
+import org.jboss.logging.Logger;
 
 public class QuarkusFxApplication implements QuarkusApplication {
 
@@ -13,7 +12,7 @@ public class QuarkusFxApplication implements QuarkusApplication {
     private static boolean launched = false;
 
     @Override
-    public int run(final String... args) {
+    public int run(String... args) {
 
         // Prevent launching more than once
         if (launched) {

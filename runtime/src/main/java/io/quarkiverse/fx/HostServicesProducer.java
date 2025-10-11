@@ -3,7 +3,6 @@ package io.quarkiverse.fx;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Produces;
-
 import javafx.application.Application;
 import javafx.application.HostServices;
 
@@ -12,7 +11,7 @@ public class HostServicesProducer {
 
     private Application application;
 
-    void observeFxPreStartupEvent(@Observes final FxApplicationStartupEvent event) {
+    void observeFxPreStartupEvent(@Observes FxApplicationStartupEvent event) {
         this.application = event.getApplication();
     }
 

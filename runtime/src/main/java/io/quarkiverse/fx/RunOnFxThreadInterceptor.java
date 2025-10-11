@@ -5,10 +5,8 @@ import jakarta.inject.Inject;
 import jakarta.interceptor.AroundInvoke;
 import jakarta.interceptor.Interceptor;
 import jakarta.interceptor.InvocationContext;
-
-import org.jboss.logging.Logger;
-
 import javafx.application.Platform;
+import org.jboss.logging.Logger;
 
 @Interceptor
 @Priority(Interceptor.Priority.APPLICATION)
@@ -22,7 +20,7 @@ public class RunOnFxThreadInterceptor {
     FxStartupLatch startupLatch;
 
     @AroundInvoke
-    public Object runOnFxThread(final InvocationContext ctx) throws Exception {
+    public Object runOnFxThread(InvocationContext ctx) throws Exception {
         LOGGER.tracef("intercepted %s on thread %s", ctx.getMethod(), Thread.currentThread());
 
         // Block thread until the startup latch has been cleared
