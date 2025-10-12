@@ -91,6 +91,7 @@ public final class FxClassesAndResources {
             "com.sun.javafx.scene.text.TextFlowHelper",
             "com.sun.javafx.scene.traversal.TraversalEngine",
             "com.sun.javafx.scene.NodeHelper",
+            "com.sun.javafx.sg.prism.NGNode",
             "com.sun.javafx.text.GlyphLayoutManager",
             "com.sun.javafx.text.PrismTextLayoutFactory",
             "com.sun.javafx.tk.Toolkit",
