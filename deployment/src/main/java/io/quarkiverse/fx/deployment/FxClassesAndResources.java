@@ -384,7 +384,13 @@ public interface FxClassesAndResources {
     String[] RESOURCE_BUNDLES = {
             "com.sun.javafx.scene.control.skin.resources.controls",
             "com.sun.javafx.tk.quantum.QuantumMessagesBundle",
-            "MediaErrors",
+
+            // resource bundles in javafx-media
+            "com.sun.media.jfxmedia.MediaErrors",
+
+            // resource bundles in javafx-web
+            "javafx.scene.web.HTMLEditorSkin",
+            "com.sun.webkit.LocalizedStrings",
     };
 
     String[] WINDOWS_RESOURCE_BUNDLES = {
@@ -393,14 +399,28 @@ public interface FxClassesAndResources {
 
     String[] RESOURCE_GLOBS = {
             "META-INF/fonts.mf",
-            "com/sun/javafx/scene/control/skin/modena/**",
-            "com/sun/prism/d3d/hlsl/**",
-            "com/sun/scenario/effect/impl/hw/d3d/hlsl/**",
-            "glsl/*.frag",
-            "glsl/main.vert",
 
-            // .jar files in javafx-graphics
+            // resources in javafx-controls
+            "com/sun/version.rc",
+            "com/sun/javafx/scene/control/skin/caspian/**",
+            "com/sun/javafx/scene/control/skin/modena/**",
+            "com/sun/javafx/scene/control/skin/resources/controls-nt.properties",
+            "com/sun/javafx/scene/control/skin/resources/*.txt",
+
+            // resources in javafx-graphics
+            "com/sun/glass/ui/gtk/*.css",
+            "com/sun/glass/ui/monocle/*.raw",
+            "com/sun/glass/ui/win/*.css",
+            "com/sun/prism/es2/glsl/*.frag",
+            "com/sun/prism/es2/glsl/main.vert",
+            "com/sun/prism/d3d/hlsl/*.obj",
+            "com/sun/scenario/effect/impl/hw/d3d/hlsl/*.obj",
             "javafx-swt.jar",
+
+            // resources in javafx-web
+            "javafx/scene/web/*.png",
+            "com/sun/javafx/webkit/prism/resources/*.png",
+            "com/sun/webkit/graphics/Images.properties",
     };
 
     String[] WINDOWS_RESOURCE_GLOBS = {
