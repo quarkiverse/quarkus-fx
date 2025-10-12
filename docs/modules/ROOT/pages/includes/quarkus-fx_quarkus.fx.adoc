@@ -26,7 +26,7 @@ Environment variable: `+++QUARKUS_FX_VIEWS_ROOT+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`/`
+|`+++/+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-stylesheet-reload-strategy]] [.property-path]##link:#quarkus-fx_quarkus-fx-stylesheet-reload-strategy[`quarkus.fx.stylesheet-reload-strategy`]##
 ifdef::add-copy-button-to-config-props[]
@@ -47,7 +47,7 @@ Environment variable: `+++QUARKUS_FX_STYLESHEET_RELOAD_STRATEGY+++`
 endif::add-copy-button-to-env-var[]
 --
 a|`always`, `dev`, `never`
-|`dev`
+|`+++dev+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-source-resources]] [.property-path]##link:#quarkus-fx_quarkus-fx-source-resources[`quarkus.fx.source-resources`]##
 ifdef::add-copy-button-to-config-props[]
@@ -68,7 +68,7 @@ Environment variable: `+++QUARKUS_FX_SOURCE_RESOURCES+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`src/main/resources/`
+|`+++src/main/resources/+++`
 
 a|icon:lock[title=Fixed at build time] [[quarkus-fx_quarkus-fx-target-resources]] [.property-path]##link:#quarkus-fx_quarkus-fx-target-resources[`quarkus.fx.target-resources`]##
 ifdef::add-copy-button-to-config-props[]
@@ -89,7 +89,7 @@ Environment variable: `+++QUARKUS_FX_TARGET_RESOURCES+++`
 endif::add-copy-button-to-env-var[]
 --
 |string
-|`target/classes/`
+|`+++target/classes/+++`
 
 |===
 
