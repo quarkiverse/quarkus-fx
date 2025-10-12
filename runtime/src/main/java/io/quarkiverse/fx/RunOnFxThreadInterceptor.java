@@ -22,7 +22,7 @@ public class RunOnFxThreadInterceptor {
     FxStartupLatch startupLatch;
 
     @AroundInvoke
-    public Object runOnFxThread(final InvocationContext ctx) throws Exception {
+    public Object runOnFxThread(InvocationContext ctx) throws Exception {
         LOGGER.tracef("intercepted %s on thread %s", ctx.getMethod(), Thread.currentThread());
 
         // Block thread until the startup latch has been cleared

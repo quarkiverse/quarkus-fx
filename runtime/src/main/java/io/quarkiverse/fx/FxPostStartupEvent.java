@@ -10,7 +10,7 @@ public final class FxPostStartupEvent {
 
     private final Stage primaryStage;
 
-    FxPostStartupEvent(final Stage primaryStage) {
+    FxPostStartupEvent(Stage primaryStage) {
         this.primaryStage = primaryStage;
     }
 

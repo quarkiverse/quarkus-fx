@@ -18,7 +18,7 @@ import javafx.stage.Stage;
 public class FxApplication extends Application {
 
     @Override
-    public void start(final Stage primaryStage) {
+    public void start(Stage primaryStage) {
 
         BeanManager beanManager = CDI.current().getBeanManager();
 

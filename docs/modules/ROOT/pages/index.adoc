@@ -83,7 +83,7 @@ import javafx.application.Application;
 @QuarkusMain
 public class QuarkusFxApplication implements QuarkusApplication {
     @Override
-    public int run(final String... args) {
+    public int run(String... args) {
         Application.launch(FxApplication.class, args);
         return 0;
     }
@@ -97,14 +97,14 @@ When the application is started, two main events are fired in sequence :
 
 [source,java]
 ----
-void onApplicationStartup(@Observes final FxApplicationStartupEvent event) {
+void onApplicationStartup(@Observes FxApplicationStartupEvent event) {
   Application application = event.getApplication();
 }
 ----
 
 [source,java]
 ----
-void onPostStartup(@Observes final FxPostStartupEvent event) {
+void onPostStartup(@Observes FxPostStartupEvent event) {
   Stage stage = event.getPrimaryStage();
 }
 ----
@@ -145,3 +145,40 @@ public class MyBean {
 == Properties
 
 include::includes/quarkus-fx.adoc[]
+
+== Native support
+
+Initial native support has been added, to build an executable with GraalVM.
+
+=== Generate reachability metadata
+
+The extension automatically configures reflection and runtime initialization of the JavaFX components, for supported operating systems (Windows, Mac & Linux).
+
+You will also need to build your application reachability metadata.
+To do so, you can :
+
+Run the application using GraalVM to collect reachability metadata:
+
+.Example on Windows
+[source]
+----
+%GRAALVM_HOME%\bin\java.exe -agentlib:native-image-agent=config-output-dir=tracing-output -jar quarkus-run.jar
+----
+
+Try to load all UI components in the application and do all possible interactions.
+Upon exit, `tracing-output/reachability-metadata.json` will be generated.
+
+Copy `tracing-output/reachability-metadata.json` to `src/main/resources/META-INF/native-image/{groupId}/{artifactId}/reachability-metadata.json`
+
+=== Build executable
+
+Environment variable `GRAALVM_HOME` has to be set, pointing to your GraalVM installation.
+
+In order to build the application as a native executable, you can run the following maven command :
+
+[source]
+----
+mvn install -Dnative
+----
+
+NOTE: Please report any found bug by opening an issue at https://github.com/quarkiverse/quarkus-fx/issues

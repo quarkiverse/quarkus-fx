@@ -22,10 +22,12 @@ import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.RunOnFxThreadInterceptor;
 import io.quarkiverse.fx.livereload.LiveReloadRecorder;
 import io.quarkiverse.fx.views.FxView;
+import io.quarkiverse.fx.views.FxViewConfig;
 import io.quarkiverse.fx.views.FxViewRecorder;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -33,9 +35,17 @@ import io.quarkus.deployment.annotations.Overridable;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBundleBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourcePatternsBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
+import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import io.smallrye.common.os.OS;
 
 class QuarkusFxExtensionProcessor {
 
@@ -72,7 +82,7 @@ class QuarkusFxExtensionProcessor {
     }
 
     @BuildStep
-    AdditionalBeanBuildItem runOnFxThreadInterceptor(final CombinedIndexBuildItem combinedIndex) {
+    AdditionalBeanBuildItem runOnFxThreadInterceptor(CombinedIndexBuildItem combinedIndex) {
         Consumer<AnnotationTarget> methodChecker = target -> {
             if (!(target.asMethod().returnType() instanceof VoidType)) {
                 LOGGER.warnf("Method %s annotated with %s return value will be lost, set return type to void",
@@ -95,8 +105,8 @@ class QuarkusFxExtensionProcessor {
 
     @BuildStep
     void quarkusFxLauncher(
-            final CombinedIndexBuildItem combinedIndex,
-            @Overridable final BuildProducer<QuarkusApplicationClassBuildItem> quarkusApplicationClass) {
+            CombinedIndexBuildItem combinedIndex,
+            @Overridable BuildProducer<QuarkusApplicationClassBuildItem> quarkusApplicationClass) {
 
         IndexView index = combinedIndex.getIndex();
 
@@ -113,8 +123,8 @@ class QuarkusFxExtensionProcessor {
     @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep
     void handleLiveReload(
-            final LiveReloadBuildItem liveReloadBuildItem,
-            final LiveReloadRecorder recorder) {
+            LiveReloadBuildItem liveReloadBuildItem,
+            LiveReloadRecorder recorder) {
 
         recorder.process(liveReloadBuildItem.isLiveReload());
     }
@@ -122,9 +132,9 @@ class QuarkusFxExtensionProcessor {
     @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep
     void fxViews(
-            final CombinedIndexBuildItem combinedIndex,
-            final FxViewRecorder recorder,
-            final BeanContainerBuildItem beanContainerBuildItem) {
+            CombinedIndexBuildItem combinedIndex,
+            FxViewRecorder recorder,
+            BeanContainerBuildItem beanContainerBuildItem) {
 
         List<String> views = new ArrayList<>();
 
@@ -169,5 +179,157 @@ class QuarkusFxExtensionProcessor {
         LOGGER.infof("Fx views : %s", views);
 
         recorder.process(views, beanContainerBuildItem.getValue());
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void determineFxTargetPlatform(BuildProducer<FxTargetPlatformBuildItem> fxTargetPlatform) {
+        String osArch = System.getProperty("os.arch");
+        boolean is64Bit = osArch == null || (!osArch.contains("aarch") && !osArch.contains("arm"));
+        if (OS.WINDOWS.isCurrent()) {
+            fxTargetPlatform.produce(new FxTargetPlatformBuildItem("win"));
+        } else if (OS.MAC.isCurrent()) {
+            fxTargetPlatform.produce(new FxTargetPlatformBuildItem(is64Bit ? "mac" : "mac-aarch64"));
+        } else {
+            fxTargetPlatform.produce(new FxTargetPlatformBuildItem(is64Bit ? "linux" : "linux-aarch64"));
+        }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void indexTransitiveDependencies(FxTargetPlatformBuildItem fxTargetPlatform,
+            BuildProducer<IndexDependencyBuildItem> index) {
+        String classifier = fxTargetPlatform.getTargetPlatform();
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-base", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-graphics", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-controls", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-fxml", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-media", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-web", classifier));
+        index.produce(new IndexDependencyBuildItem("org.openjfx", "javafx-swing", classifier));
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void registerRuntimeInitializedClasses(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClasses) {
+        for (var classInfo : combinedIndex.getIndex().getKnownClasses()) {
+            for (String classNameSuffix : FxClassesAndResources.RUNTIME_INITIALIZED_CLASS_SUFFIXES) {
+                if (classInfo.name().toString().endsWith(classNameSuffix)) {
+                    runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(classInfo.name().toString()));
+                }
+            }
+        }
+        for (String className : FxClassesAndResources.RUNTIME_INITIALIZED_CLASSES) {
+            if (QuarkusClassLoader.isClassPresentAtRuntime(className)) {
+                runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(className));
+            }
+        }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void registerReflectiveClasses(FxTargetPlatformBuildItem fxTargetPlatform, CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+        for (String className : FxClassesAndResources.REFLECTIVE_ROOT_CLASSES) {
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
+                    combinedIndex.getIndex().getAllKnownSubclasses(className).stream()
+                            .map(ci -> ci.name().toString())
+                            .toArray(String[]::new))
+                    .methods().fields().build());
+        }
+        for (String className : FxClassesAndResources.REFLECTIVE_CLASSES) {
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+        }
+        for (String className : FxClassesAndResources.REFLECTIVE_INTERFACES) {
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
+                    combinedIndex.getIndex().getAllKnownImplementors(className).stream()
+                            .map(ci -> ci.name().toString())
+                            .toArray(String[]::new))
+                    .methods().fields().build());
+        }
+        for (String packageName : FxClassesAndResources.REFLECTIVE_PACKAGES) {
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
+                    combinedIndex.getIndex().getClassesInPackage(packageName).stream()
+                            .map(ci -> ci.name().toString())
+                            .toArray(String[]::new))
+                    .methods().fields().build());
+        }
+        if (fxTargetPlatform.isWindows()) {
+            for (String className : FxClassesAndResources.WINDOWS_REFLECTIVE_CLASSES) {
+                reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+            }
+        } else if (fxTargetPlatform.isMac()) {
+            for (String className : FxClassesAndResources.MAC_REFLECTIVE_CLASSES) {
+                reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+            }
+        } else {
+            for (String className : FxClassesAndResources.LINUX_REFLECTIVE_CLASSES) {
+                reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+            }
+        }
+        for (var annotation : combinedIndex.getIndex().getAnnotations(FxView.class)) {
+            String className = annotation.target().asClass().name().toString();
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+        }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void registerJniRuntimeAccessClasses(FxTargetPlatformBuildItem fxTargetPlatform,
+            BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses) {
+        jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
+                FxClassesAndResources.JNI_RUNTIME_ACCESS_CLASSES));
+        if (fxTargetPlatform.isWindows()) {
+            jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
+                    FxClassesAndResources.WINDOWS_JNI_RUNTIME_ACCESS_CLASSES));
+        } else if (fxTargetPlatform.isMac()) {
+            jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
+                    FxClassesAndResources.MAC_JNI_RUNTIME_ACCESS_CLASSES));
+        } else {
+            jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
+                    FxClassesAndResources.LINUX_JNI_RUNTIME_ACCESS_CLASSES));
+        }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    public void registerNativeImageBundles(FxTargetPlatformBuildItem fxTargetPlatform,
+            BuildProducer<NativeImageResourceBundleBuildItem> resourceBundle) {
+        for (String resourceBundleName : FxClassesAndResources.RESOURCE_BUNDLES) {
+            resourceBundle.produce(new NativeImageResourceBundleBuildItem(resourceBundleName));
+        }
+        if (fxTargetPlatform.isWindows()) {
+            for (String resourceBundleName : FxClassesAndResources.WINDOWS_RESOURCE_BUNDLES) {
+                resourceBundle.produce(new NativeImageResourceBundleBuildItem(resourceBundleName));
+            }
+        }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    public void registerNativeImageResources(FxTargetPlatformBuildItem fxTargetPlatform, FxViewConfig fxViewConfig,
+            BuildProducer<NativeImageResourcePatternsBuildItem> resource) {
+        for (String resourceGlob : FxClassesAndResources.RESOURCE_GLOBS) {
+            resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
+        }
+        if (fxTargetPlatform.isWindows()) {
+            for (String resourceGlob : FxClassesAndResources.WINDOWS_RESOURCE_GLOBS) {
+                resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
+            }
+        } else if (fxTargetPlatform.isMac()) {
+            for (String resourceGlob : FxClassesAndResources.MAC_RESOURCE_GLOBS) {
+                resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
+            }
+        } else {
+            for (String resourceGlob : FxClassesAndResources.LINUX_RESOURCE_GLOBS) {
+                resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
+            }
+        }
+
+        String viewsRoot = fxViewConfig.viewsRoot();
+        if (!viewsRoot.endsWith("/")) {
+            viewsRoot += "/";
+        }
+        resource.produce(NativeImageResourcePatternsBuildItem.builder()
+                .includeGlob("%s**/*.fxml".formatted(viewsRoot)).build());
+        resource.produce(NativeImageResourcePatternsBuildItem.builder()
+                .includeGlob("%s**/*.css".formatted(viewsRoot)).build());
+        resource.produce(NativeImageResourcePatternsBuildItem.builder()
+                .includeGlob("%s**/*.properties".formatted(viewsRoot)).build());
     }
 }

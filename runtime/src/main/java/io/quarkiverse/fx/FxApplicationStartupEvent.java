@@ -10,7 +10,7 @@ public final class FxApplicationStartupEvent {
 
     private final Application application;
 
-    FxApplicationStartupEvent(final Application application) {
+    FxApplicationStartupEvent(Application application) {
         this.application = application;
     }
 

@@ -27,8 +27,8 @@ public final class StylesheetWatchService {
     }
 
     public static void setStyleAndStartWatchingTask(
-            final Supplier<ObservableList<String>> stylesheetsSupplier,
-            final String stylesheet) throws IOException {
+            Supplier<ObservableList<String>> stylesheetsSupplier,
+            String stylesheet) throws IOException {
 
         // CSS live change monitoring
         // Get stylesheet URL from disk (project root)
@@ -52,9 +52,9 @@ public final class StylesheetWatchService {
     }
 
     private static void performBlockingWatch(
-            final WatchService watchService,
-            final ObservableList<String> stylesheets,
-            final String stylesheet) throws InterruptedException {
+            WatchService watchService,
+            ObservableList<String> stylesheets,
+            String stylesheet) throws InterruptedException {
 
         WatchKey key;
         while ((key = watchService.take()) != null) {
@@ -66,7 +66,7 @@ public final class StylesheetWatchService {
         }
     }
 
-    private static void updateWithStylesheet(final String stylesheet, final ObservableList<String> stylesheets) {
+    private static void updateWithStylesheet(String stylesheet, ObservableList<String> stylesheets) {
         Platform.runLater(() -> stylesheets.setAll(stylesheet));
     }
 }

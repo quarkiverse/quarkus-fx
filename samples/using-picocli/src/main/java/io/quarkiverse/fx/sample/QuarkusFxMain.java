@@ -9,7 +9,7 @@ import javafx.application.Application;
 public class QuarkusFxMain implements QuarkusApplication {
 
     @Override
-    public int run(final String... args) {
+    public int run(String... args) {
         Application.launch(FxApplication.class, args);
         return 0;
     }

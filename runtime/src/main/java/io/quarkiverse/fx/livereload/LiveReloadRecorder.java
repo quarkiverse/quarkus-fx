@@ -9,7 +9,7 @@ public class LiveReloadRecorder {
 
     private static final Logger LOGGER = Logger.getLogger(LiveReloadRecorder.class);
 
-    public void process(final boolean liveReload) {
+    public void process(boolean liveReload) {
         // Prepared for later
         LOGGER.debugf("Fx live reload : %b", liveReload);
     }

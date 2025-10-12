@@ -1,7 +1,6 @@
 package io.quarkiverse.fx.sample;
 
 import jakarta.enterprise.context.ApplicationScoped;
-
 import picocli.CommandLine;
 
 @ApplicationScoped
@@ -13,7 +12,7 @@ public class CommandService {
         this.fxCcommandLine = new CommandLine(new FxCommand());
     }
 
-    public void run(final String... args) {
+    public void run(String... args) {
         this.fxCcommandLine.parseArgs(args);
         if (this.fxCcommandLine.isUsageHelpRequested()) {
             this.fxCcommandLine.usage(System.out);
