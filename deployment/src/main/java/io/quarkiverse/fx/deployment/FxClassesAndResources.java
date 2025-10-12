@@ -286,6 +286,7 @@ public final class FxClassesAndResources {
     };
 
     static String[] JNI_RUNTIME_ACCESS_CLASSES = {
+            "java.io.InputStream",
             "java.lang.Boolean",
             "java.lang.Class",
             "java.lang.Iterable",
@@ -386,7 +387,10 @@ public final class FxClassesAndResources {
     };
 
     static String[] RESOURCE_BUNDLES = {
+            // resource bundles in javafx-controls
             "com.sun.javafx.scene.control.skin.resources.controls",
+
+            // resource bundles in javafx-graphics
             "com.sun.javafx.tk.quantum.QuantumMessagesBundle",
 
             // resource bundles in javafx-media
