@@ -253,17 +253,14 @@ class QuarkusFxExtensionProcessor {
                     .methods().fields().build());
         }
         if (fxTargetPlatform.isWindows()) {
-            for (String className : FxClassesAndResources.WINDOWS_REFLECTIVE_CLASSES) {
-                reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
-            }
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(FxClassesAndResources.WINDOWS_REFLECTIVE_CLASSES)
+                    .methods().fields().build());
         } else if (fxTargetPlatform.isMac()) {
-            for (String className : FxClassesAndResources.MAC_REFLECTIVE_CLASSES) {
-                reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
-            }
+            reflectiveClasses.produce(
+                    ReflectiveClassBuildItem.builder(FxClassesAndResources.MAC_REFLECTIVE_CLASSES).methods().fields().build());
         } else {
-            for (String className : FxClassesAndResources.LINUX_REFLECTIVE_CLASSES) {
-                reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
-            }
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(FxClassesAndResources.LINUX_REFLECTIVE_CLASSES).methods()
+                    .fields().build());
         }
         for (var annotation : combinedIndex.getIndex().getAnnotations(FxView.class)) {
             String className = annotation.target().asClass().name().toString();
@@ -304,32 +301,30 @@ class QuarkusFxExtensionProcessor {
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     public void registerNativeImageResources(FxTargetPlatformBuildItem fxTargetPlatform, FxViewConfig fxViewConfig,
             BuildProducer<NativeImageResourcePatternsBuildItem> resource) {
-        for (String resourceGlob : FxClassesAndResources.RESOURCE_GLOBS) {
-            resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
-        }
+
+        resource.produce(
+                NativeImageResourcePatternsBuildItem.builder().includeGlobs(FxClassesAndResources.RESOURCE_GLOBS).build());
         if (fxTargetPlatform.isWindows()) {
-            for (String resourceGlob : FxClassesAndResources.WINDOWS_RESOURCE_GLOBS) {
-                resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
-            }
+            resource.produce(NativeImageResourcePatternsBuildItem.builder()
+                    .includeGlobs(FxClassesAndResources.WINDOWS_RESOURCE_GLOBS).build());
         } else if (fxTargetPlatform.isMac()) {
-            for (String resourceGlob : FxClassesAndResources.MAC_RESOURCE_GLOBS) {
-                resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
-            }
+            resource.produce(NativeImageResourcePatternsBuildItem.builder()
+                    .includeGlobs(FxClassesAndResources.MAC_RESOURCE_GLOBS).build());
         } else {
-            for (String resourceGlob : FxClassesAndResources.LINUX_RESOURCE_GLOBS) {
-                resource.produce(NativeImageResourcePatternsBuildItem.builder().includeGlob(resourceGlob).build());
-            }
+            resource.produce(NativeImageResourcePatternsBuildItem.builder()
+                    .includeGlobs(FxClassesAndResources.LINUX_RESOURCE_GLOBS).build());
         }
 
         String viewsRoot = fxViewConfig.viewsRoot();
         if (!viewsRoot.endsWith("/")) {
             viewsRoot += "/";
         }
+
         resource.produce(NativeImageResourcePatternsBuildItem.builder()
-                .includeGlob("%s**/*.fxml".formatted(viewsRoot)).build());
-        resource.produce(NativeImageResourcePatternsBuildItem.builder()
-                .includeGlob("%s**/*.css".formatted(viewsRoot)).build());
-        resource.produce(NativeImageResourcePatternsBuildItem.builder()
-                .includeGlob("%s**/*.properties".formatted(viewsRoot)).build());
+                .includeGlobs(
+                        "%s**/*.fxml".formatted(viewsRoot),
+                        "%s**/*.css".formatted(viewsRoot),
+                        "%s**/*.properties".formatted(viewsRoot))
+                .build());
     }
 }
