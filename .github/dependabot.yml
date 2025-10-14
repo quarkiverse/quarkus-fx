@@ -9,6 +9,6 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
-    ignore:
-      - dependency-name: "org.openjfx:*"
-        versions: ["*ea*"]
+    ignore: # configured to ignore JavaFX -ea releases
+      - dependency-name: "javafx-fxml"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
