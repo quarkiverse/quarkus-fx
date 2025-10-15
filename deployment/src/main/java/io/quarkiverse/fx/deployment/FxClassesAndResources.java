@@ -90,6 +90,8 @@ public final class FxClassesAndResources {
             "com.sun.prism.impl.BaseResourcePool",
             "com.sun.prism.impl.PrismSettings",
             "com.sun.prism.impl.ps.PaintHelper",
+            "com.sun.prism.j2d.J2DPrismGraphics",
+            "com.sun.prism.j2d.paint.MultipleGradientPaintContext",
             "com.sun.prism.j2d.print.J2DPrinterJob",
             "com.sun.prism.PresentableState",
             "com.sun.prism.sw.SWPipeline",
