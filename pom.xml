@@ -16,7 +16,7 @@
         <module>runtime</module>
     </modules>
     <properties>
-        <quarkus.version>3.19.3</quarkus.version>
+        <quarkus.version>3.28.4</quarkus.version>
         <javafx.version>22.0.2</javafx.version>
         <maven.compiler.release>17</maven.compiler.release>
     </properties>
