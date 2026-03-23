@@ -34,9 +34,6 @@ jobs:
     if: github.actor == 'quarkusbot' || github.actor == 'quarkiversebot' || github.actor == 'gastaldi' || github.actor == 'CodeSimcoe'
 
     steps:
-      - name: Install yq
-        uses: dcarbone/install-yq-action@v1.1.1
-
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
