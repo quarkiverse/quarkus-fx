@@ -3,3 +3,7 @@ title: FX
 version: dev
 nav:
   - modules/ROOT/nav.adoc
+asciidoc:
+  attributes:
+    groupid: io.quarkiverse.fx
+    artifactid: quarkus-fx
