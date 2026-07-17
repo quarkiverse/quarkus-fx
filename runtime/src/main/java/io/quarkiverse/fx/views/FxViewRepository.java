@@ -12,16 +12,20 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.fx.FxLiveReloadEvent;
 import io.quarkiverse.fx.FxPostStartupEvent;
 import io.quarkiverse.fx.FxViewLoadEvent;
+import io.quarkiverse.fx.livereload.FxLiveReloadState;
 import io.quarkiverse.fx.style.StylesheetWatchService;
 import io.quarkus.runtime.LaunchMode;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -42,6 +46,9 @@ public class FxViewRepository {
 
     @Inject
     FxViewConfig config;
+
+    @Inject
+    Event<FxLiveReloadEvent> liveReloadEvent;
 
     private final Map<String, FxViewData> viewDataMap = new HashMap<>();
 
@@ -74,12 +81,71 @@ public class FxViewRepository {
         };
 
         for (String name : this.viewNames) {
-            this.manageView(name, classLoader, stylesheetReload);
+            FxViewData viewData = this.loadView(name, classLoader, stylesheetReload);
+            this.viewDataMap.put(name, viewData);
+            FxLiveReloadState.registerView(name, viewData.getRootNode());
         }
     }
 
-    private void manageView(String name, ClassLoader classLoader, boolean stylesheetReload) {
+    /**
+     * Rebuild managed views after Quarkus has created the new CDI container.
+     */
+    public void reload() {
+        if (FxLiveReloadState.getPrimaryStage() == null) {
+            LOGGER.debug("Skipping FX live reload because the JavaFX application has not started");
+            return;
+        }
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        long generation = FxLiveReloadState.beginReload();
+        Platform.runLater(() -> this.reloadOnFxThread(classLoader, generation));
+    }
+
+    private void reloadOnFxThread(ClassLoader classLoader, long generation) {
+        if (!FxLiveReloadState.isCurrentReload(generation)) {
+            return;
+        }
+
+        Thread.currentThread().setContextClassLoader(classLoader);
+        this.primaryStage = FxLiveReloadState.getPrimaryStage();
+        boolean stylesheetReload = this.config.stylesheetReloadStrategy() != StylesheetReloadStrategy.NEVER;
+
+        for (Object removedRoot : FxLiveReloadState.removeViewsNotIn(this.viewNames, generation)) {
+            stopStylesheetWatching(removedRoot);
+        }
+
+        for (String name : this.viewNames) {
+            try {
+                FxViewData viewData = this.loadView(name, classLoader, stylesheetReload);
+                if (!FxLiveReloadState.isCurrentReload(generation)) {
+                    stopStylesheetWatching(viewData.getRootNode());
+                    return;
+                }
+                Object oldRoot = FxLiveReloadState.getViewRoot(name);
+                ObservableList<String> oldStylesheets = oldRoot == null ? null : getFxmlObjectStyleSheets(oldRoot);
+                boolean replaced = FxLiveReloadState.replaceView(name, viewData.getRootNode(), generation);
+                if (replaced && oldStylesheets != null) {
+                    StylesheetWatchService.stopWatching(oldStylesheets);
+                } else if (!replaced) {
+                    stopStylesheetWatching(viewData.getRootNode());
+                }
+                this.viewDataMap.put(name, viewData);
+            } catch (RuntimeException e) {
+                LOGGER.errorf(e, "Failed to live reload FX view %s", name);
+                Object discardedRoot = FxLiveReloadState.discardView(name, generation);
+                if (discardedRoot != null) {
+                    stopStylesheetWatching(discardedRoot);
+                }
+            }
+        }
+
+        if (FxLiveReloadState.isCurrentReload(generation)) {
+            this.liveReloadEvent.fire(new FxLiveReloadEvent(this.primaryStage, Window.getWindows()));
+        }
+    }
+
+    private FxViewData loadView(String name, ClassLoader classLoader, boolean stylesheetReload) {
         FXMLLoader loader = this.fxmlLoader.get();
+        loader.setClassLoader(classLoader);
 
         // Append path and extensions
         String viewsRoot = this.config.viewsRoot();
@@ -143,8 +209,7 @@ public class FxViewRepository {
             Object controller = loader.getController();
 
             // Register view
-            FxViewData viewData = FxViewData.of(rootNode, controller);
-            this.viewDataMap.put(name, viewData);
+            return FxViewData.of(rootNode, controller);
 
         } catch (IOException e) {
             throw new IllegalStateException("Failed to load FX view " + name, e);
@@ -210,6 +275,14 @@ public class FxViewRepository {
             throw new IllegalArgumentException(message);
         }
         return stylesheets;
+    }
+
+    private static void stopStylesheetWatching(Object rootNode) {
+        try {
+            StylesheetWatchService.stopWatching(getFxmlObjectStyleSheets(rootNode));
+        } catch (RuntimeException e) {
+            LOGGER.debugf(e, "Could not stop stylesheet watching for removed FX root %s", rootNode);
+        }
     }
 
     /**

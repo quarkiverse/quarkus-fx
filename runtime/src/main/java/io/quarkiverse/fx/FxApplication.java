@@ -3,6 +3,7 @@ package io.quarkiverse.fx;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.CDI;
 
+import io.quarkiverse.fx.livereload.FxLiveReloadState;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -19,6 +20,8 @@ public class FxApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+
+        FxLiveReloadState.setPrimaryStage(primaryStage);
 
         BeanManager beanManager = CDI.current().getBeanManager();
 

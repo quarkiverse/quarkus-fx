@@ -20,7 +20,6 @@ import io.quarkiverse.fx.HostServicesProducer;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.RunOnFxThreadInterceptor;
-import io.quarkiverse.fx.livereload.LiveReloadRecorder;
 import io.quarkiverse.fx.views.FxView;
 import io.quarkiverse.fx.views.FxViewConfig;
 import io.quarkiverse.fx.views.FxViewRecorder;
@@ -122,19 +121,11 @@ class QuarkusFxExtensionProcessor {
 
     @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep
-    void handleLiveReload(
-            LiveReloadBuildItem liveReloadBuildItem,
-            LiveReloadRecorder recorder) {
-
-        recorder.process(liveReloadBuildItem.isLiveReload());
-    }
-
-    @Record(ExecutionTime.RUNTIME_INIT)
-    @BuildStep
     void fxViews(
             CombinedIndexBuildItem combinedIndex,
             FxViewRecorder recorder,
-            BeanContainerBuildItem beanContainerBuildItem) {
+            BeanContainerBuildItem beanContainerBuildItem,
+            LiveReloadBuildItem liveReloadBuildItem) {
 
         List<String> views = new ArrayList<>();
 
@@ -178,7 +169,7 @@ class QuarkusFxExtensionProcessor {
 
         LOGGER.infof("Fx views : %s", views);
 
-        recorder.process(views, beanContainerBuildItem.getValue());
+        recorder.process(views, beanContainerBuildItem.getValue(), liveReloadBuildItem.isLiveReload());
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)

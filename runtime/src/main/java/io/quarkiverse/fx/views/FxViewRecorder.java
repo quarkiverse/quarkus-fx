@@ -8,8 +8,11 @@ import io.quarkus.runtime.annotations.Recorder;
 @Recorder
 public class FxViewRecorder {
 
-    public void process(List<String> viewNames, BeanContainer beanContainer) {
+    public void process(List<String> viewNames, BeanContainer beanContainer, boolean liveReload) {
         FxViewRepository fxViewRepository = beanContainer.beanInstance(FxViewRepository.class);
         fxViewRepository.setViewNames(viewNames);
+        if (liveReload) {
+            fxViewRepository.reload();
+        }
     }
 }

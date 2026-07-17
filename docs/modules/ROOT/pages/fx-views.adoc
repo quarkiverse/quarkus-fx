@@ -122,3 +122,29 @@ The utility class `StylesheetWatchService` can also be used to set up live reloa
 ----
 StylesheetWatchService.setStyleAndStartWatchingTask(() -> component.getStylesheets(), path);
 ----
+
+== Dev-mode live reload
+
+The JavaFX application and its windows cannot be restarted in the same JVM.
+During a Quarkus dev-mode restart, the extension therefore keeps the JavaFX application thread and existing windows alive while rebuilding managed `@FxView` roots and their CDI controllers from the new CDI container.
+
+The extension automatically replaces a managed view when it is used as a scene root or when the FXML root is a `Scene`.
+Window position, size, visibility, ownership, and modality are preserved because the existing window is retained.
+Control state inside the replaced view is not preserved.
+
+Nested roots and FXML roots that are themselves a `Stage` or `Dialog` are not replaced automatically because retaining their wrapper would also retain handlers from the previous CDI container.
+
+After managed views are rebuilt, an `FxLiveReloadEvent` is fired on the JavaFX application thread.
+Applications can observe it to refresh windows or nodes that were not mounted through a supported `@FxView` location:
+
+[source,java]
+----
+void onLiveReload(@Observes FxLiveReloadEvent event) {
+    Stage primaryStage = event.getPrimaryStage();
+    List<Window> openWindows = event.getWindows();
+    // Rebuild application-managed content as needed.
+}
+----
+
+Controllers and services from the previous CDI container must not be retained.
+In particular, controllers should not create and show additional windows from their FXML `initialize()` method, because that method runs again when the view is rebuilt.

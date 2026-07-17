@@ -1,11 +1,15 @@
 package io.quarkiverse.fx.deployment.fxviews;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 import jakarta.inject.Inject;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import io.quarkiverse.fx.deployment.FxTestConstants;
 import io.quarkiverse.fx.deployment.base.FxTestBase;
 import io.quarkiverse.fx.deployment.fxviews.controllers.ComponentWithStyleController;
 import io.quarkiverse.fx.deployment.fxviews.controllers.SampleDialogController;
@@ -13,10 +17,13 @@ import io.quarkiverse.fx.deployment.fxviews.controllers.SampleSceneController;
 import io.quarkiverse.fx.deployment.fxviews.controllers.SampleStageController;
 import io.quarkiverse.fx.deployment.fxviews.controllers.SampleTestController;
 import io.quarkiverse.fx.deployment.fxviews.controllers.SubSampleTestController;
+import io.quarkiverse.fx.livereload.FxLiveReloadState;
 import io.quarkiverse.fx.views.FxViewData;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.test.QuarkusUnitTest;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -52,7 +59,7 @@ class FxViewTest extends FxTestBase {
     SampleSceneController sampleSceneController;
 
     @Test
-    void testFxView() {
+    void testFxView() throws Exception {
 
         this.startAndWait();
 
@@ -81,5 +88,38 @@ class FxViewTest extends FxTestBase {
         BorderPane pane = componentWithStyle.getRootNode();
         ObservableList<String> componentStylesheets = pane.getStylesheets();
         Assertions.assertEquals(1, componentStylesheets.size());
+
+        BorderPane replacement = new BorderPane();
+        CompletableFuture<Void> replacementDone = new CompletableFuture<>();
+        Platform.runLater(() -> {
+            try {
+                Scene scene = new Scene(viewData.getRootNode());
+                primaryStage.setScene(scene);
+
+                FxLiveReloadState.replaceView("SampleTest", replacement);
+
+                Assertions.assertSame(scene, primaryStage.getScene());
+                Assertions.assertSame(replacement, scene.getRoot());
+
+                Stage retainedStage = new Stage();
+                Scene oldScene = new Scene(new BorderPane());
+                retainedStage.setScene(oldScene);
+                FxLiveReloadState.registerView("ReloadableScene", oldScene);
+                Scene reloadedScene = new Scene(new BorderPane());
+                FxLiveReloadState.replaceView("ReloadableScene", reloadedScene);
+                Assertions.assertSame(reloadedScene, retainedStage.getScene());
+
+                BorderPane attachedReplacement = new BorderPane();
+                Stage temporaryStage = new Stage();
+                temporaryStage.setScene(new Scene(attachedReplacement));
+                boolean attachedRootReplaced = FxLiveReloadState.replaceView("SampleTest", attachedReplacement);
+                Assertions.assertFalse(attachedRootReplaced);
+                Assertions.assertSame(replacement, scene.getRoot());
+                replacementDone.complete(null);
+            } catch (Throwable t) {
+                replacementDone.completeExceptionally(t);
+            }
+        });
+        replacementDone.get(FxTestConstants.LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
 }
