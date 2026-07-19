@@ -1,8 +1,10 @@
 package io.quarkiverse.fx;
 
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.inject.spi.ObserverMethod;
 
 import javafx.application.Application;
 import javafx.application.HostServices;
@@ -12,7 +14,8 @@ public class HostServicesProducer {
 
     private Application application;
 
-    void observeFxPreStartupEvent(@Observes FxApplicationStartupEvent event) {
+    void observeFxPreStartupEvent(
+            @Observes @Priority(ObserverMethod.DEFAULT_PRIORITY - 1) FxApplicationStartupEvent event) {
         this.application = event.getApplication();
     }
 
