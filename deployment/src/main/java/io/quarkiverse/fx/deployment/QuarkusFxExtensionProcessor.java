@@ -1,9 +1,12 @@
 package io.quarkiverse.fx.deployment;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -42,7 +45,9 @@ import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBundleBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourcePatternsBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedPackageBuildItem;
 import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.smallrye.common.os.OS;
@@ -106,7 +111,8 @@ class QuarkusFxExtensionProcessor {
     @BuildStep
     void quarkusFxLauncher(
             CombinedIndexBuildItem combinedIndex,
-            @Overridable BuildProducer<QuarkusApplicationClassBuildItem> quarkusApplicationClass) {
+            @Overridable BuildProducer<QuarkusApplicationClassBuildItem> quarkusApplicationClass,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
 
         IndexView index = combinedIndex.getIndex();
 
@@ -115,6 +121,8 @@ class QuarkusFxExtensionProcessor {
         // Otherwise, provide a default QuarkusFxApplication that launches the FX application
         if (index.getAnnotations(DotName.createSimple(QuarkusMain.class.getName())).isEmpty()) {
             quarkusApplicationClass.produce(new QuarkusApplicationClassBuildItem(QuarkusFxApplication.class));
+            // Instantiated reflectively by Quarkus at startup
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(QuarkusFxApplication.class).build());
         } else {
             LOGGER.info("Existing @QuarkusMain annotation were found, Quarkus-FX will not generate QuarkusFxApplication.");
         }
@@ -208,8 +216,9 @@ class QuarkusFxExtensionProcessor {
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
-    void registerRuntimeInitializedClasses(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClasses) {
+    void registerRuntimeInitializedClasses(FxTargetPlatformBuildItem fxTargetPlatform, CombinedIndexBuildItem combinedIndex,
+            BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClasses,
+            BuildProducer<RuntimeInitializedPackageBuildItem> runtimeInitializedPackages) {
         for (var classInfo : combinedIndex.getIndex().getKnownClasses()) {
             for (String classNameSuffix : FxClassesAndResources.RUNTIME_INITIALIZED_CLASS_SUFFIXES) {
                 if (classInfo.name().toString().endsWith(classNameSuffix)) {
@@ -221,6 +230,27 @@ class QuarkusFxExtensionProcessor {
             if (QuarkusClassLoader.isClassPresentAtRuntime(className)) {
                 runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(className));
             }
+        }
+        if (fxTargetPlatform.isMac()) {
+            for (String className : FxClassesAndResources.MAC_RUNTIME_INITIALIZED_CLASSES) {
+                if (QuarkusClassLoader.isClassPresentAtRuntime(className)) {
+                    runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(className));
+                }
+            }
+            for (String packageName : FxClassesAndResources.MAC_RUNTIME_INITIALIZED_PACKAGES) {
+                runtimeInitializedPackages.produce(new RuntimeInitializedPackageBuildItem(packageName));
+            }
+        }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void registerRuntimeInitializedFxUsers(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClasses) {
+        Set<String> classes = FxStaticInitializerScanner.scan(combinedIndex.getIndex().getKnownClasses(),
+                Thread.currentThread().getContextClassLoader());
+        LOGGER.debugf("Classes using JavaFX in their static initializer, initialized at run time : %s", classes);
+        for (String className : classes) {
+            runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(className));
         }
     }
 
@@ -245,6 +275,21 @@ class QuarkusFxExtensionProcessor {
                             .toArray(String[]::new))
                     .methods().fields().build());
         }
+        List<String> publicClasses = new ArrayList<>();
+        for (ClassInfo classInfo : combinedIndex.getIndex().getKnownClasses()) {
+            String name = classInfo.name().toString();
+            if (java.lang.reflect.Modifier.isPublic(classInfo.flags())) {
+                boolean included = Stream.of(FxClassesAndResources.REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES)
+                        .anyMatch(name::startsWith);
+                boolean excluded = Stream.of(FxClassesAndResources.REFLECTIVE_PUBLIC_CLASS_EXCLUDED_PACKAGE_PREFIXES)
+                        .anyMatch(name::startsWith);
+                if (included && !excluded) {
+                    publicClasses.add(name);
+                }
+            }
+        }
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(publicClasses.toArray(String[]::new))
+                .methods().fields().build());
         for (String packageName : FxClassesAndResources.REFLECTIVE_PACKAGES) {
             reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
                     combinedIndex.getIndex().getClassesInPackage(packageName).stream()
@@ -265,6 +310,25 @@ class QuarkusFxExtensionProcessor {
         for (var annotation : combinedIndex.getIndex().getAnnotations(FxView.class)) {
             String className = annotation.target().asClass().name().toString();
             reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
+        }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void registerWebViewBridgeMethods(BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods) {
+        if (!QuarkusClassLoader.isClassPresentAtRuntime(FxClassesAndResources.WEBVIEW_BRIDGE_MARKER_CLASS)) {
+            return;
+        }
+        String reason = "WebView JavaScript to Java bridge";
+        for (Method method : Object.class.getMethods()) {
+            reflectiveMethods.produce(new ReflectiveMethodBuildItem(reason, false, method));
+        }
+        for (Method method : Throwable.class.getMethods()) {
+            reflectiveMethods.produce(new ReflectiveMethodBuildItem(reason, false, method));
+        }
+        for (Method method : Class.class.getMethods()) {
+            if (FxClassesAndResources.WEBVIEW_BRIDGE_CLASS_METHODS.contains(method.getName())) {
+                reflectiveMethods.produce(new ReflectiveMethodBuildItem(reason, false, method));
+            }
         }
     }
 
@@ -315,8 +379,12 @@ class QuarkusFxExtensionProcessor {
                     .includeGlobs(FxClassesAndResources.LINUX_RESOURCE_GLOBS).build());
         }
 
+        // Resource globs are relative to the class path root
         String viewsRoot = fxViewConfig.viewsRoot();
-        if (!viewsRoot.endsWith("/")) {
+        while (viewsRoot.startsWith("/")) {
+            viewsRoot = viewsRoot.substring(1);
+        }
+        if (!viewsRoot.isEmpty() && !viewsRoot.endsWith("/")) {
             viewsRoot += "/";
         }
 
@@ -326,5 +394,13 @@ class QuarkusFxExtensionProcessor {
                         "%s**/*.css".formatted(viewsRoot),
                         "%s**/*.properties".formatted(viewsRoot))
                 .build());
+
+        if (!viewsRoot.isEmpty()) {
+            // The views root directory is the FXMLLoader location (FxViewRepository) : directories are only available
+            // as resources in native executables when registered
+            resource.produce(NativeImageResourcePatternsBuildItem.builder()
+                    .includeGlobs(viewsRoot.substring(0, viewsRoot.length() - 1))
+                    .build());
+        }
     }
 }
