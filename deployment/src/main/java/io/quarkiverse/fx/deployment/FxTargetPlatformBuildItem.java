@@ -33,4 +33,11 @@ public final class FxTargetPlatformBuildItem extends SimpleBuildItem {
     public boolean isAarch64() {
         return this.targetPlatform.endsWith("-aarch64");
     }
+
+    /**
+     * The value of the given ones that applies to this platform.
+     */
+    public <T> T select(T windows, T mac, T linux) {
+        return isWindows() ? windows : isMac() ? mac : linux;
+    }
 }
