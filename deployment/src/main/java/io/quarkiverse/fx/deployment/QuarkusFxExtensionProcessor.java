@@ -31,6 +31,7 @@ import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
+import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -42,6 +43,7 @@ import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessMethodBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBundleBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourcePatternsBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
@@ -276,20 +278,9 @@ class QuarkusFxExtensionProcessor {
                             .toArray(String[]::new))
                     .methods().fields().build());
         }
-        List<String> publicClasses = new ArrayList<>();
-        for (ClassInfo classInfo : combinedIndex.getIndex().getKnownClasses()) {
-            String name = classInfo.name().toString();
-            if (java.lang.reflect.Modifier.isPublic(classInfo.flags())) {
-                boolean included = Stream.of(FxClassesAndResources.REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES)
-                        .anyMatch(name::startsWith);
-                boolean excluded = Stream.of(FxClassesAndResources.REFLECTIVE_PUBLIC_CLASS_EXCLUDED_PACKAGE_PREFIXES)
-                        .anyMatch(name::startsWith);
-                if (included && !excluded) {
-                    publicClasses.add(name);
-                }
-            }
-        }
-        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(publicClasses.toArray(String[]::new))
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(publicClasses(combinedIndex.getIndex(),
+                FxClassesAndResources.REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES,
+                FxClassesAndResources.REFLECTIVE_PUBLIC_CLASS_EXCLUDED_PACKAGE_PREFIXES))
                 .methods().fields().build());
         for (String packageName : FxClassesAndResources.REFLECTIVE_PACKAGES) {
             reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
@@ -319,6 +310,57 @@ class QuarkusFxExtensionProcessor {
         for (Method method : Class.class.getMethods()) {
             if (FxClassesAndResources.WEBVIEW_BRIDGE_CLASS_METHODS.contains(method.getName())) {
                 reflectiveMethods.produce(new ReflectiveMethodBuildItem(reason, false, method));
+            }
+        }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void registerAwtAndSwingInterop(Capabilities capabilities, CombinedIndexBuildItem combinedIndex,
+            BuildProducer<RuntimeInitializedPackageBuildItem> runtimeInitializedPackages,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
+            BuildProducer<JniRuntimeAccessMethodBuildItem> jniRuntimeAccessMethods) {
+        IndexView index = combinedIndex.getIndex();
+        // quarkus-desktop-swing depends on quarkus-desktop-awt
+        boolean awt = capabilities.isPresent(FxClassesAndResources.DESKTOP_AWT_CAPABILITY)
+                || capabilities.isPresent(FxClassesAndResources.DESKTOP_SWING_CAPABILITY);
+        // The optional JavaFX modules are in the index when present (indexTransitiveDependencies)
+        boolean swing = capabilities.isPresent(FxClassesAndResources.DESKTOP_SWING_CAPABILITY)
+                && index.getClassByName(FxClassesAndResources.SWING_MARKER_CLASS) != null;
+        boolean webView = index.getClassByName(FxClassesAndResources.WEBVIEW_BRIDGE_MARKER_CLASS) != null;
+        LOGGER.debugf("JavaFX features relying on AWT registered : %b, Swing interop registered : %b", awt, swing);
+        if (awt) {
+            for (String packageName : FxClassesAndResources.AWT_RUNTIME_INITIALIZED_PACKAGES) {
+                runtimeInitializedPackages.produce(new RuntimeInitializedPackageBuildItem(packageName));
+            }
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(publicClasses(index,
+                    FxClassesAndResources.AWT_REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES, new String[0]))
+                    .methods().fields().build());
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(FxClassesAndResources.AWT_REFLECTIVE_CLASSES)
+                    .methods().fields().build());
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(FxClassesAndResources.AWT_REFLECTIVE_CONSTRUCTORS)
+                    .constructors().build());
+            for (String method : FxClassesAndResources.AWT_JNI_RUNTIME_ACCESS_METHODS) {
+                jniRuntimeAccessMethods.produce(jniRuntimeAccessMethod(method));
+            }
+            if (webView) {
+                for (String method : FxClassesAndResources.AWT_WEBVIEW_JNI_RUNTIME_ACCESS_METHODS) {
+                    jniRuntimeAccessMethods.produce(jniRuntimeAccessMethod(method));
+                }
+            }
+        }
+        if (swing) {
+            for (String packageName : FxClassesAndResources.SWING_RUNTIME_INITIALIZED_PACKAGES) {
+                runtimeInitializedPackages.produce(new RuntimeInitializedPackageBuildItem(packageName));
+            }
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(publicClasses(index,
+                    FxClassesAndResources.SWING_REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES, new String[0]))
+                    .methods().fields().build());
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(FxClassesAndResources.SWING_REFLECTIVE_CLASSES)
+                    .methods().fields().build());
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(FxClassesAndResources.SWING_REFLECTIVE_CONSTRUCTORS)
+                    .constructors().build());
+            for (String method : FxClassesAndResources.SWING_JNI_RUNTIME_ACCESS_METHODS) {
+                jniRuntimeAccessMethods.produce(jniRuntimeAccessMethod(method));
             }
         }
     }
@@ -387,5 +429,35 @@ class QuarkusFxExtensionProcessor {
             String[] mac, String[] linux) {
         return Stream.concat(Stream.of(common), Stream.of(fxTargetPlatform.select(windows, mac, linux)))
                 .toArray(String[]::new);
+    }
+
+    /**
+     * The public classes of the index in the given packages and their sub packages, except those in the excluded ones.
+     */
+    private static String[] publicClasses(IndexView index, String[] packagePrefixes, String[] excludedPackagePrefixes) {
+        List<String> publicClasses = new ArrayList<>();
+        for (ClassInfo classInfo : index.getKnownClasses()) {
+            String name = classInfo.name().toString();
+            if (java.lang.reflect.Modifier.isPublic(classInfo.flags())) {
+                boolean included = Stream.of(packagePrefixes).anyMatch(name::startsWith);
+                boolean excluded = Stream.of(excludedPackagePrefixes).anyMatch(name::startsWith);
+                if (included && !excluded) {
+                    publicClasses.add(name);
+                }
+            }
+        }
+        return publicClasses.toArray(String[]::new);
+    }
+
+    /**
+     * A method of a list of {@link FxClassesAndResources}, written "class#method(parameter types)".
+     */
+    private static JniRuntimeAccessMethodBuildItem jniRuntimeAccessMethod(String method) {
+        int nameStart = method.indexOf('#') + 1;
+        int parametersStart = method.indexOf('(', nameStart) + 1;
+        String parameters = method.substring(parametersStart, method.lastIndexOf(')'));
+        return new JniRuntimeAccessMethodBuildItem(method.substring(0, nameStart - 1),
+                method.substring(nameStart, parametersStart - 1),
+                parameters.isBlank() ? new String[0] : parameters.replace(" ", "").split(","));
     }
 }

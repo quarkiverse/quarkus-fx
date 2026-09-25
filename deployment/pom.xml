@@ -29,6 +29,19 @@
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Optional JavaFX modules, for the tests of the AWT and Swing interop registration -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-swing</artifactId>
+      <version>${javafx.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-web</artifactId>
+      <version>${javafx.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

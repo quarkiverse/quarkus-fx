@@ -9,6 +9,11 @@ import java.util.Set;
  * ({@code WINDOWS_KIND}, {@code MAC_KIND}, {@code LINUX_KIND}) : a native executable gets the common list and the list
  * of the platform it is built for. A platform list only holds what that platform needs alone : an entry needed on every
  * platform belongs to the common list. Within a list, entries are grouped by JavaFX module and area.
+ * <p>
+ * JavaFX features relying on AWT (printing, the J2D pipeline, the ImageIO image loader, {@code SwingFXUtils}) or Swing
+ * ({@code SwingNode}, {@code JFXPanel}) have their own lists ({@code AWT_KIND}, {@code SWING_KIND}), applied in addition
+ * when the application depends on Quarkus Desktop (quarkus-desktop-awt, quarkus-desktop-swing), which makes AWT and Swing
+ * work in native executables.
  */
 public final class FxClassesAndResources {
 
@@ -164,8 +169,13 @@ public final class FxClassesAndResources {
             // reads system properties
             "com.sun.media.jfxmediaimpl.platform.PlatformManager",
 
-            // javafx.swing
+            // javafx.swing : SwingNode is reachable whenever javafx-swing is present (the javafx.scene.Node subclasses are
+            // registered for reflection), with or without Quarkus Desktop
             "com.sun.javafx.embed.swing.newimpl.SwingNodeInteropN",
+            // starts a thread
+            "com.sun.javafx.embed.swing.Disposer",
+            // reads system properties
+            "com.sun.javafx.embed.swing.FXDnD",
 
             // javafx.web
             "com.sun.javafx.webkit.prism.PrismGraphicsManager",
@@ -319,8 +329,10 @@ public final class FxClassesAndResources {
     };
 
     /**
-     * Excluded from {@link #REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES} : Swing interop and printing rely on AWT, whose
-     * native support is out of the scope of this extension.
+     * Excluded from {@link #REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES} : printing and Swing interop rely on AWT, their
+     * public classes are registered with {@link #AWT_REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES} and
+     * {@link #SWING_REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES} when Quarkus Desktop is present. SWT interop
+     * ({@code javafx.embed.swt}) is not configured.
      */
     static String[] REFLECTIVE_PUBLIC_CLASS_EXCLUDED_PACKAGE_PREFIXES = {
             "javafx.embed.",
@@ -942,5 +954,125 @@ public final class FxClassesAndResources {
 
             // javafx.web native library
             "libjfxwebkit.so",
+    };
+
+    // ------------------------------------------------------------------------------------------------------- AWT and Swing
+    // AWT and Swing only work in a native executable with Quarkus Desktop (Quarkiverse), which registers the JDK side.
+    // The AWT lists are applied, in addition to the lists above, when the application depends on quarkus-desktop-awt
+    // or quarkus-desktop-swing (which depends on quarkus-desktop-awt). The Swing lists are applied when it depends on
+    // quarkus-desktop-swing and javafx-swing. The JavaFX side is the same on every platform : these lists have no
+    // platform variant. Methods are written "class#method(parameter types)".
+
+    /**
+     * Provided by quarkus-desktop-awt.
+     */
+    static final String DESKTOP_AWT_CAPABILITY = "io.quarkiverse.desktop.awt";
+
+    /**
+     * Provided by quarkus-desktop-swing.
+     */
+    static final String DESKTOP_SWING_CAPABILITY = "io.quarkiverse.desktop.swing";
+
+    /**
+     * In the index when the application depends on javafx-swing.
+     */
+    static final String SWING_MARKER_CLASS = "javafx.embed.swing.SwingNode";
+
+    static String[] AWT_RUNTIME_INITIALIZED_PACKAGES = {
+            // javafx.graphics : J2D pipeline, printing and their paints : statics holding AWT objects (strokes, colors,
+            // color models) and the printers found (PrismPrintPipeline), J2DPrinterJob loads prism_common
+            "com.sun.prism.j2d",
+            // javafx.graphics : ImageIO image loader (JavaFX 24 and later)
+            "com.sun.javafx.iio.java2d",
+    };
+
+    /**
+     * Added to {@link #REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES}.
+     */
+    static String[] AWT_REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES = {
+            "javafx.print.",
+    };
+
+    static String[] AWT_REFLECTIVE_CLASSES = {
+            // javafx.graphics : printing : PrintPipeline looks the print pipeline up by name (getInstance) : Printer and
+            // PrinterJob fail (ClassNotFoundException) without it
+            "com.sun.prism.j2d.PrismPrintPipeline",
+            // javafx.graphics : printing : J2DFontFactory.getCompositeFont (Windows, Linux) looks FontUtilities up by name
+            // (getCompositeFontUIResource) and returns no font when it is missing : NullPointerException on the first
+            // printed text
+            "sun.font.FontUtilities",
+            // javafx.graphics : images : ImageStorage looks the ImageIO image loader up by name (getInstance) for the image
+            // formats JavaFX does not decode itself (e.g. TIFF, ImageIO plugins), JavaFX 24 and later
+            "com.sun.javafx.iio.java2d.J2DImageLoaderFactory",
+    };
+
+    /**
+     * Registered with their constructors only.
+     */
+    static String[] AWT_REFLECTIVE_CONSTRUCTORS = {
+            // javafx.graphics : printing : J2DPrinterJob.getAlwaysOnTop looks DialogOwner up by name (getConstructor) for
+            // the print and page setup dialogs
+            "javax.print.attribute.standard.DialogOwner",
+    };
+
+    /**
+     * Methods reached from native code.
+     */
+    static String[] AWT_JNI_RUNTIME_ACCESS_METHODS = {
+            // javafx.graphics : printing : J2DPrinterJob.getAlwaysOnTop (prism_common) creates the DialogOwner of the print
+            // and page setup dialogs from their owner window handle (Windows), with this package private constructor
+            "javax.print.attribute.standard.DialogOwner#<init>(long)",
+    };
+
+    /**
+     * Methods reached from native code, applied when javafx-web is present too.
+     */
+    static String[] AWT_WEBVIEW_JNI_RUNTIME_ACCESS_METHODS = {
+            // javafx.web : WebKit system beep (e.g. cut or copy without selection) : Toolkit.getDefaultToolkit().beep().
+            // The native code does not check the lookups : the process crashes without them
+            "java.awt.Toolkit#beep()",
+            "java.awt.Toolkit#getDefaultToolkit()",
+    };
+
+    static String[] SWING_RUNTIME_INITIALIZED_PACKAGES = {
+            // javafx.swing : SwingNode and FXDnD read javafx.embed.singleThread, Disposer starts a thread,
+            // SwingNodeInteropN loads prism_common, JFXPanel is a Swing component
+            "com.sun.javafx.embed.swing",
+            "javafx.embed.swing",
+    };
+
+    /**
+     * Added to {@link #REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES}.
+     */
+    static String[] SWING_REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES = {
+            "javafx.embed.swing.",
+    };
+
+    static String[] SWING_REFLECTIVE_CLASSES = {
+            // javafx.graphics : javafx.embed.singleThread : PlatformImpl calls installFwEventQueue and removeFwEventQueue
+            // reflectively
+            "com.sun.javafx.embed.swing.SwingFXUtilsImpl",
+            // javafx.swing : SwingNodeInteropN looks LightweightFrameWrapper up by name, and its notifyDisplayChanged
+            // (display scale) and setHostBounds (location of the popups) methods : silently skipped when missing
+            "jdk.swing.interop.LightweightFrameWrapper",
+    };
+
+    /**
+     * Registered with their constructors only.
+     */
+    static String[] SWING_REFLECTIVE_CONSTRUCTORS = {
+            // javafx.graphics : Platform.isSupported(ConditionalFeature.SWING) looks both classes up by name
+            "javafx.embed.swing.JFXPanel",
+            "javax.swing.JComponent",
+    };
+
+    /**
+     * Methods reached from native code.
+     */
+    static String[] SWING_JNI_RUNTIME_ACCESS_METHODS = {
+            // javafx.graphics : Application._overrideNativeWindowHandle (prism_common), called by SwingNode on every
+            // platform : this package private method is only called from native code, NoSuchMethodError is thrown into
+            // SwingNode without it
+            "jdk.swing.interop.LightweightFrameWrapper#overrideNativeWindowHandle(long,java.lang.Runnable)",
     };
 }
