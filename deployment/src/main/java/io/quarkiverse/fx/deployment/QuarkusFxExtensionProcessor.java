@@ -226,20 +226,19 @@ class QuarkusFxExtensionProcessor {
                 }
             }
         }
-        for (String className : FxClassesAndResources.RUNTIME_INITIALIZED_CLASSES) {
+        for (String className : withPlatform(fxTargetPlatform, FxClassesAndResources.RUNTIME_INITIALIZED_CLASSES,
+                FxClassesAndResources.WINDOWS_RUNTIME_INITIALIZED_CLASSES,
+                FxClassesAndResources.MAC_RUNTIME_INITIALIZED_CLASSES,
+                FxClassesAndResources.LINUX_RUNTIME_INITIALIZED_CLASSES)) {
             if (QuarkusClassLoader.isClassPresentAtRuntime(className)) {
                 runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(className));
             }
         }
-        if (fxTargetPlatform.isMac()) {
-            for (String className : FxClassesAndResources.MAC_RUNTIME_INITIALIZED_CLASSES) {
-                if (QuarkusClassLoader.isClassPresentAtRuntime(className)) {
-                    runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(className));
-                }
-            }
-            for (String packageName : FxClassesAndResources.MAC_RUNTIME_INITIALIZED_PACKAGES) {
-                runtimeInitializedPackages.produce(new RuntimeInitializedPackageBuildItem(packageName));
-            }
+        for (String packageName : withPlatform(fxTargetPlatform, FxClassesAndResources.RUNTIME_INITIALIZED_PACKAGES,
+                FxClassesAndResources.WINDOWS_RUNTIME_INITIALIZED_PACKAGES,
+                FxClassesAndResources.MAC_RUNTIME_INITIALIZED_PACKAGES,
+                FxClassesAndResources.LINUX_RUNTIME_INITIALIZED_PACKAGES)) {
+            runtimeInitializedPackages.produce(new RuntimeInitializedPackageBuildItem(packageName));
         }
     }
 
@@ -265,9 +264,11 @@ class QuarkusFxExtensionProcessor {
                             .toArray(String[]::new))
                     .methods().fields().build());
         }
-        for (String className : FxClassesAndResources.REFLECTIVE_CLASSES) {
-            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(className).methods().fields().build());
-        }
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(withPlatform(fxTargetPlatform,
+                FxClassesAndResources.REFLECTIVE_CLASSES,
+                FxClassesAndResources.WINDOWS_REFLECTIVE_CLASSES,
+                FxClassesAndResources.MAC_REFLECTIVE_CLASSES,
+                FxClassesAndResources.LINUX_REFLECTIVE_CLASSES)).methods().fields().build());
         for (String className : FxClassesAndResources.REFLECTIVE_INTERFACES) {
             reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
                     combinedIndex.getIndex().getAllKnownImplementors(className).stream()
@@ -296,16 +297,6 @@ class QuarkusFxExtensionProcessor {
                             .map(ci -> ci.name().toString())
                             .toArray(String[]::new))
                     .methods().fields().build());
-        }
-        if (fxTargetPlatform.isWindows()) {
-            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(FxClassesAndResources.WINDOWS_REFLECTIVE_CLASSES)
-                    .methods().fields().build());
-        } else if (fxTargetPlatform.isMac()) {
-            reflectiveClasses.produce(
-                    ReflectiveClassBuildItem.builder(FxClassesAndResources.MAC_REFLECTIVE_CLASSES).methods().fields().build());
-        } else {
-            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(FxClassesAndResources.LINUX_REFLECTIVE_CLASSES).methods()
-                    .fields().build());
         }
         for (var annotation : combinedIndex.getIndex().getAnnotations(FxView.class)) {
             String className = annotation.target().asClass().name().toString();
@@ -336,29 +327,20 @@ class QuarkusFxExtensionProcessor {
     void registerJniRuntimeAccessClasses(FxTargetPlatformBuildItem fxTargetPlatform,
             BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses) {
         jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
-                FxClassesAndResources.JNI_RUNTIME_ACCESS_CLASSES));
-        if (fxTargetPlatform.isWindows()) {
-            jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
-                    FxClassesAndResources.WINDOWS_JNI_RUNTIME_ACCESS_CLASSES));
-        } else if (fxTargetPlatform.isMac()) {
-            jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
-                    FxClassesAndResources.MAC_JNI_RUNTIME_ACCESS_CLASSES));
-        } else {
-            jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
-                    FxClassesAndResources.LINUX_JNI_RUNTIME_ACCESS_CLASSES));
-        }
+                withPlatform(fxTargetPlatform, FxClassesAndResources.JNI_RUNTIME_ACCESS_CLASSES,
+                        FxClassesAndResources.WINDOWS_JNI_RUNTIME_ACCESS_CLASSES,
+                        FxClassesAndResources.MAC_JNI_RUNTIME_ACCESS_CLASSES,
+                        FxClassesAndResources.LINUX_JNI_RUNTIME_ACCESS_CLASSES)));
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     public void registerNativeImageBundles(FxTargetPlatformBuildItem fxTargetPlatform,
             BuildProducer<NativeImageResourceBundleBuildItem> resourceBundle) {
-        for (String resourceBundleName : FxClassesAndResources.RESOURCE_BUNDLES) {
+        for (String resourceBundleName : withPlatform(fxTargetPlatform, FxClassesAndResources.RESOURCE_BUNDLES,
+                FxClassesAndResources.WINDOWS_RESOURCE_BUNDLES,
+                FxClassesAndResources.MAC_RESOURCE_BUNDLES,
+                FxClassesAndResources.LINUX_RESOURCE_BUNDLES)) {
             resourceBundle.produce(new NativeImageResourceBundleBuildItem(resourceBundleName));
-        }
-        if (fxTargetPlatform.isWindows()) {
-            for (String resourceBundleName : FxClassesAndResources.WINDOWS_RESOURCE_BUNDLES) {
-                resourceBundle.produce(new NativeImageResourceBundleBuildItem(resourceBundleName));
-            }
         }
     }
 
@@ -366,18 +348,12 @@ class QuarkusFxExtensionProcessor {
     public void registerNativeImageResources(FxTargetPlatformBuildItem fxTargetPlatform, FxViewConfig fxViewConfig,
             BuildProducer<NativeImageResourcePatternsBuildItem> resource) {
 
-        resource.produce(
-                NativeImageResourcePatternsBuildItem.builder().includeGlobs(FxClassesAndResources.RESOURCE_GLOBS).build());
-        if (fxTargetPlatform.isWindows()) {
-            resource.produce(NativeImageResourcePatternsBuildItem.builder()
-                    .includeGlobs(FxClassesAndResources.WINDOWS_RESOURCE_GLOBS).build());
-        } else if (fxTargetPlatform.isMac()) {
-            resource.produce(NativeImageResourcePatternsBuildItem.builder()
-                    .includeGlobs(FxClassesAndResources.MAC_RESOURCE_GLOBS).build());
-        } else {
-            resource.produce(NativeImageResourcePatternsBuildItem.builder()
-                    .includeGlobs(FxClassesAndResources.LINUX_RESOURCE_GLOBS).build());
-        }
+        resource.produce(NativeImageResourcePatternsBuildItem.builder()
+                .includeGlobs(withPlatform(fxTargetPlatform, FxClassesAndResources.RESOURCE_GLOBS,
+                        FxClassesAndResources.WINDOWS_RESOURCE_GLOBS,
+                        FxClassesAndResources.MAC_RESOURCE_GLOBS,
+                        FxClassesAndResources.LINUX_RESOURCE_GLOBS))
+                .build());
 
         // Resource globs are relative to the class path root
         String viewsRoot = fxViewConfig.viewsRoot();
@@ -402,5 +378,14 @@ class QuarkusFxExtensionProcessor {
                     .includeGlobs(viewsRoot.substring(0, viewsRoot.length() - 1))
                     .build());
         }
+    }
+
+    /**
+     * The entries of a common list of {@link FxClassesAndResources}, followed by those of the list of the target platform.
+     */
+    private static String[] withPlatform(FxTargetPlatformBuildItem fxTargetPlatform, String[] common, String[] windows,
+            String[] mac, String[] linux) {
+        return Stream.concat(Stream.of(common), Stream.of(fxTargetPlatform.select(windows, mac, linux)))
+                .toArray(String[]::new);
     }
 }
