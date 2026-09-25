@@ -1,5 +1,7 @@
 package io.quarkiverse.fx.deployment;
 
+import java.util.Set;
+
 public final class FxClassesAndResources {
 
     private FxClassesAndResources() {
@@ -14,17 +16,6 @@ public final class FxClassesAndResources {
             "com.sun.glass.ui.Application",
             "com.sun.glass.ui.Clipboard",
             "com.sun.glass.ui.gtk.GtkApplication",
-            "com.sun.glass.ui.mac.MacAccessible",
-            "com.sun.glass.ui.mac.MacCommonDialogs",
-            "com.sun.glass.ui.mac.MacCursor",
-            "com.sun.glass.ui.mac.MacFileNSURL",
-            "com.sun.glass.ui.mac.MacGestureSupport",
-            "com.sun.glass.ui.mac.MacMenuDelegate",
-            "com.sun.glass.ui.mac.MacPasteboard",
-            "com.sun.glass.ui.mac.MacPixels",
-            "com.sun.glass.ui.mac.MacTimer",
-            "com.sun.glass.ui.mac.MacView",
-            "com.sun.glass.ui.mac.MacWindow",
             "com.sun.glass.ui.monocle.AndroidPlatform",
             "com.sun.glass.ui.monocle.EPDSystem",
             "com.sun.glass.ui.monocle.LinuxSystem",
@@ -126,6 +117,69 @@ public final class FxClassesAndResources {
             "javafx.scene.web.WebEngine",
             "javafx.scene.web.WebEngine$PulseTimer",
             "javafx.stage.Screen",
+
+            // Static initializers starting threads : they would not exist at run time
+            "com.sun.javafx.font.Disposer",
+            "com.sun.media.jfxmediaimpl.NativeMediaAudioClipPlayer$Enthreaderator",
+            "javafx.concurrent.ScheduledService",
+            // Static initializers depending on the running platform or toolkit
+            "com.sun.media.jfxmediaimpl.platform.PlatformManager$PlatformManagerInitializer",
+            "com.sun.webkit.network.PublicSuffixes",
+            "javafx.scene.media.MediaPlayerShutdownHook",
+            "javafx.fxml.FXMLLoader",
+            // Sets its accessor from FXMLLoader's static initializer : must be initialized at the same time
+            "com.sun.javafx.fxml.FXMLLoaderHelper",
+            // Static initializers loading resource bundles for the default locale
+            "com.sun.javafx.tk.quantum.WindowStage",
+            "com.sun.media.jfxmedia.MediaError",
+            "com.sun.webkit.LocalizedStrings",
+            // Static initializers reading system properties : honor them at run time, as in JVM mode
+            "com.sun.glass.ui.Screen",
+            "com.sun.glass.ui.View",
+            "com.sun.javafx.PreviewFeature",
+            "com.sun.javafx.font.FontConfigManager",
+            "com.sun.javafx.font.FontConfigManager$EmbeddedFontSupport",
+            "com.sun.javafx.tk.quantum.GlassViewEventHandler",
+            "com.sun.javafx.tk.quantum.RotateGestureRecognizer",
+            "com.sun.javafx.tk.quantum.ScrollGestureRecognizer",
+            "com.sun.javafx.tk.quantum.ViewPainter",
+            "com.sun.javafx.tk.quantum.ZoomGestureRecognizer",
+            "com.sun.javafx.webkit.WebPageClientImpl",
+            "com.sun.marlin.MergeSort",
+            "com.sun.media.jfxmediaimpl.platform.PlatformManager",
+            "com.sun.prism.impl.GlyphCache",
+            "com.sun.prism.impl.PrismTrace",
+            "com.sun.scenario.effect.impl.state.LinearConvolveRenderState",
+            "javafx.scene.Scene",
+            // Sets its accessor from Scene's static initializer : must be initialized at the same time
+            "com.sun.javafx.scene.SceneHelper",
+    };
+
+    static String[] MAC_RUNTIME_INITIALIZED_CLASSES = {
+            "com.sun.glass.ui.mac.MacAccessible",
+            "com.sun.glass.ui.mac.MacCommonDialogs",
+            "com.sun.glass.ui.mac.MacCursor",
+            "com.sun.glass.ui.mac.MacFileNSURL",
+            "com.sun.glass.ui.mac.MacGestureSupport",
+            "com.sun.glass.ui.mac.MacMenuDelegate",
+            "com.sun.glass.ui.mac.MacPasteboard",
+            "com.sun.glass.ui.mac.MacPixels",
+            "com.sun.glass.ui.mac.MacTimer",
+            "com.sun.glass.ui.mac.MacView",
+            "com.sun.glass.ui.mac.MacWindow",
+            // Loads the AVFoundation media library in its static initializer
+            "com.sun.media.jfxmediaimpl.platform.osx.OSXPlatform$OSXPlatformInitializer",
+            // Allocates a direct ByteBuffer in its static initializer
+            "com.sun.prism.es2.BufferFactory",
+            // Reads prism.glDepthSize / prism.glBufferSize in its static initializer
+            "com.sun.prism.es2.GLPixelFormat",
+    };
+
+    static String[] MAC_RUNTIME_INITIALIZED_PACKAGES = {
+            // Statics holding CoreGraphics pointers (e.g. CTGlyph color spaces) must not be created by the image builder
+            "com.sun.javafx.font.coretext",
+            // Metal pipeline : MTLContext loads its shader library into a direct ByteBuffer in a static initializer
+            "com.sun.prism.mtl",
     };
 
     static String[] REFLECTIVE_ROOT_CLASSES = {
@@ -165,7 +219,69 @@ public final class FxClassesAndResources {
             "com.sun.prism.shader",
     };
 
+    /**
+     * FXML can instantiate, coerce (valueOf), and read the constants of any public class of the JavaFX API :
+     * all the public classes in these packages and their sub packages are registered for reflection.
+     */
+    static String[] REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES = {
+            "javafx.",
+    };
+
+    /**
+     * Excluded from {@link #REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES} : Swing interop and printing rely on AWT, whose
+     * native support is out of the scope of this extension.
+     */
+    static String[] REFLECTIVE_PUBLIC_CLASS_EXCLUDED_PACKAGE_PREFIXES = {
+            "javafx.embed.",
+            "javafx.print.",
+    };
+
+    /**
+     * WebView JavaScript to Java bridge (all platforms) : WebKit gets the {@link java.lang.reflect.Method} of every call
+     * through JNI ToReflectedMethod, which only sees the methods registered for reflection, then invokes it reflectively.
+     * WebKit itself calls {@code getFields()} and {@code getMethods()} on the class of every object exposed to JavaScript,
+     * and JavaScript can call the methods every object inherits from {@link Object}, the {@link Class} methods allowed
+     * by {@code com.sun.webkit.Utilities}, and the methods of the {@link Throwable} a Java method throws to JavaScript
+     * (e.g. {@code String(e)} in a catch block). The objects exposed with {@code JSObject.setMember} are application
+     * classes, that the application registers (JNI and reflection).
+     */
+    static final String WEBVIEW_BRIDGE_MARKER_CLASS = "com.sun.webkit.Utilities";
+
+    static final Set<String> WEBVIEW_BRIDGE_CLASS_METHODS = Set.of(
+            "getCanonicalName",
+            "getEnumConstants",
+            "getFields",
+            "getMethods",
+            "getName",
+            "getPackageName",
+            "getSimpleName",
+            "getSuperclass",
+            "getTypeName",
+            "getTypeParameters",
+            "isAssignableFrom",
+            "isArray",
+            "isEnum",
+            "isInstance",
+            "isInterface",
+            "isLocalClass",
+            "isMemberClass",
+            "isPrimitive",
+            "isSynthetic",
+            "toGenericString",
+            "toString");
+
     static String[] REFLECTIVE_CLASSES = {
+            // fx:constant and value coercion in FXML (e.g. <Double fx:constant="MAX_VALUE"/>)
+            "java.lang.Boolean",
+            "java.lang.Byte",
+            "java.lang.Character",
+            "java.lang.Double",
+            "java.lang.Float",
+            "java.lang.Integer",
+            "java.lang.Long",
+            "java.lang.Short",
+            "java.lang.String",
+
             // all public enums that can be used in FXML
             "javafx.animation.Animation$Status",
             "javafx.animation.PathTransition$OrientationType",
@@ -337,6 +453,14 @@ public final class FxClassesAndResources {
             "com.sun.prism.es2.ES2Shader",
             "com.sun.prism.es2.MacGLFactory",
             "com.sun.scenario.effect.impl.es2.ES2ShaderSource",
+
+            // Verified on macOS, expected on all platforms
+            // media platforms, looked up reflectively
+            "com.sun.media.jfxmediaimpl.platform.gstreamer.GSTMediaPlayer",
+            "com.sun.media.jfxmediaimpl.platform.gstreamer.GSTPlatform",
+            "com.sun.media.jfxmediaimpl.platform.osx.OSXPlatform",
+            // JavaBean property adapters
+            "com.sun.javafx.property.adapter.JavaBeanQuickAccessor",
     };
 
     static String[] LINUX_REFLECTIVE_CLASSES = {
@@ -440,6 +564,88 @@ public final class FxClassesAndResources {
             "com.sun.javafx.font.coretext.CGPoint",
             "com.sun.javafx.font.coretext.CGRect",
             "com.sun.javafx.font.coretext.CGSize",
+            "java.lang.Integer",
+            "java.lang.Long",
+            "java.util.List",
+            // clipboard (MacSystemClipboard)
+            "[Ljava.lang.String;",
+
+            // Verified on macOS, expected on all platforms
+            // javafx-media : callbacks from the native media players
+            "com.sun.media.jfxmedia.locator.ConnectionHolder",
+            "com.sun.media.jfxmedia.locator.Locator",
+            "com.sun.media.jfxmedia.logging.Logger",
+            "com.sun.media.jfxmediaimpl.NativeAudioClip",
+            "com.sun.media.jfxmediaimpl.NativeAudioEqualizer",
+            "com.sun.media.jfxmediaimpl.NativeAudioSpectrum",
+            "com.sun.media.jfxmediaimpl.NativeEqualizerBand",
+            "com.sun.media.jfxmediaimpl.NativeMediaPlayer",
+            "com.sun.media.jfxmediaimpl.NativeVideoBuffer",
+            "com.sun.media.jfxmediaimpl.platform.gstreamer.GSTMedia",
+            "com.sun.media.jfxmediaimpl.platform.gstreamer.GSTMediaPlayer",
+            "com.sun.media.jfxmediaimpl.platform.gstreamer.GSTPlatform",
+            "com.sun.media.jfxmediaimpl.platform.osx.OSXMediaPlayer",
+            "com.sun.media.jfxmediaimpl.platform.osx.OSXPlatform",
+            // javafx-web : callbacks from WebKit (fwk* methods) and its rendering API
+            "com.sun.webkit.BackForwardList",
+            "com.sun.webkit.BackForwardList$Entry",
+            "com.sun.webkit.ColorChooser",
+            "com.sun.webkit.ContextMenu",
+            "com.sun.webkit.ContextMenuItem",
+            "com.sun.webkit.EventLoop",
+            "com.sun.webkit.FileSystem",
+            "com.sun.webkit.MainThread",
+            "com.sun.webkit.PopupMenu",
+            "com.sun.webkit.SharedBuffer",
+            "com.sun.webkit.Timer",
+            "com.sun.webkit.Utilities",
+            "com.sun.webkit.WCPluginWidget",
+            "com.sun.webkit.WCWidget",
+            "com.sun.webkit.WebPage",
+            "com.sun.webkit.dom.EventListenerImpl",
+            "com.sun.webkit.dom.JSObject",
+            "com.sun.webkit.dom.NodeImpl",
+            "com.sun.webkit.graphics.BufferData",
+            "com.sun.webkit.graphics.GraphicsDecoder",
+            "com.sun.webkit.graphics.Ref",
+            "com.sun.webkit.graphics.RenderMediaControls",
+            "com.sun.webkit.graphics.RenderTheme",
+            "com.sun.webkit.graphics.ScrollBarTheme",
+            "com.sun.webkit.graphics.WCCamera",
+            "com.sun.webkit.graphics.WCFont",
+            "com.sun.webkit.graphics.WCFontCustomPlatformData",
+            "com.sun.webkit.graphics.WCGradient",
+            "com.sun.webkit.graphics.WCGraphicsContext",
+            "com.sun.webkit.graphics.WCGraphicsManager",
+            "com.sun.webkit.graphics.WCIcon",
+            "com.sun.webkit.graphics.WCImage",
+            "com.sun.webkit.graphics.WCImageDecoder",
+            "com.sun.webkit.graphics.WCImageFrame",
+            "com.sun.webkit.graphics.WCMediaPlayer",
+            "com.sun.webkit.graphics.WCPageBackBuffer",
+            "com.sun.webkit.graphics.WCPath",
+            "com.sun.webkit.graphics.WCPathIterator",
+            "com.sun.webkit.graphics.WCPoint",
+            "com.sun.webkit.graphics.WCRectangle",
+            "com.sun.webkit.graphics.WCRenderQueue",
+            "com.sun.webkit.graphics.WCSize",
+            "com.sun.webkit.graphics.WCStroke",
+            "com.sun.webkit.graphics.WCTextRun",
+            "com.sun.webkit.graphics.WCTransform",
+            "com.sun.webkit.network.CookieJar",
+            "com.sun.webkit.network.FormDataElement",
+            "com.sun.webkit.network.HTTP2Loader",
+            "com.sun.webkit.network.NetworkContext",
+            "com.sun.webkit.network.SocketStreamHandle",
+            "com.sun.webkit.network.URLLoader",
+            "com.sun.webkit.network.URLLoaderBase",
+            "com.sun.webkit.plugin.PluginListener",
+            "java.lang.Double",
+            "java.lang.Number",
+            "java.lang.System",
+            "java.lang.reflect.Field",
+            "java.lang.reflect.Method",
+            "java.util.Locale",
     };
 
     static String[] LINUX_JNI_RUNTIME_ACCESS_CLASSES = {
@@ -487,6 +693,7 @@ public final class FxClassesAndResources {
             "com/sun/glass/ui/monocle/*.raw",
             "com/sun/prism/es2/glsl/*.frag",
             "com/sun/prism/es2/glsl/main.vert",
+            "com/sun/scenario/effect/impl/es2/glsl/*.frag",
             "com/sun/prism/d3d/hlsl/*.obj",
             "com/sun/scenario/effect/impl/hw/d3d/hlsl/*.obj",
             "javafx-swt.jar",
@@ -532,7 +739,11 @@ public final class FxClassesAndResources {
             "libjavafx_iio.dylib",
             "libprism_common.dylib",
             "libprism_es2.dylib",
+            "libprism_mtl.dylib",
             "libprism_sw.dylib",
+
+            // Metal pipeline shader library in javafx-graphics
+            "com/sun/prism/mtl/msl/*.metallib",
 
             // Mac .dylib files in javafx-media
             "libfxplugins.dylib",
