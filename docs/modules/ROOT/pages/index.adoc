@@ -153,6 +153,7 @@ Initial native support has been added, to build an executable with GraalVM.
 === Generate reachability metadata
 
 The extension automatically configures reflection and runtime initialization of the JavaFX components, for supported operating systems (Windows, Mac & Linux).
+The JavaFX features relying on AWT or Swing also need Quarkus Desktop, see <<awt-swing>>.
 
 You will also need to build your application reachability metadata.
 To do so, you can :
@@ -169,6 +170,37 @@ Try to load all UI components in the application and do all possible interaction
 Upon exit, `tracing-output/reachability-metadata.json` will be generated.
 
 Copy `tracing-output/reachability-metadata.json` to `src/main/resources/META-INF/native-image/{groupId}/{artifactId}/reachability-metadata.json`
+
+[[awt-swing]]
+=== AWT, Swing interop and printing
+
+Some JavaFX features rely on AWT or Swing:
+
+* printing (`javafx.print`, `WebEngine.print`, `HTMLEditor.print`),
+* the image formats JavaFX does not decode itself (for example TIFF), loaded with ImageIO (JavaFX 24 and later), and `SwingFXUtils`,
+* the J2D rendering pipeline (`-Dprism.order=j2d`),
+* the system beep of `WebView`, for example when cutting or copying without a selection (without Quarkus Desktop, it crashes the native executable),
+* `SwingNode` (Swing components in a JavaFX scene) and `JFXPanel` (a JavaFX scene in a Swing application), which also need `org.openjfx:javafx-swing`.
+
+AWT and Swing do not work in a native executable on their own: add the https://github.com/quarkiverse/quarkus-desktop[Quarkus Desktop] extension your application needs.
+Quarkus FX detects it and configures these JavaFX features for the native executable.
+
+[cols="1,2"]
+|===
+|Dependency |JavaFX features working in native executables
+
+|`io.quarkiverse.desktop:quarkus-desktop-awt`
+|printing, the ImageIO image formats, `SwingFXUtils`, the J2D pipeline and the system beep of `WebView`
+
+|`io.quarkiverse.desktop:quarkus-desktop-swing` (includes `quarkus-desktop-awt`)
+|the above, plus `SwingNode` and `JFXPanel` when `org.openjfx:javafx-swing` is a dependency
+|===
+
+Without Quarkus Desktop, these features only work in JVM mode.
+Quarkus Desktop builds native executables for Windows and Linux: on macOS, these features only work in JVM mode.
+
+NOTE: A Swing application embedding JavaFX with `JFXPanel` starts the JavaFX runtime itself: provide your own `@QuarkusMain`, otherwise Quarkus FX launches a JavaFX application too.
+`FxApplicationStartupEvent`, `FxPostStartupEvent`, `FxStartupLatch`, `@RunOnFxThread` and `HostServices` injection rely on the JavaFX `Application` launched by Quarkus FX, and are not available in that case.
 
 === Build executable
 
