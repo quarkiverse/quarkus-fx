@@ -285,6 +285,10 @@ public final class FxClassesAndResources {
     };
 
     static String[] LINUX_RUNTIME_INITIALIZED_PACKAGES = {
+            // Robot screen capture on Wayland (JavaFX 23+) : ScreencastHelper loads the PipeWire library and starts a timer
+            // thread, TokenStorage reads the user home and starts a watcher thread, XdgDesktopPortal reads the desktop
+            // session (WAYLAND_DISPLAY)
+            "com.sun.glass.ui.gtk.screencast",
     };
 
     // ------------------------------------------------------------------------------------------------------ reflection
