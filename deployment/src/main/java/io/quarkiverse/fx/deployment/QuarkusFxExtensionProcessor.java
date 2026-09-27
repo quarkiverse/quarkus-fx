@@ -367,7 +367,8 @@ class QuarkusFxExtensionProcessor {
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerJniRuntimeAccessClasses(FxTargetPlatformBuildItem fxTargetPlatform,
-            BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses) {
+            BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses,
+            BuildProducer<JniRuntimeAccessMethodBuildItem> jniRuntimeAccessMethods) {
         jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, true, true,
                 withPlatform(fxTargetPlatform, FxClassesAndResources.JNI_RUNTIME_ACCESS_CLASSES,
                         FxClassesAndResources.WINDOWS_JNI_RUNTIME_ACCESS_CLASSES,
@@ -376,6 +377,9 @@ class QuarkusFxExtensionProcessor {
         if (fxTargetPlatform.isMac()) {
             jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, false, true,
                     FxClassesAndResources.MAC_JNI_RUNTIME_ACCESS_CONSTRUCTORS_AND_FIELDS));
+            for (String method : FxClassesAndResources.MAC_JNI_RUNTIME_ACCESS_METHODS) {
+                jniRuntimeAccessMethods.produce(jniRuntimeAccessMethod(method));
+            }
         }
     }
 

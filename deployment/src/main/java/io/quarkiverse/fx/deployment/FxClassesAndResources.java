@@ -837,6 +837,15 @@ public final class FxClassesAndResources {
             "com.sun.glass.ui.mac.MacVariant",
     };
 
+    /**
+     * Methods reached from native code.
+     */
+    static String[] MAC_JNI_RUNTIME_ACCESS_METHODS = {
+            // Glass : accessibility : GlassAccessible.m looks up toString() on the MacAccessible enums, which inherit it from
+            // Enum. Without it, MacAccessible cannot be initialized and the application is not accessible (VoiceOver)
+            "java.lang.Enum#toString()",
+    };
+
     // --------------------------------------------------------------------------------------------------- resource bundles
 
     static String[] RESOURCE_BUNDLES = {
