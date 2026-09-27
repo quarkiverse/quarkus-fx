@@ -197,7 +197,9 @@ Quarkus FX detects it and configures these JavaFX features for the native execut
 |===
 
 Without Quarkus Desktop, these features only work in JVM mode.
-Quarkus Desktop builds native executables for Windows and Linux: on macOS, these features only work in JVM mode.
+Quarkus Desktop builds native executables for Windows, Linux and macOS (macOS: a Quarkus version whose quarkus-awt supports macOS, see https://github.com/quarkusio/quarkus/pull/56979[quarkusio/quarkus#56979], and GraalVM 25.1 or later on Apple silicon).
+On macOS, AWT runs embedded in the JavaFX application, as in JVM mode: the application handlers of `java.awt.Desktop` (About, Preferences, Quit, open files) are not called and the `apple.awt.application.*` properties have no effect; use the JavaFX APIs.
+Do not block the startup thread waiting for AWT work done on another thread.
 
 NOTE: A Swing application embedding JavaFX with `JFXPanel` starts the JavaFX runtime itself: provide your own `@QuarkusMain`, otherwise Quarkus FX launches a JavaFX application too.
 `FxApplicationStartupEvent`, `FxPostStartupEvent`, `FxStartupLatch`, `@RunOnFxThread` and `HostServices` injection rely on the JavaFX `Application` launched by Quarkus FX, and are not available in that case.
