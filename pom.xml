@@ -16,7 +16,7 @@
         <module>runtime</module>
     </modules>
     <properties>
-        <quarkus.version>3.33.2.1</quarkus.version>
+        <quarkus.version>3.33.3.3</quarkus.version>
         <javafx.version>22.0.2</javafx.version>
         <maven.compiler.release>17</maven.compiler.release>
     </properties>
@@ -41,7 +41,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.5.4</version>
+                    <version>3.6.0</version>
                     <configuration>
                         <systemPropertyVariables>
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
