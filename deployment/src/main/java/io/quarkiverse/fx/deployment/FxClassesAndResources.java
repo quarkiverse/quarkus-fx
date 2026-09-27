@@ -36,6 +36,14 @@ public final class FxClassesAndResources {
             + "toolkit exits, for example when the last window is closed. Declare the JavaFX modules of the application "
             + "(e.g. org.openjfx:javafx-fxml) with a later version.";
 
+    // --------------------------------------------------------------------------------------- macOS executable versions
+
+    /**
+     * The image builder system property that makes {@code io.quarkiverse.fx.graal.MacBuildVersion} write the versions of
+     * the {@code java} launcher in a macOS native executable ({@code quarkus.fx.macos.jdk-build-version}).
+     */
+    static final String MAC_JDK_BUILD_VERSION_PROPERTY = "io.quarkiverse.fx.macos.jdk-build-version";
+
     // ------------------------------------------------------------------------------------------ run time initialization
     // Quarkus initializes every class at build time unless told otherwise. These classes are initialized at run time :
     // their static initializer loads native libraries or creates native state, starts threads, depends on the running

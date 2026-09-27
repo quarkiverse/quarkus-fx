@@ -47,12 +47,14 @@ import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessMethodBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBundleBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourcePatternsBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageSystemPropertyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedPackageBuildItem;
 import io.quarkus.deployment.pkg.builditem.ArtifactResultBuildItem;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
+import io.quarkus.deployment.pkg.builditem.NativeImageRunnerBuildItem;
 import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
 import io.quarkus.maven.dependency.ResolvedDependency;
 import io.quarkus.runtime.annotations.QuarkusMain;
@@ -226,6 +228,32 @@ class QuarkusFxExtensionProcessor {
                 return;
             }
         }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void macJdkBuildVersion(FxTargetPlatformBuildItem fxTargetPlatform, NativeImageRunnerBuildItem nativeImageRunner,
+            Capabilities capabilities, FxViewConfig fxViewConfig,
+            BuildProducer<NativeImageSystemPropertyBuildItem> systemProperties) {
+        // A container build builds a Linux executable
+        if (!fxTargetPlatform.isMac() || nativeImageRunner.isContainerBuild()) {
+            return;
+        }
+        // Quarkus Desktop declares them (quarkus.desktop.awt.macos.jdk-build-version) : quarkus-desktop-swing depends on
+        // quarkus-desktop-awt
+        if (capabilities.isPresent(FxClassesAndResources.DESKTOP_AWT_CAPABILITY)
+                || capabilities.isPresent(FxClassesAndResources.DESKTOP_SWING_CAPABILITY)) {
+            if (!fxViewConfig.macos().jdkBuildVersion()) {
+                LOGGER.warn("quarkus.fx.macos.jdk-build-version has no effect with Quarkus Desktop : set "
+                        + "quarkus.desktop.awt.macos.jdk-build-version instead");
+            }
+            return;
+        }
+        if (!fxViewConfig.macos().jdkBuildVersion()) {
+            return;
+        }
+        // Makes io.quarkiverse.fx.graal.MacBuildVersion write the versions of the java launcher in the executable
+        systemProperties.produce(
+                new NativeImageSystemPropertyBuildItem(FxClassesAndResources.MAC_JDK_BUILD_VERSION_PROPERTY, "true"));
     }
 
     /**
