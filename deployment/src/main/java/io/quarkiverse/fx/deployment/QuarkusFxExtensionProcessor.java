@@ -36,6 +36,7 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Overridable;
+import io.quarkus.deployment.annotations.Produce;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
@@ -50,7 +51,10 @@ import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedPackageBuildItem;
+import io.quarkus.deployment.pkg.builditem.ArtifactResultBuildItem;
+import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
+import io.quarkus.maven.dependency.ResolvedDependency;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.smallrye.common.os.OS;
 
@@ -202,6 +206,37 @@ class QuarkusFxExtensionProcessor {
         } else {
             fxTargetPlatform.produce(new FxTargetPlatformBuildItem(is64Bit ? "linux" : "linux-aarch64"));
         }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    // Produces nothing : run for the native build anyway
+    @Produce(ArtifactResultBuildItem.class)
+    void checkMacJavaFxVersion(FxTargetPlatformBuildItem fxTargetPlatform, CurateOutcomeBuildItem curateOutcome) {
+        if (!fxTargetPlatform.isMac()) {
+            return;
+        }
+        for (ResolvedDependency dependency : curateOutcome.getApplicationModel().getRuntimeDependencies()) {
+            if ("org.openjfx".equals(dependency.getGroupId()) && "javafx-graphics".equals(dependency.getArtifactId())) {
+                int featureVersion = javaFxFeatureVersion(dependency.getVersion());
+                if (featureVersion > 0 && featureVersion < FxClassesAndResources.MAC_NATIVE_MIN_JAVAFX_VERSION) {
+                    LOGGER.warnf("JavaFX %s : macOS native executables need JavaFX %d or later. %s", dependency.getVersion(),
+                            FxClassesAndResources.MAC_NATIVE_MIN_JAVAFX_VERSION,
+                            FxClassesAndResources.MAC_NATIVE_OLDER_JAVAFX_FAILURE);
+                }
+                return;
+            }
+        }
+    }
+
+    /**
+     * @return the feature version of a JavaFX version (24 for 24.0.2 or 24-ea+5), 0 if it cannot be read
+     */
+    static int javaFxFeatureVersion(String version) {
+        int end = 0;
+        while (end < version.length() && end < 9 && Character.isDigit(version.charAt(end))) {
+            end++;
+        }
+        return end == 0 ? 0 : Integer.parseInt(version.substring(0, end));
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
