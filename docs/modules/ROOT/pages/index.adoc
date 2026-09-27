@@ -68,27 +68,32 @@ public class MyFxmlController {
 
 The application will automatically be launched (thanks to a call to `javafx.application.Application::launch`) when the extension is present.
 
-If you need to customize the launch, you can provide a custom `@QuarkusMain`, such as :
+If you need to customize the launch, you can provide a custom `@QuarkusMain`, and let Quarkus FX launch the JavaFX application :
 
 .Custom main
 [source,java]
 ----
-package io.quarkiverse.fx.fxapp;
+package org.acme;
 
-import io.quarkiverse.fx.FxApplication;
+import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
-import javafx.application.Application;
 
 @QuarkusMain
-public class QuarkusFxApplication implements QuarkusApplication {
+public class MyMain implements QuarkusApplication {
     @Override
     public int run(String... args) {
-        Application.launch(FxApplication.class, args);
-        return 0;
+        // Custom code, run before the JavaFX application is launched
+        return new QuarkusFxApplication().run(args);
     }
 }
 ----
+
+`QuarkusFxApplication::run` launches the JavaFX application and returns when Quarkus exits : call `Quarkus.asyncExit()` to exit the application, for example when its primary stage is hidden.
+
+IMPORTANT: Do not call `Application::launch` in `run`.
+In a macOS native executable, `run` is called on the first thread of the process, which must run the macOS event loop for the application to show its windows : `Application::launch` blocks that thread, and the application never shows a window.
+`QuarkusFxApplication::run` launches the JavaFX application from another thread and, in a macOS native executable, runs the macOS event loop on the first thread until JavaFX exits.
 
 When the application is started, two main events are fired in sequence :
 
