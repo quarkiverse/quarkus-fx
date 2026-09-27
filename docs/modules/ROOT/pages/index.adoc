@@ -229,6 +229,15 @@ Do not block the startup thread waiting for AWT work done on another thread.
 NOTE: A Swing application embedding JavaFX with `JFXPanel` starts the JavaFX runtime itself: provide your own `@QuarkusMain`, otherwise Quarkus FX launches a JavaFX application too.
 `FxApplicationStartupEvent`, `FxPostStartupEvent`, `FxStartupLatch`, `@RunOnFxThread` and `HostServices` injection rely on the JavaFX `Application` launched by Quarkus FX, and are not available in that case.
 
+=== Class path resource URLs
+
+In a native executable, class path resources have `resource:` URLs (`Class::getResource`) instead of `jar:` or `file:` URLs.
+Quarkus FX percent-encodes the resource names in these URLs, and decodes them when they are opened, as the JDK does for `jar:` URLs: resources whose names contain spaces, non-ASCII characters or other characters that a URI does not accept (stylesheets, CSS `url()`, `@import` and `@font-face`, `Media` and `AudioClip`, `WebView` pages and their resources, `URL::toURI`) work as in JVM mode.
+Like the JDK, it encodes non-ASCII characters as UTF-8: the URL of `images/café.png` ends with `images/caf%C3%A9.png`.
+This applies to GraalVM 25.0 (Community, Oracle GraalVM, Mandrel) and GraalVM Community 25.2 to 25.4; later GraalVM versions encode these URLs themselves.
+
+Do not store `resource:` URLs: they depend on the build (`resource:/3!/images/logo.png`).
+
 === Build executable
 
 Environment variable `GRAALVM_HOME` has to be set, pointing to your GraalVM installation.
