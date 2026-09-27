@@ -272,6 +272,7 @@ public final class FxClassesAndResources {
             "com.sun.scenario.effect.impl.Renderer",
             "com.sun.scenario.effect.impl.sw.sse.SSERendererDelegate",
             "io.quarkiverse.fx.FxApplication",
+            "io.quarkiverse.fx.FxShellApplication",
             "io.quarkiverse.fx.FxApplicationStartupEvent",
             "io.quarkiverse.fx.FXMLLoaderProducer",
             "io.quarkiverse.fx.FxPostStartupEvent",
