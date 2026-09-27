@@ -8,7 +8,8 @@ import java.util.Set;
  * Each kind of registration has a list for all platforms ({@code KIND}) and one list per platform
  * ({@code WINDOWS_KIND}, {@code MAC_KIND}, {@code LINUX_KIND}) : a native executable gets the common list and the list
  * of the platform it is built for. A platform list only holds what that platform needs alone : an entry needed on every
- * platform belongs to the common list. Within a list, entries are grouped by JavaFX module and area.
+ * platform belongs to the common list. A kind only one platform needs has that platform's list alone
+ * ({@code MAC_JNI_RUNTIME_ACCESS_CONSTRUCTORS_AND_FIELDS}). Within a list, entries are grouped by JavaFX module and area.
  * <p>
  * JavaFX features relying on AWT (printing, the J2D pipeline, the ImageIO image loader, {@code SwingFXUtils}) or Swing
  * ({@code SwingNode}, {@code JFXPanel}) have their own lists ({@code AWT_KIND}, {@code SWING_KIND}), applied in addition
@@ -606,7 +607,8 @@ public final class FxClassesAndResources {
     };
 
     // --------------------------------------------------------------------------------------------------------------- JNI
-    // Classes reached from native code : all their constructors, methods and fields are registered.
+    // Classes reached from native code : all their constructors, methods and fields are registered, except for the kinds
+    // saying otherwise.
 
     static String[] JNI_RUNTIME_ACCESS_CLASSES = {
             // javafx.graphics : Glass
@@ -767,7 +769,6 @@ public final class FxClassesAndResources {
             "com.sun.glass.ui.mac.MacAccessible$MacRole",
             "com.sun.glass.ui.mac.MacAccessible$MacSubrole",
             "com.sun.glass.ui.mac.MacAccessible$MacText",
-            "com.sun.glass.ui.mac.MacVariant",
             // Glass : clipboard (MacSystemClipboard)
             "[Ljava.lang.String;",
 
@@ -823,6 +824,17 @@ public final class FxClassesAndResources {
             "com.sun.javafx.font.freetype.FT_Glyph_Metrics",
             "com.sun.javafx.font.freetype.FT_Matrix",
             "com.sun.javafx.font.freetype.PangoGlyphString",
+    };
+
+    // Reached from native code on macOS only, registered with the members native code uses
+
+    /**
+     * Registered with their constructors and fields only : native code creates instances and reads and writes their
+     * fields, but calls none of their methods.
+     */
+    static String[] MAC_JNI_RUNTIME_ACCESS_CONSTRUCTORS_AND_FIELDS = {
+            // Glass : accessibility (GlassAccessible.m)
+            "com.sun.glass.ui.mac.MacVariant",
     };
 
     // --------------------------------------------------------------------------------------------------- resource bundles
