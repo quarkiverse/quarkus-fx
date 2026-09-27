@@ -22,6 +22,20 @@ public final class FxClassesAndResources {
         // Constants
     }
 
+    // -------------------------------------------------------------------------------------------------- JavaFX version
+
+    /**
+     * macOS native executables need JavaFX 24 or later : up to JavaFX 23, Glass detaches the first thread of the process,
+     * where it runs its event loop, from the VM when the toolkit exits (removed in JavaFX 24 by JDK-8339178). SubstrateVM
+     * detaches it although it runs Java code : the executable crashes ("Fatal error: Must either be at a safepoint or in
+     * native mode").
+     */
+    static final int MAC_NATIVE_MIN_JAVAFX_VERSION = 24;
+
+    static final String MAC_NATIVE_OLDER_JAVAFX_FAILURE = "With an earlier version, the executable crashes when the JavaFX "
+            + "toolkit exits, for example when the last window is closed. Declare the JavaFX modules of the application "
+            + "(e.g. org.openjfx:javafx-fxml) with a later version.";
+
     // ------------------------------------------------------------------------------------------ run time initialization
     // Quarkus initializes every class at build time unless told otherwise. These classes are initialized at run time :
     // their static initializer loads native libraries or creates native state, starts threads, depends on the running
@@ -101,6 +115,9 @@ public final class FxClassesAndResources {
             "com.sun.javafx.font.freetype.OSFreetype",
             "com.sun.javafx.font.freetype.OSPango",
             "com.sun.javafx.font.freetype.PangoGlyphLayout",
+            // Up to JavaFX 24, its static initializer creates the glyph layout of the platform (e.g. CTGlyphLayout on
+            // macOS), whose class is initialized at run time (replaced by GlyphLayoutManager in JavaFX 25)
+            "com.sun.javafx.text.GlyphLayout",
             "com.sun.javafx.text.GlyphLayoutManager",
             "com.sun.javafx.text.PrismTextLayoutFactory",
             // starts a thread
