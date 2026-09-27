@@ -1,7 +1,5 @@
 package io.quarkiverse.fx.deployment;
 
-import java.util.concurrent.CompletableFuture;
-
 import jakarta.inject.Inject;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -13,7 +11,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.QuarkusFxApplication;
-import io.quarkus.runtime.Quarkus;
 import io.quarkus.test.QuarkusUnitTest;
 import javafx.application.HostServices;
 
@@ -34,7 +31,7 @@ class FxStartupTest {
     void test() {
 
         Assertions.assertNotNull(this.latch);
-        CompletableFuture.runAsync(() -> Quarkus.run(QuarkusFxApplication.class));
+        new Thread(() -> new QuarkusFxApplication().run()).start();
 
         try {
             this.latch.await();

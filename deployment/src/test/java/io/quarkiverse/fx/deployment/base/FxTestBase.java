@@ -2,7 +2,6 @@ package io.quarkiverse.fx.deployment.base;
 
 import static org.awaitility.Awaitility.await;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -15,7 +14,6 @@ import io.quarkiverse.fx.FxPostStartupEvent;
 import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.deployment.FxTestConstants;
-import io.quarkus.runtime.Quarkus;
 
 /**
  * Common base for test, providing features such as startup synchronization
@@ -29,7 +27,7 @@ public class FxTestBase {
 
     protected void startAndWait() {
         // Non-blocking launch
-        CompletableFuture.runAsync(() -> Quarkus.run(QuarkusFxApplication.class));
+        new Thread(() -> new QuarkusFxApplication().run()).start();
 
         // Wait for readiness
         try {
