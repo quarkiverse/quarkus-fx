@@ -373,6 +373,10 @@ class QuarkusFxExtensionProcessor {
                         FxClassesAndResources.WINDOWS_JNI_RUNTIME_ACCESS_CLASSES,
                         FxClassesAndResources.MAC_JNI_RUNTIME_ACCESS_CLASSES,
                         FxClassesAndResources.LINUX_JNI_RUNTIME_ACCESS_CLASSES)));
+        if (fxTargetPlatform.isMac()) {
+            jniRuntimeAccessClasses.produce(new JniRuntimeAccessBuildItem(true, false, true,
+                    FxClassesAndResources.MAC_JNI_RUNTIME_ACCESS_CONSTRUCTORS_AND_FIELDS));
+        }
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
