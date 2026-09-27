@@ -244,6 +244,15 @@ To open a URL taken from the page in Java, replace its `jar:file:/resource:/` pr
 A page that navigates to a `resource:` URL itself (an absolute link, `location.href`) gets an opaque origin: use relative URLs between class path pages.
 As in JVM mode, a missing class path page or resource (including one not included in the native executable) fails to load ("File not found"), instead of loading as an empty page, script, stylesheet or response.
 
+=== macOS versions and window style
+
+A macOS native executable declares the minimum macOS version and the SDK version of the `java` launcher of the JDK that builds it, as a JVM application does, so that its windows have the style of JVM mode.
+macOS chooses the style of the windows of an executable from its SDK version, and the `java` launcher of current JDKs is linked with the macOS 14 SDK: windows have the style of macOS 15 and before (a centered title).
+
+Set `quarkus.fx.macos.jdk-build-version=false` for the versions of the SDK of the Xcode tools (or the `MACOSX_DEPLOYMENT_TARGET` minimum, which the option overrides): the executable then only starts on that macOS version and later, and with the macOS 26 SDK or later, its windows have the new style (a title on the left, in a taller title bar).
+With Quarkus Desktop (`quarkus-desktop-awt`), Quarkus Desktop declares these versions instead (`quarkus.desktop.awt.macos.jdk-build-version`).
+To check the versions of an executable: `otool -l <executable> | grep -A4 LC_BUILD_VERSION`.
+
 === Build executable
 
 Environment variable `GRAALVM_HOME` has to be set, pointing to your GraalVM installation.
