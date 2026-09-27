@@ -367,6 +367,15 @@ class QuarkusFxExtensionProcessor {
         }
     }
 
+    /**
+     * A method registered for reflective invocation, with the constructor that every supported Quarkus version has
+     * (the ones with a query-only flag do not exist after Quarkus 3.40).
+     */
+    private static ReflectiveMethodBuildItem reflectiveMethod(String reason, Method method) {
+        return new ReflectiveMethodBuildItem(reason, method.getDeclaringClass().getName(), method.getName(),
+                method.getParameterTypes());
+    }
+
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerWebViewBridgeMethods(BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods) {
         if (!QuarkusClassLoader.isClassPresentAtRuntime(FxClassesAndResources.WEBVIEW_BRIDGE_MARKER_CLASS)) {
@@ -374,14 +383,14 @@ class QuarkusFxExtensionProcessor {
         }
         String reason = "WebView JavaScript to Java bridge";
         for (Method method : Object.class.getMethods()) {
-            reflectiveMethods.produce(new ReflectiveMethodBuildItem(reason, false, method));
+            reflectiveMethods.produce(reflectiveMethod(reason, method));
         }
         for (Method method : Throwable.class.getMethods()) {
-            reflectiveMethods.produce(new ReflectiveMethodBuildItem(reason, false, method));
+            reflectiveMethods.produce(reflectiveMethod(reason, method));
         }
         for (Method method : Class.class.getMethods()) {
             if (FxClassesAndResources.WEBVIEW_BRIDGE_CLASS_METHODS.contains(method.getName())) {
-                reflectiveMethods.produce(new ReflectiveMethodBuildItem(reason, false, method));
+                reflectiveMethods.produce(reflectiveMethod(reason, method));
             }
         }
     }
