@@ -238,6 +238,11 @@ This applies to GraalVM 25.0 (Community, Oracle GraalVM, Mandrel) and GraalVM Co
 
 Do not store `resource:` URLs: they depend on the build (`resource:/3!/images/logo.png`).
 
+A `WebView` page loaded from a class path URL (`WebEngine::load`) has the same origin as in JVM mode, where its URL is a `jar:file:` URL: XMLHttpRequest and `fetch` of its resources, module scripts, workers, local storage, `history.pushState`, canvas `getImageData` and iframe documents work as in JVM mode.
+WebKit gets it as a `jar:file:/resource:/...` URL, which JavaScript and the DOM see (`document.URL`, `location`, the URLs of its links and images, `getDocumentURI()`); `WebEngine::getLocation` and the history return the `resource:` URL.
+To open a URL taken from the page in Java, replace its `jar:file:/resource:/` prefix with `resource:/`.
+A page that navigates to a `resource:` URL itself (an absolute link, `location.href`) gets an opaque origin: use relative URLs between class path pages.
+
 === Build executable
 
 Environment variable `GRAALVM_HOME` has to be set, pointing to your GraalVM installation.
