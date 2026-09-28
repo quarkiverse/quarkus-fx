@@ -1,0 +1,9 @@
+.greeting {
+    -fx-text-fill: #0096c9;
+    -fx-font-weight: bold;
+}
+
+/* relative to this stylesheet */
+.tile {
+    -fx-background-image: url("images/tile.png");
+}
