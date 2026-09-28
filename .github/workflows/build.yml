@@ -12,6 +12,7 @@ on:
       - '*.adoc'
       - '*.txt'
       - '.all-contributorsrc'
+      - '.github/project.yml'
   pull_request:
     paths-ignore:
       - '.gitignore'
@@ -21,6 +22,7 @@ on:
       - '*.adoc'
       - '*.txt'
       - '.all-contributorsrc'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -30,34 +32,98 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# bash runs the steps with -eo pipefail : a build piped to tee still fails its step
 defaults:
   run:
     shell: bash
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
+    name: JVM - JDK ${{ matrix.java-version }} on ${{ matrix.os }}
+    # a hung JavaFX test (an application that does not exit) : about 5 minutes otherwise
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-#        os: [windows-latest, macos-latest, ubuntu-latest]
-        os: [ubuntu-latest]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        # 17 : the default JavaFX version of Quarkus FX (22) ; 25 : JavaFX 25 in the integration tests (javafx-25 profile)
+        java-version: [ 17, 25 ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Prepare git
         run: git config --global core.autocrlf false
         if: startsWith(matrix.os, 'windows')
 
-      - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: 17
+          java-version: ${{ matrix.java-version }}
           cache: 'maven'
 
-      - name: Build with Maven
-        run: ./mvnw -B -ntp compile
+      # JavaFX needs a display : a virtual X display on Linux
+      - name: Build with Maven (virtual X display)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: xvfb-run -a ./mvnw -B -ntp clean install -Dno-format 2>&1 | tee maven.log
 
-      - name: Run Tests
-        run: xvfb-run ./mvnw -B -ntp verify
+      - name: Build with Maven
+        if: ${{ !startsWith(matrix.os, 'ubuntu') }}
+        run: ./mvnw -B -ntp clean install -Dno-format 2>&1 | tee maven.log
+
+      # The failed tests and the Maven errors as annotations of the run : shown in its summary, and readable through the
+      # public API (check run annotations) without logging in, unlike the logs
+      - name: Report the failures
+        if: failure()
+        run: java .github/scripts/ReportFailures.java maven.log
+
+  native:
+    # macOS native executables need JavaFX 24 or later : GraalVM for JDK 25 builds the integration tests with JavaFX 25
+    # (javafx-25 profile)
+    name: Native on ${{ matrix.os }}
+    # a hung native executable or JavaFX test : about 20 minutes otherwise
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    env:
+      # the macOS runners have 7 GB of memory (the native build of the integration tests peaks at about 7.5 GB otherwise)
+      NATIVE_ARGS: ${{ startsWith(matrix.os, 'macos') && '-Dquarkus.native.native-image-xmx=5g' || '' }}
+    steps:
+      - name: Prepare git
+        run: git config --global core.autocrlf false
+        if: startsWith(matrix.os, 'windows')
+
+      - uses: actions/checkout@v7
+
+      - name: Set up GraalVM for JDK 25
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: 'maven'
+
+      # The native executable loads the JavaFX libraries at run time : running it needs the GTK, OpenGL, font and sound
+      # libraries of the host, and a (virtual) X display
+      - name: Install native build and run prerequisites
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential zlib1g-dev xvfb fonts-dejavu-core \
+            libgtk-3-0t64 libxtst6 libxxf86vm1 libgl1 libegl1 libasound2t64
+
+      - name: Build native executables and run the integration tests (virtual X display)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: xvfb-run -a ./mvnw -B -ntp clean install -Dnative -Dno-format -Dnative.surefire.skip $NATIVE_ARGS 2>&1 | tee maven.log
+
+      - name: Build native executables and run the integration tests
+        if: ${{ !startsWith(matrix.os, 'ubuntu') }}
+        run: ./mvnw -B -ntp clean install -Dnative -Dno-format -Dnative.surefire.skip $NATIVE_ARGS 2>&1 | tee maven.log
+
+      - name: Report the failures
+        if: failure()
+        run: java .github/scripts/ReportFailures.java maven.log
