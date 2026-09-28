@@ -16,9 +16,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.OS;
 
 class WebViewMissingResourceSubstitutionsTest {
 
@@ -102,9 +105,15 @@ class WebViewMissingResourceSubstitutionsTest {
         javaFx.setAccessible(true);
         Method substitution = Target_com_sun_webkit_network_URLLoader.class.getDeclaredMethod("workaround7177996", URL.class);
         substitution.setAccessible(true);
-        for (String url : new String[] { "file:/tmp/page.html", "file:///tmp/page.html", "file://localhost/tmp/page.html",
-                "file://~/page.html", "file://otherhost/share/page.html", "jar:file:/tmp/app.jar!/page.html",
-                "https://quarkus.io/", "ftp://otherhost/page.html" }) {
+        List<String> urls = new ArrayList<>(List.of("file:/tmp/page.html", "file:///tmp/page.html",
+                "file://localhost/tmp/page.html", "file://~/page.html", "jar:file:/tmp/app.jar!/page.html",
+                "https://quarkus.io/", "ftp://otherhost/page.html"));
+        if (!OS.WINDOWS.isCurrentOs()) {
+            // on Windows, JavaFX checks that the UNC path of the URL exists : a lookup of the host name (DNS, LLMNR,
+            // NetBIOS) and an SMB connection to whatever host answers it, from a unit test
+            urls.add("file://otherhost/share/page.html");
+        }
+        for (String url : urls) {
             assertEquals(outcome(javaFx, new URL(url)), outcome(substitution, new URL(url)), url);
         }
         assertEquals(FileNotFoundException.class.getName() + ": resource:/app/missing.html",
