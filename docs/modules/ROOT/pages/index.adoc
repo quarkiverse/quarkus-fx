@@ -94,6 +94,7 @@ public class MyMain implements QuarkusApplication {
 IMPORTANT: Do not call `Application::launch` in `run`.
 In a macOS native executable, `run` is called on the first thread of the process, which must run the macOS event loop for the application to show its windows : `Application::launch` blocks that thread, and the application never shows a window.
 `QuarkusFxApplication::run` launches the JavaFX application from another thread and, in a macOS native executable, runs the macOS event loop on the first thread until JavaFX exits.
+With Quarkus Desktop, which keeps the first thread in the macOS event loop itself (as the `java` launcher does), `run` is called on another thread, and launches the JavaFX application as in JVM mode.
 
 When the application is started, two main events are fired in sequence :
 

@@ -15,6 +15,13 @@ public class QuarkusFxApplication implements QuarkusApplication {
 
     private static final Logger LOGGER = Logger.getLogger(QuarkusFxApplication.class);
 
+    /**
+     * The system property that Quarkus Desktop sets when it keeps the first thread of a macOS native executable in the
+     * main run loop itself, and runs the Quarkus application on another thread
+     * ({@code quarkus.desktop.awt.macos.park-main-thread}, the default).
+     */
+    static final String QUARKUS_DESKTOP_MAIN_THREAD_PARKED = "io.quarkiverse.desktop.main-thread-parked";
+
     private static boolean launched = false;
 
     @Override
@@ -46,11 +53,14 @@ public class QuarkusFxApplication implements QuarkusApplication {
      * where Glass performs its event loop.
      * A native executable has no such launcher : this method is invoked on the first thread itself.
      * If this thread did not serve the main run loop, Glass would wait forever for it, and no window would ever be shown.
+     * With Quarkus Desktop, which keeps the first thread in the main run loop as the java launcher does, this method is
+     * invoked on another thread : JavaFX is launched as in JVM mode.
      */
     private static boolean mustServeMainRunLoop() {
         return ImageMode.current() == ImageMode.NATIVE_RUN
                 && System.getProperty("os.name", "").toLowerCase(Locale.ROOT).startsWith("mac")
-                && MacMainRunLoop.isSupported();
+                && MacMainRunLoop.isSupported()
+                && System.getProperty(QUARKUS_DESKTOP_MAIN_THREAD_PARKED) == null;
     }
 
     private static void launchServingMainRunLoop(String... args) {
