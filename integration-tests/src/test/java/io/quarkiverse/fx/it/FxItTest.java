@@ -25,11 +25,6 @@ public class FxItTest {
             "fxml-loader", "encoded-resource-names", "encoded-stylesheet", "image", "host-services", "run-on-fx-thread",
             "webview", "webview-missing-page");
 
-    /**
-     * The checks that may be skipped, where WebView cannot run (macOS native executables, see FxChecks).
-     */
-    static final List<String> WEBVIEW_CHECKS = List.of("webview", "webview-missing-page");
-
     @Test
     public void fx(QuarkusMainLauncher launcher) {
         launchChecks(launcher);
@@ -43,16 +38,10 @@ public class FxItTest {
         String output = result.getOutput() + "\n" + result.getErrorOutput();
         assertEquals(0, result.exitCode(), "exit code\n" + output);
         assertFalse(output.contains(" FAILED "), output);
-        int ok = 0;
         for (String check : CHECKS) {
-            if (output.contains("RESULT " + check + " OK")) {
-                ok++;
-            } else {
-                assertTrue(WEBVIEW_CHECKS.contains(check) && webViewMaySkip()
-                        && output.contains("RESULT " + check + " SKIPPED"), check + "\n" + output);
-            }
+            assertTrue(output.contains("RESULT " + check + " OK"), check + "\n" + output);
         }
-        assertTrue(output.contains("SUMMARY ok=" + ok + " skipped=" + (CHECKS.size() - ok) + " failed=0"), output);
+        assertTrue(output.contains("SUMMARY ok=" + CHECKS.size() + " failed=0"), output);
         assertEquals(expectedMode(), value(output, "mode"), output);
         // The JavaFX version of the build : the default of Quarkus FX, JavaFX 25 on JDK 23 and later (javafx-25 profile)
         String javaFxVersion = System.getProperty("javafx.expected.version");
@@ -67,13 +56,6 @@ public class FxItTest {
      */
     String expectedMode() {
         return "jvm";
-    }
-
-    /**
-     * @return whether the WebView checks may be skipped : never in JVM mode
-     */
-    boolean webViewMaySkip() {
-        return false;
     }
 
     static String value(String output, String key) {

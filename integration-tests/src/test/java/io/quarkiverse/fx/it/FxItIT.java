@@ -19,7 +19,9 @@ import io.quarkus.test.junit.main.QuarkusMainIntegrationTest;
 import io.quarkus.test.junit.main.QuarkusMainLauncher;
 
 /**
- * Runs the checks with the artifact of the build : the native executable with -Dnative.
+ * Runs the checks with the artifact of the build : the native executable with -Dnative. JavaFX extracts its native
+ * libraries in target/javafx-cache (-Djavafx.cachedir, quarkus.test.arg-line in the pom), not in the cache of the user
+ * where other applications may have left files.
  */
 @QuarkusMainIntegrationTest
 public class FxItIT extends FxItTest {
@@ -40,8 +42,16 @@ public class FxItIT extends FxItTest {
             }
             // Class path resources have resource: URLs, WebEngine.getLocation() returns the resource: URL of the page
             assertEquals("resource", value(output, "urlScheme"), output);
-            if (output.contains("RESULT webview OK")) {
-                assertEquals("resource", value(output, "pageLocation"), output);
+            assertEquals("resource", value(output, "pageLocation"), output);
+            // WebKit loaded with the libjvm stand-in that Quarkus FX installs on macOS and Linux
+            String standIn = OS.MAC.isCurrentOs() ? "libjvm.dylib" : OS.LINUX.isCurrentOs() ? "libjvm.so" : null;
+            if (standIn != null) {
+                Path file = Path.of("target", "javafx-cache", standIn);
+                assertTrue(Files.isRegularFile(file), file + " not found\n" + output);
+            }
+            if (OS.LINUX.isCurrentOs()) {
+                // loaded from there, not from a temporary copy
+                assertTrue(value(output, "libjvm").endsWith("/target/javafx-cache/libjvm.so"), output);
             }
         }
     }
@@ -49,11 +59,6 @@ public class FxItIT extends FxItTest {
     @Override
     String expectedMode() {
         return isNative() ? "native" : "jvm";
-    }
-
-    @Override
-    boolean webViewMaySkip() {
-        return isNative() && OS.MAC.isCurrentOs();
     }
 
     /**

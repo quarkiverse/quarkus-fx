@@ -230,6 +230,19 @@ Do not block the startup thread waiting for AWT work done on another thread.
 NOTE: A Swing application embedding JavaFX with `JFXPanel` starts the JavaFX runtime itself: provide your own `@QuarkusMain`, otherwise Quarkus FX launches a JavaFX application too.
 `FxApplicationStartupEvent`, `FxPostStartupEvent`, `FxStartupLatch`, `@RunOnFxThread` and `HostServices` injection rely on the JavaFX `Application` launched by Quarkus FX, and are not available in that case.
 
+=== WebView
+
+The WebKit library of JavaFX links `libjvm`, the library of the JVM, without using it, on macOS, on Linux x86_64, and on Linux aarch64 with JavaFX 24: a native executable has no `libjvm`.
+When the native executable of an application depending on `javafx-web` starts on macOS or Linux, Quarkus FX writes an empty stand-in in the directory where JavaFX extracts its native libraries (`~/.openjfx/cache/<JavaFX version>/<architecture>`, or the `javafx.cachedir` system property), replacing a different file of that name: `WebView` works as in JVM mode.
+
+* On macOS, WebKit finds `libjvm.dylib` next to it.
+In the directory of the executable, where GraalVM 25.1 and later writes its own `libjvm.dylib` for AWT, an existing `libjvm.dylib` is kept.
+* On Linux, Quarkus FX loads `libjvm.so`, or a temporary copy when that directory cannot be written.
+With Quarkus Desktop, the stand-in also satisfies the `libjvm.so` dependency of the AWT library, in place of the `libjvm.so` that GraalVM writes next to the executable.
+This is equivalent: the `libjvm.so` of GraalVM is empty too, and the native executable itself provides the JVM functions that AWT uses.
+
+Quarkus FX reads `javafx.cachedir` when the executable starts: set it on the command line (`-Djavafx.cachedir=...`), not with `System::setProperty`.
+
 === Class path resource URLs
 
 In a native executable, class path resources have `resource:` URLs (`Class::getResource`) instead of `jar:` or `file:` URLs.

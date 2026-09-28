@@ -44,6 +44,23 @@ public final class FxClassesAndResources {
      */
     static final String MAC_JDK_BUILD_VERSION_PROPERTY = "io.quarkiverse.fx.macos.jdk-build-version";
 
+    // ------------------------------------------------------------------------------------------ WebKit libjvm stand-in
+
+    /**
+     * The libjvm stand-ins of WebKit, resources of the runtime module ({@code src/main/c/build-libjvm-stand-in.sh})
+     * installed by {@code io.quarkiverse.fx.graal.LibJvmStandInRecorder} when a native executable starts : libjfxwebkit
+     * links libjvm without using it (objdump -p and otool -L of javafx-web 21 to 27) on macOS, on Linux x86_64, and on
+     * Linux aarch64 in JavaFX 24. jfxwebkit.dll does not import jvm.dll.
+     */
+    static final String LIBJVM_STAND_IN_LINUX_X86_64 = "io/quarkiverse/fx/graal/libjvm-stand-in/linux-x86_64/libjvm.so";
+
+    static final String LIBJVM_STAND_IN_LINUX_AARCH64 = "io/quarkiverse/fx/graal/libjvm-stand-in/linux-aarch64/libjvm.so";
+
+    /**
+     * A universal library (arm64 and x86_64).
+     */
+    static final String LIBJVM_STAND_IN_MAC = "io/quarkiverse/fx/graal/libjvm-stand-in/macos/libjvm.dylib";
+
     // ------------------------------------------------------------------------------------------ run time initialization
     // Quarkus initializes every class at build time unless told otherwise. These classes are initialized at run time :
     // their static initializer loads native libraries or creates native state, starts threads, depends on the running

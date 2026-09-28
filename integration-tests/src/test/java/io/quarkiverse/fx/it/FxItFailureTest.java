@@ -23,6 +23,6 @@ public class FxItFailureTest {
         assertEquals(1, result.exitCode(), "exit code\n" + output);
         assertTrue(output.contains("RESULT environment OK"), output);
         assertTrue(output.contains("RESULT deliberate-failure FAILED"), output);
-        assertTrue(output.contains("SUMMARY ok=1 skipped=0 failed=1 [deliberate-failure]"), output);
+        assertTrue(output.contains("SUMMARY ok=1 failed=1 [deliberate-failure]"), output);
     }
 }

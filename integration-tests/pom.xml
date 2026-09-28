@@ -102,6 +102,8 @@
                 <configuration>
                     <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
                     <systemPropertyVariables>
+                        <!-- the JavaFX cache of the application (relative to this module), see FxItIT -->
+                        <quarkus.test.arg-line>-Djavafx.cachedir=target/javafx-cache</quarkus.test.arg-line>
                         <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>

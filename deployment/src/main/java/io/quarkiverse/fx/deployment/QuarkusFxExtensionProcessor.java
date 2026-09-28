@@ -23,6 +23,7 @@ import io.quarkiverse.fx.HostServicesProducer;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.RunOnFxThreadInterceptor;
+import io.quarkiverse.fx.graal.LibJvmStandInRecorder;
 import io.quarkiverse.fx.livereload.LiveReloadRecorder;
 import io.quarkiverse.fx.views.FxView;
 import io.quarkiverse.fx.views.FxViewConfig;
@@ -45,6 +46,7 @@ import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessMethodBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBundleBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourcePatternsBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageSystemPropertyBuildItem;
@@ -227,17 +229,25 @@ class QuarkusFxExtensionProcessor {
         if (!fxTargetPlatform.isMac()) {
             return;
         }
-        for (ResolvedDependency dependency : curateOutcome.getApplicationModel().getRuntimeDependencies()) {
-            if ("org.openjfx".equals(dependency.getGroupId()) && "javafx-graphics".equals(dependency.getArtifactId())) {
-                int featureVersion = javaFxFeatureVersion(dependency.getVersion());
-                if (featureVersion > 0 && featureVersion < FxClassesAndResources.MAC_NATIVE_MIN_JAVAFX_VERSION) {
-                    LOGGER.warnf("JavaFX %s : macOS native executables need JavaFX %d or later. %s", dependency.getVersion(),
-                            FxClassesAndResources.MAC_NATIVE_MIN_JAVAFX_VERSION,
-                            FxClassesAndResources.MAC_NATIVE_OLDER_JAVAFX_FAILURE);
-                }
-                return;
+        String version = javaFxVersion(curateOutcome.getApplicationModel().getRuntimeDependencies(), "javafx-graphics");
+        int featureVersion = version == null ? 0 : javaFxFeatureVersion(version);
+        if (featureVersion > 0 && featureVersion < FxClassesAndResources.MAC_NATIVE_MIN_JAVAFX_VERSION) {
+            LOGGER.warnf("JavaFX %s : macOS native executables need JavaFX %d or later. %s", version,
+                    FxClassesAndResources.MAC_NATIVE_MIN_JAVAFX_VERSION,
+                    FxClassesAndResources.MAC_NATIVE_OLDER_JAVAFX_FAILURE);
+        }
+    }
+
+    /**
+     * @return the version of a JavaFX module among the dependencies of the application, null when it is not one of them
+     */
+    static String javaFxVersion(Collection<ResolvedDependency> dependencies, String artifactId) {
+        for (ResolvedDependency dependency : dependencies) {
+            if ("org.openjfx".equals(dependency.getGroupId()) && artifactId.equals(dependency.getArtifactId())) {
+                return dependency.getVersion();
             }
         }
+        return null;
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
@@ -386,6 +396,38 @@ class QuarkusFxExtensionProcessor {
                 reflectiveMethods.produce(reflectiveMethod(reason, method));
             }
         }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void installLibJvmStandIn(FxTargetPlatformBuildItem fxTargetPlatform, CurateOutcomeBuildItem curateOutcome,
+            LibJvmStandInRecorder recorder, BuildProducer<NativeImageResourceBuildItem> resources) {
+        String standIn = libJvmStandIn(fxTargetPlatform,
+                javaFxVersion(curateOutcome.getApplicationModel().getRuntimeDependencies(), "javafx-web") != null);
+        if (standIn != null) {
+            resources.produce(new NativeImageResourceBuildItem(standIn));
+            // When the executable starts, before the application : JavaFX loads WebKit when a WebView is first created
+            recorder.install(standIn, fxTargetPlatform.isLinux());
+        }
+    }
+
+    /**
+     * The libjvm stand-in that WebKit needs in a native executable for the given platform, null when it needs none : on
+     * macOS and Linux, when the application depends on javafx-web. On Linux aarch64, only the libjfxwebkit.so of JavaFX
+     * 24 links libjvm.so : the stand-in is installed whatever the version, a version linking it again works too. With
+     * Quarkus Desktop, see {@link LibJvmStandInRecorder}.
+     *
+     * @param javaFxWeb whether the application depends on javafx-web
+     */
+    static String libJvmStandIn(FxTargetPlatformBuildItem fxTargetPlatform, boolean javaFxWeb) {
+        if (!javaFxWeb || fxTargetPlatform.isWindows()) {
+            return null;
+        }
+        if (fxTargetPlatform.isMac()) {
+            return FxClassesAndResources.LIBJVM_STAND_IN_MAC;
+        }
+        return fxTargetPlatform.isAarch64() ? FxClassesAndResources.LIBJVM_STAND_IN_LINUX_AARCH64
+                : FxClassesAndResources.LIBJVM_STAND_IN_LINUX_X86_64;
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)

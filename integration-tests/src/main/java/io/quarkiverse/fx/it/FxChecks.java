@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -50,8 +53,8 @@ import javafx.stage.Stage;
  * They run on their own thread, each one using JavaFX on the JavaFX application thread ({@link #onFx}) and waiting for
  * it with a timeout : the JavaFX application thread is never blocked. Each check prints
  * {@code RESULT <check> OK <details>} (details : {@code key=value} words) or {@code RESULT <check> FAILED <exception>},
- * or {@code RESULT <check> SKIPPED <reason>}, then {@code SUMMARY ok=<n> skipped=<n> failed=<n> [<failed checks>]} is
- * printed and the application exits with 0, or 1 when a check failed.
+ * then {@code SUMMARY ok=<n> failed=<n> [<failed checks>]} is printed and the application exits with 0, or 1 when a check
+ * failed.
  */
 @ApplicationScoped
 public class FxChecks {
@@ -104,8 +107,6 @@ public class FxChecks {
 
     private int ok;
 
-    private int skipped;
-
     /**
      * Fired by Quarkus FX on the JavaFX application thread, once the application has started and the FXML views are
      * loaded.
@@ -144,16 +145,10 @@ public class FxChecks {
             check("image", () -> onFx(FxChecks::image));
             check("host-services", this::hostServicesCheck);
             check("run-on-fx-thread", this::runOnFxThread);
-            String webViewUnsupported = webViewUnsupported();
-            if (webViewUnsupported != null) {
-                skip("webview", webViewUnsupported);
-                skip("webview-missing-page", webViewUnsupported);
-            } else {
-                check("webview", this::webView);
-                check("webview-missing-page", this::webViewMissingPage);
-            }
+            check("webview", this::webView);
+            check("webview-missing-page", this::webViewMissingPage);
         }
-        System.out.println("SUMMARY ok=" + ok + " skipped=" + skipped + " failed=" + failures.size() + " " + failures);
+        System.out.println("SUMMARY ok=" + ok + " failed=" + failures.size() + " " + failures);
         exit(failures.isEmpty() ? 0 : 1);
     }
 
@@ -356,18 +351,6 @@ public class FxChecks {
     }
 
     /**
-     * @return why WebView cannot run, or null : in a macOS native executable, libjfxwebkit.dylib links libjvm.dylib
-     *         (without using it), which GraalVM only writes next to the executable when it needs the libraries of the
-     *         JDK (AWT, with Quarkus Desktop)
-     */
-    private static String webViewUnsupported() {
-        if (ImageMode.current().isNativeImage() && System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac")) {
-            return "reason=no_libjvm.dylib_for_libjfxwebkit.dylib_in_macOS_native_executables";
-        }
-        return null;
-    }
-
-    /**
      * A class path page in the directory with spaces and a non-ASCII character, with a script and an image relative to
      * it.
      */
@@ -385,6 +368,7 @@ public class FxChecks {
         while (onFx(engine::getTitle) == null && System.nanoTime() < deadline) {
             Thread.sleep(50);
         }
+        String libJvm = libJvm();
         return onFx(() -> {
             String title = engine.getTitle();
             // what WebKit loaded, in the message of a failure
@@ -396,8 +380,25 @@ public class FxChecks {
             require("loaded by page.js".equals(script), "script " + script + webKit);
             require(imageWidth instanceof Number width && width.intValue() == 16, "image width " + imageWidth + webKit);
             return "title=" + title.replace(' ', '_') + " imageWidth=" + imageWidth + " pageLocation="
-                    + scheme(engine.getLocation());
+                    + scheme(engine.getLocation()) + libJvm;
         });
+    }
+
+    /**
+     * @return {@code " libjvm=<path>"}, the libjvm.so that the process loaded (/proc/self/maps, Linux) : in a native
+     *         executable, the stand-in that Quarkus FX installs for libjfxwebkit.so. Empty on other systems
+     */
+    private static String libJvm() throws IOException {
+        Path maps = Path.of("/proc/self/maps");
+        if (!Files.isReadable(maps)) {
+            return "";
+        }
+        try (Stream<String> lines = Files.lines(maps)) {
+            return " libjvm=" + lines.filter(line -> line.endsWith("/libjvm.so"))
+                    .map(line -> line.substring(line.indexOf('/')).replace(' ', '_'))
+                    .findFirst()
+                    .orElse("none");
+        }
     }
 
     /**
@@ -442,11 +443,6 @@ public class FxChecks {
             t.printStackTrace(System.out);
             failures.add(name);
         }
-    }
-
-    private void skip(String name, String reason) {
-        System.out.println("RESULT " + name + " SKIPPED " + reason);
-        skipped++;
     }
 
     /**
