@@ -163,8 +163,7 @@ final class MacBuildVersion {
             if (versions.isEmpty()) {
                 System.err.println("Warning: The minimum macOS version and the SDK version of the java launcher of " + jdkHome
                         + " are unknown : the native executable declares the ones of the Xcode tools (it only starts on that"
-                        + " macOS version and later). Set quarkus.fx.macos.jdk-build-version=false to use them without this"
-                        + " warning.");
+                        + " macOS version and later).");
                 return List.of();
             }
             return List.of(versions.get().linkerOption());

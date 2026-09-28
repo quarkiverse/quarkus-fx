@@ -40,7 +40,7 @@ public final class FxClassesAndResources {
 
     /**
      * The image builder system property that makes {@code io.quarkiverse.fx.graal.MacBuildVersion} write the versions of
-     * the {@code java} launcher in a macOS native executable ({@code quarkus.fx.macos.jdk-build-version}).
+     * the {@code java} launcher in a macOS native executable (without Quarkus Desktop, which writes them itself).
      */
     static final String MAC_JDK_BUILD_VERSION_PROPERTY = "io.quarkiverse.fx.macos.jdk-build-version";
 
