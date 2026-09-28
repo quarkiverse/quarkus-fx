@@ -242,7 +242,7 @@ class QuarkusFxExtensionProcessor {
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void macJdkBuildVersion(FxTargetPlatformBuildItem fxTargetPlatform, Capabilities capabilities,
-            FxViewConfig fxViewConfig, BuildProducer<NativeImageSystemPropertyBuildItem> systemProperties) {
+            BuildProducer<NativeImageSystemPropertyBuildItem> systemProperties) {
         // A container build builds a Linux executable : its target platform is Linux
         if (!fxTargetPlatform.isMac()) {
             return;
@@ -251,13 +251,6 @@ class QuarkusFxExtensionProcessor {
         // quarkus-desktop-awt
         if (capabilities.isPresent(FxClassesAndResources.DESKTOP_AWT_CAPABILITY)
                 || capabilities.isPresent(FxClassesAndResources.DESKTOP_SWING_CAPABILITY)) {
-            if (!fxViewConfig.macos().jdkBuildVersion()) {
-                LOGGER.warn("quarkus.fx.macos.jdk-build-version has no effect with Quarkus Desktop : set "
-                        + "quarkus.desktop.awt.macos.jdk-build-version instead");
-            }
-            return;
-        }
-        if (!fxViewConfig.macos().jdkBuildVersion()) {
             return;
         }
         // Makes io.quarkiverse.fx.graal.MacBuildVersion write the versions of the java launcher in the executable
