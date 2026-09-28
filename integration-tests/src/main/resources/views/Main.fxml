@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="io.quarkiverse.fx.it.MainController" stylesheets="@Main.css" spacing="8.0">
+    <Label fx:id="greeting" styleClass="greeting" text="%greeting"/>
+    <Region fx:id="tile" styleClass="tile" minWidth="16.0" minHeight="16.0" prefWidth="16.0" prefHeight="16.0"/>
+    <ImageView fx:id="logo">
+        <Image url="@images/quarkus-logo.png"/>
+    </ImageView>
+</VBox>
