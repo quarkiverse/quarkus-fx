@@ -198,16 +198,26 @@ class QuarkusFxExtensionProcessor {
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
-    void determineFxTargetPlatform(BuildProducer<FxTargetPlatformBuildItem> fxTargetPlatform) {
-        String osArch = System.getProperty("os.arch");
+    void determineFxTargetPlatform(NativeImageRunnerBuildItem nativeImageRunner,
+            BuildProducer<FxTargetPlatformBuildItem> fxTargetPlatform) {
+        fxTargetPlatform.produce(new FxTargetPlatformBuildItem(
+                targetPlatform(OS.current(), System.getProperty("os.arch"), nativeImageRunner.isContainerBuild())));
+    }
+
+    /**
+     * The platform of the native executable, as the classifier of the JavaFX artifacts : the platform of the build host,
+     * or Linux for a container build, which builds a Linux executable (on the architecture of the host).
+     */
+    static String targetPlatform(OS host, String osArch, boolean containerBuild) {
         boolean is64Bit = osArch == null || (!osArch.contains("aarch") && !osArch.contains("arm"));
-        if (OS.WINDOWS.isCurrent()) {
-            fxTargetPlatform.produce(new FxTargetPlatformBuildItem("win"));
-        } else if (OS.MAC.isCurrent()) {
-            fxTargetPlatform.produce(new FxTargetPlatformBuildItem(is64Bit ? "mac" : "mac-aarch64"));
-        } else {
-            fxTargetPlatform.produce(new FxTargetPlatformBuildItem(is64Bit ? "linux" : "linux-aarch64"));
+        if (containerBuild) {
+            return is64Bit ? "linux" : "linux-aarch64";
         }
+        return switch (host) {
+            case WINDOWS -> "win";
+            case MAC -> is64Bit ? "mac" : "mac-aarch64";
+            default -> is64Bit ? "linux" : "linux-aarch64";
+        };
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
@@ -231,11 +241,10 @@ class QuarkusFxExtensionProcessor {
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
-    void macJdkBuildVersion(FxTargetPlatformBuildItem fxTargetPlatform, NativeImageRunnerBuildItem nativeImageRunner,
-            Capabilities capabilities, FxViewConfig fxViewConfig,
-            BuildProducer<NativeImageSystemPropertyBuildItem> systemProperties) {
-        // A container build builds a Linux executable
-        if (!fxTargetPlatform.isMac() || nativeImageRunner.isContainerBuild()) {
+    void macJdkBuildVersion(FxTargetPlatformBuildItem fxTargetPlatform, Capabilities capabilities,
+            FxViewConfig fxViewConfig, BuildProducer<NativeImageSystemPropertyBuildItem> systemProperties) {
+        // A container build builds a Linux executable : its target platform is Linux
+        if (!fxTargetPlatform.isMac()) {
             return;
         }
         // Quarkus Desktop declares them (quarkus.desktop.awt.macos.jdk-build-version) : quarkus-desktop-swing depends on
