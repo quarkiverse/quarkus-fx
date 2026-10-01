@@ -4,7 +4,7 @@
   <parent>
     <groupId>io.quarkiverse.fx</groupId>
     <artifactId>quarkus-fx-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>0.11.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>quarkus-fx</artifactId>
@@ -57,4 +57,8 @@
       </plugin>
     </plugins>
   </build>
+
+  <scm>
+    <tag>0.11.0</tag>
+  </scm>
 </project>
