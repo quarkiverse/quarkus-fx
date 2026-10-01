@@ -1,0 +1,11 @@
+/*
+ * Added by layout-css-features as "showcase/layout/sources.css", without a scheme : StyleManager looks it up (the .bss
+ * first, then the .css) through the context class loader. The url() below is relative to the resolved stylesheet url.
+ */
+.classpath-css {
+    -fx-background-color: #ef6c00;
+    -fx-background-radius: 4;
+    -fx-text-fill: #ffffff;
+    -fx-graphic: url("../images/icon-16.png");
+    -fx-graphic-text-gap: 6;
+}

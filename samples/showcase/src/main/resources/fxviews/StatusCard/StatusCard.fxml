@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+  @FxView("StatusCard") : custom view name, found in the fxviews/StatusCard/ sub-directory.
+  The FXMLLoader location is the views root (fxviews/) : relative references resolve from there.
+-->
+<TitledPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="io.quarkiverse.fx.showcase.pages.fxml.StatusCardPresenter"
+            stylesheets="@StatusCard/StatusCard.css" styleClass="status-card"
+            text="%status.title" animated="false" collapsible="false" prefWidth="316" maxWidth="316">
+    <GridPane hgap="8" vgap="4" styleClass="status-grid">
+        <columnConstraints>
+            <ColumnConstraints minWidth="110" prefWidth="110"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+        <Label text="%status.viewsRoot" styleClass="status-key" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Label fx:id="viewsRootValue" styleClass="status-value" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <Label text="%status.reload" styleClass="status-key" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <Label fx:id="reloadValue" styleClass="status-value" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="%status.greeting" styleClass="status-key" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <Label fx:id="greetingValue" styleClass="status-value" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label text="%status.bundle" styleClass="status-key" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <Label fx:id="bundleValue" styleClass="status-value" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Separator GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+        <Label text="%status.note" styleClass="status-note" wrapText="true"
+               GridPane.rowIndex="5" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+    </GridPane>
+</TitledPane>

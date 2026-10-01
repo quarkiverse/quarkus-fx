@@ -1,0 +1,53 @@
+/* Stylesheet of loader.fxml, referenced relatively with stylesheets="@loader.css" */
+
+.loader-root {
+    -fx-background-color: linear-gradient(to bottom, #f7f9fc, #e9eef5);
+    -fx-background-radius: 6;
+    -fx-border-color: #b0bec5;
+    -fx-border-radius: 6;
+    -loader-accent: #1565c0;
+}
+
+.loader-form .label {
+    -fx-text-fill: #37474f;
+}
+
+.loader-root .label.bound-value {
+    -fx-text-fill: -loader-accent;
+    -fx-font-weight: bold;
+}
+
+.loader-form .service-value {
+    -fx-text-fill: #2e7d32;
+    -fx-font-style: italic;
+}
+
+.badge {
+    -fx-background-color: #fff8e1;
+    -fx-background-radius: 10;
+    -fx-border-color: #ffca28;
+    -fx-border-radius: 10;
+    -fx-padding: 2 8 2 8;
+}
+
+.badge-text {
+    -fx-font-weight: bold;
+    -fx-text-fill: #6d4c41;
+}
+
+.badge-owner {
+    -fx-font-size: 10px;
+    -fx-text-fill: #8d6e63;
+}
+
+.color-swatch .swatch-name {
+    -fx-font-size: 11px;
+}
+
+.wide-button {
+    -fx-base: #90caf9;
+}
+
+.age-column {
+    -fx-alignment: CENTER_RIGHT;
+}

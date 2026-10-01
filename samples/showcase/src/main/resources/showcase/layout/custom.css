@@ -1,0 +1,139 @@
+/* Page stylesheet of layout-css-custom : custom styleable properties and CSS transitions */
+
+.custom-page {
+    -custom-accent: #00897b;
+}
+
+/* ---- Badge (author rules override the badge.css user agent defaults) ---- */
+.badge.primary {
+    -badge-color: #1e88e5;
+}
+
+.badge.success {
+    -badge-color: #43a047;
+    -badge-shape: square;
+}
+
+.badge.warning {
+    -badge-color: #fb8c00;
+    -badge-shape: diamond;
+    -badge-text-fill: #3e2723;
+}
+
+.badge.outlined {
+    -badge-outlined: true;
+    -badge-color: #1e88e5;
+    -badge-text-fill: #1e88e5;
+}
+
+.badge.large {
+    -badge-size: 56;
+    -badge-ring-width: 4;
+}
+
+.badge.lookup {
+    -badge-color: derive(-custom-accent, -20%);
+    -badge-text-fill: linear-gradient(to bottom, #ffffff, #b2dfdb);
+    -badge-shape: square;
+    -badge-size: 48;
+}
+
+.badge:alert {
+    -badge-color: #e53935;
+    -badge-shape: star;
+    -badge-size: 60;
+}
+
+/* ---- CSS transitions (JavaFX 23+) ---- */
+.tr-box {
+    -fx-min-width: 64;
+    -fx-pref-width: 64;
+    -fx-max-width: 64;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-alignment: center;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+    -fx-background-color: #90a4ae;
+}
+
+.tr-color {
+    transition: -fx-background-color 300ms linear;
+}
+
+.tr-color:on {
+    -fx-background-color: #00897b;
+}
+
+.tr-opacity {
+    -fx-opacity: 0.2;
+    transition: -fx-opacity 300ms ease;
+}
+
+.tr-opacity:on {
+    -fx-opacity: 1;
+}
+
+.tr-translate {
+    transition: -fx-translate-x 300ms ease-in-out;
+}
+
+.tr-translate:on {
+    -fx-translate-x: 70;
+    -fx-background-color: #3949ab;
+}
+
+.tr-rotate {
+    transition: -fx-rotate 300ms steps(3, jump-end);
+}
+
+.tr-rotate:on {
+    -fx-rotate: 30;
+    -fx-background-color: #8e24aa;
+}
+
+.tr-scale {
+    -fx-scale-x: 0.5;
+    -fx-scale-y: 0.5;
+    transition: -fx-scale-x 300ms cubic-bezier(0.2, 0.8, 0.3, 1), -fx-scale-y 300ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.tr-scale:on {
+    -fx-scale-x: 1.2;
+    -fx-scale-y: 1.2;
+    -fx-background-color: #f4511e;
+}
+
+.tr-delayed {
+    -fx-border-color: #b0bec5;
+    -fx-border-width: 3;
+    transition-property: -fx-border-color, -fx-text-fill;
+    transition-duration: 200ms, 250ms;
+    transition-delay: 100ms, 0s;
+    transition-timing-function: ease-out, step-end;
+}
+
+.tr-delayed:on {
+    -fx-border-color: #d81b60;
+    -fx-text-fill: #d81b60;
+    -fx-background-color: #fce4ec;
+}
+
+.tr-all {
+    transition: all 300ms ease-in;
+}
+
+.tr-all:on {
+    -fx-background-color: #fdd835;
+    -fx-text-fill: #3e2723;
+    -fx-opacity: 0.9;
+    -fx-translate-x: 30;
+}
+
+/* ---- -fx-skin : skin class instantiated by name (Class.forName + public (Badge) constructor) ---- */
+.badge.ring-skin {
+    -fx-skin: "io.quarkiverse.fx.showcase.pages.layout.BadgeRingSkin";
+    -badge-color: #00897b;
+}

@@ -1,0 +1,322 @@
+/*
+ * Page stylesheet of layout-css-features : looked-up colors, color functions, gradients, pseudo-classes, selectors,
+ * shapes, relative urls, @font-face and @import.
+ */
+@import "features-imported.css";
+
+@font-face {
+    font-family: 'Roboto Light';
+    src: url("../fonts/Roboto-Light.ttf");
+}
+
+@font-face {
+    font-family: 'Font Awesome 5 Free Solid';
+    src: url('../fonts/fa-solid-900.ttf');
+}
+
+/* ---- looked-up colors ---- */
+.features-page {
+    -accent: #00897b;
+    -accent-light: derive(-accent, 60%);
+    -accent-dark: derive(-accent, -45%);
+    -swatch: -accent;
+    -warn: #ef6c00;
+}
+
+.lookup-box {
+    -fx-background-color: -accent;
+    -fx-text-fill: #ffffff;
+    -fx-alignment: center;
+    -fx-min-width: 50;
+    -fx-pref-width: 50;
+    -fx-min-height: 34;
+    -fx-pref-height: 34;
+    -fx-font-size: 10px;
+}
+
+.lookup-box.light {
+    -fx-background-color: -accent-light;
+    -fx-text-fill: -accent-dark;
+}
+
+.lookup-box.dark {
+    -fx-background-color: -accent-dark;
+}
+
+.lookup-box.chained {
+    -fx-background-color: -swatch, -accent-light;
+    -fx-background-insets: 0, 8;
+    -fx-text-fill: -accent-dark;
+}
+
+.lookup-override {
+    -accent: #6a1b9a;
+}
+
+/* ---- derive() ---- */
+.swatch {
+    -fx-min-width: 26;
+    -fx-pref-width: 26;
+    -fx-min-height: 44;
+    -fx-pref-height: 44;
+    -fx-alignment: bottom-center;
+    -fx-font-size: 9px;
+    -fx-text-fill: ladder(-swatch, #ffffff 49%, #000000 50%);
+    -fx-background-color: -swatch;
+}
+
+.derive-m80 { -swatch: derive(#1e88e5, -80%); }
+.derive-m60 { -swatch: derive(#1e88e5, -60%); }
+.derive-m40 { -swatch: derive(#1e88e5, -40%); }
+.derive-m20 { -swatch: derive(#1e88e5, -20%); }
+.derive-0 { -swatch: derive(#1e88e5, 0%); }
+.derive-p20 { -swatch: derive(#1e88e5, 20%); }
+.derive-p40 { -swatch: derive(#1e88e5, 40%); }
+.derive-p60 { -swatch: derive(#1e88e5, 60%); }
+.derive-p80 { -swatch: derive(#1e88e5, 80%); }
+
+/* ---- ladder() ---- */
+.ladder-1 { -swatch: #0d1b2a; }
+.ladder-2 { -swatch: #415a77; }
+.ladder-3 { -swatch: #778da9; }
+.ladder-4 { -swatch: #b8c4d6; }
+.ladder-5 { -swatch: #f1f4f8; }
+
+.ladder-bg {
+    -fx-min-width: 40;
+    -fx-pref-width: 40;
+    -fx-min-height: 22;
+    -fx-pref-height: 22;
+    -fx-background-color: ladder(-swatch, #d32f2f 0%, #fbc02d 50%, #388e3c 100%);
+}
+
+/* ---- gradients ---- */
+.gradient {
+    -fx-min-width: 70;
+    -fx-pref-width: 70;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-background-radius: 4;
+    -fx-alignment: center;
+    -fx-font-size: 9px;
+    -fx-text-fill: #ffffff;
+}
+
+.lg-right { -fx-background-color: linear-gradient(to right, #ff5252, #448aff); }
+.lg-points { -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ffeb3b 0%, #ff9800 50%, #e91e63 100%); }
+.lg-repeat { -fx-background-color: linear-gradient(from 0px 0px to 10px 10px, repeat, #37474f 0%, #37474f 50%, #b0bec5 50%, #b0bec5 100%); }
+.lg-reflect { -fx-background-color: linear-gradient(from 0% 0% to 25% 0%, reflect, #8e24aa, #00acc1); }
+.lg-lookup { -fx-background-color: linear-gradient(to bottom right, derive(-accent, 70%), -accent-dark); }
+.lg-text {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: linear-gradient(to right, #e53935, #8e24aa 50%, #1e88e5);
+}
+
+.radial {
+    -fx-min-width: 50;
+    -fx-pref-width: 50;
+    -fx-min-height: 50;
+    -fx-pref-height: 50;
+    -fx-background-radius: 25;
+}
+
+.rg-center { -fx-background-color: radial-gradient(center 50% 50%, radius 50%, #ffffff, #1565c0); }
+.rg-focus { -fx-background-color: radial-gradient(focus-angle 45deg, focus-distance 40%, center 50% 50%, radius 60%, #fff59d, #f57f17 70%, #3e2723); }
+.rg-repeat { -fx-background-color: radial-gradient(center 50% 50%, radius 20%, repeat, #e91e63, #ffffff); }
+.rg-reflect { -fx-background-color: radial-gradient(center 30% 30%, radius 30%, reflect, #26a69a, #004d40); }
+.rg-square {
+    -fx-background-radius: 0;
+    -fx-background-color: radial-gradient(radius 100%, #fafafa, -accent);
+}
+
+/* ---- custom pseudo-classes ---- */
+.state-box {
+    -fx-min-width: 100;
+    -fx-pref-width: 100;
+    -fx-min-height: 26;
+    -fx-pref-height: 26;
+    -fx-alignment: center;
+    -fx-background-color: #cfd8dc;
+    -fx-border-color: #90a4ae;
+    -fx-border-width: 2;
+    -fx-text-fill: #37474f;
+    -fx-font-size: 10px;
+}
+
+.state-box:warning {
+    -fx-background-color: #ffe0b2;
+    -fx-border-color: -warn;
+    -fx-text-fill: -warn;
+}
+
+.state-box:done {
+    -fx-background-color: #c8e6c9;
+    -fx-border-color: #2e7d32;
+    -fx-text-fill: #1b5e20;
+}
+
+.state-box:warning:done {
+    -fx-background-color: linear-gradient(to right, #ffe0b2, #c8e6c9);
+    -fx-border-style: dashed;
+    -fx-border-color: #6d4c41;
+}
+
+/* ---- selectors ---- */
+.selectors .item {
+    -fx-background-color: #b3e5fc;
+    -fx-text-fill: #01579b;
+    -fx-padding: 3 6 3 6;
+    -fx-font-size: 10px;
+}
+
+.selectors > .item {
+    -fx-background-color: #0288d1;
+    -fx-text-fill: #ffffff;
+}
+
+.selectors .item.special-class {
+    -fx-background-color: #ffcc80;
+    -fx-text-fill: #e65100;
+}
+
+#unique-item {
+    -fx-background-color: #d81b60;
+    -fx-text-fill: #ffffff;
+}
+
+.selectors .nested {
+    -fx-border-color: #90a4ae;
+    -fx-border-style: dashed;
+    -fx-padding: 4;
+}
+
+.selectors Button {
+    -fx-base: #7cb342;
+    -fx-font-size: 10px;
+}
+
+.selectors .nested > * {
+    -fx-opacity: 0.85;
+}
+
+/* ---- -fx-shape ---- */
+.shape {
+    -fx-min-width: 50;
+    -fx-pref-width: 50;
+    -fx-max-width: 50;
+    -fx-min-height: 50;
+    -fx-pref-height: 50;
+    -fx-max-height: 50;
+}
+
+.shape-star {
+    -fx-shape: "M 50 0 L 61 35 L 98 35 L 68 57 L 79 91 L 50 70 L 21 91 L 32 57 L 2 35 L 39 35 Z";
+    -fx-background-color: #f57f17, #fdd835;
+    -fx-background-insets: 0, 3;
+}
+
+.shape-heart {
+    -fx-shape: "M 50 90 C 20 65 0 45 0 25 A 25 25 0 0 1 50 20 A 25 25 0 0 1 100 25 C 100 45 80 65 50 90 Z";
+    -fx-background-color: #e53935;
+}
+
+.shape-arrow {
+    -fx-shape: "M 0 10 L 20 10 L 20 0 L 36 18 L 20 36 L 20 26 L 0 26 Z";
+    -fx-scale-shape: false;
+    -fx-position-shape: true;
+    -fx-background-color: #3949ab;
+}
+
+.shape-arrow-corner {
+    -fx-shape: "M 0 10 L 20 10 L 20 0 L 36 18 L 20 36 L 20 26 L 0 26 Z";
+    -fx-scale-shape: false;
+    -fx-position-shape: false;
+    -fx-background-color: #00897b;
+    -fx-border-color: #cfd8dc;
+}
+
+.shape-bordered {
+    -fx-shape: "M 0 50 Q 25 0 50 50 T 100 50 L 100 100 L 0 100 Z";
+    -fx-background-color: #80deea;
+    -fx-border-color: #006064;
+    -fx-border-width: 2;
+}
+
+/* ---- url() relative to this stylesheet ---- */
+.url-texture {
+    -fx-background-image: url("../images/texture.png");
+    -fx-background-size: 48 48;
+    -fx-background-repeat: repeat;
+    -fx-min-width: 72;
+    -fx-pref-width: 72;
+    -fx-min-height: 96;
+    -fx-pref-height: 96;
+}
+
+.url-pattern {
+    -fx-background-color: #263238;
+    -fx-background-image: url("../images/pattern.png");
+    -fx-background-size: contain;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+    -fx-min-width: 72;
+    -fx-pref-width: 72;
+    -fx-min-height: 96;
+    -fx-pref-height: 96;
+}
+
+.url-graphic {
+    -fx-graphic: url("../images/icon-16.png");
+    -fx-graphic-text-gap: 6;
+    -fx-font-size: 10px;
+}
+
+.url-image-view {
+    -fx-image: url("../images/icon.png");
+}
+
+/* ---- @font-face ---- */
+.roboto {
+    -fx-font-family: "Roboto Light";
+    -fx-font-size: 20px;
+    -fx-text-fill: #37474f;
+}
+
+.awesome {
+    -fx-font-family: "Font Awesome 5 Free Solid";
+    -fx-font-size: 24px;
+    -fx-text-fill: -accent;
+}
+
+/* ---- @import ---- */
+.imported-overridden {
+    -fx-background-color: #2e7d32;
+}
+
+.uses-imported-color {
+    -fx-background-color: -imported-color;
+    -fx-background-radius: 8;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 6 10 6 10;
+}
+
+/* ---- inline styles and em units ---- */
+.inline-target {
+    -fx-background-color: #eceff1;
+    -fx-border-color: #b0bec5;
+    -fx-padding: 0.5em;
+    -fx-font-size: 11px;
+}
+
+/* ---- stylesheet sources (class path name, data: URIs, binary, inline url) ---- */
+.source-row {
+    -fx-min-width: 226;
+    -fx-pref-width: 226;
+    -fx-max-width: 226;
+    -fx-min-height: 24;
+    -fx-pref-height: 24;
+    -fx-max-height: 24;
+    -fx-padding: 0 6 0 6;
+    -fx-font-size: 10px;
+}

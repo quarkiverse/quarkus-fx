@@ -1,0 +1,86 @@
+/* Backgrounds and borders defined in CSS; image urls are relative to this stylesheet */
+
+.bg-repeat,
+.bg-space,
+.bg-round {
+    -fx-background-color: #fafafa;
+    -fx-background-image: url("../images/tile.png");
+    -fx-background-insets: 0;
+}
+
+.bg-repeat {
+    -fx-background-repeat: repeat;
+    -fx-background-position: left top;
+}
+
+.bg-space {
+    -fx-background-repeat: space;
+}
+
+.bg-round {
+    -fx-background-repeat: round;
+}
+
+.bg-repeat-x {
+    -fx-background-color: #263238;
+    -fx-background-image: url("../images/icon-16.png"), url("../images/icon-16.png");
+    -fx-background-repeat: repeat-x, repeat-y;
+    -fx-background-position: left bottom, right top;
+}
+
+.border-image-css {
+    -fx-border-image-source: url("../images/pattern.png");
+    -fx-border-image-slice: 64 fill;
+    -fx-border-image-width: 24;
+    -fx-border-image-repeat: round space;
+}
+
+.multi {
+    -fx-background-color: #37474f, linear-gradient(to bottom, #fff59d, #fbc02d), #ffffff99;
+    -fx-background-insets: 0, 6, 26 40 26 40;
+    -fx-background-radius: 16, 12, 8;
+    -fx-background-image: url("../images/icon.png");
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+    -fx-background-size: 40 40;
+    -fx-border-color: #d32f2f, #1976d2 #388e3c #1976d2 #388e3c;
+    -fx-border-width: 3, 2;
+    -fx-border-insets: 0, 12;
+    -fx-border-radius: 16, 6;
+    -fx-border-style: solid, dashed;
+}
+
+.fx-shadow-box {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8;
+    -fx-min-width: 64;
+    -fx-min-height: 48;
+    -fx-pref-width: 64;
+    -fx-pref-height: 48;
+    -fx-max-width: 64;
+    -fx-max-height: 48;
+}
+
+.shadow-gaussian {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 12, 0.2, 4, 4);
+}
+
+.shadow-three-pass {
+    -fx-effect: dropshadow(three-pass-box, #1e88e5, 14, 0.5, 0, 0);
+}
+
+.shadow-one-pass {
+    -fx-effect: dropshadow(one-pass-box, #e53935, 8, 0, 6, 6);
+}
+
+.shadow-inner {
+    -fx-background-color: #ffe082;
+    -fx-effect: innershadow(gaussian, #00000099, 14, 0, 3, 3);
+}
+
+.shadow-text {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #fafafa;
+    -fx-effect: dropshadow(gaussian, #283593, 6, 0.4, 2, 2);
+}

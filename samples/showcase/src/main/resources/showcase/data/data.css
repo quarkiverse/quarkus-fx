@@ -1,0 +1,125 @@
+/* Stylesheet of the "Data & Containers" pages */
+
+.data-caption {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #37474f;
+}
+
+.data-note {
+    -fx-font-size: 11px;
+    -fx-text-fill: #616161;
+}
+
+.data-page .checks-grid .label {
+    -fx-font-size: 11px;
+}
+
+.data-page .section-title {
+    -fx-font-size: 13px;
+}
+
+/* ListView : custom cells */
+.swatch-hex {
+    -fx-font-family: "Monospaced";
+    -fx-font-size: 10px;
+    -fx-text-fill: #757575;
+}
+
+.tile-text {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-fill: white;
+}
+
+/* ListView styled through CSS only : skin class (instantiated reflectively), fixed cell size, cells */
+.fancy-list {
+    -fx-skin: "io.quarkiverse.fx.showcase.pages.data.FooterListViewSkin";
+    -fx-fixed-cell-size: 26px;
+}
+
+.fancy-list .list-footer {
+    -fx-font-size: 10px;
+    -fx-padding: 2 6 2 6;
+    -fx-text-fill: white;
+    -fx-background-color: #37474f;
+}
+
+.fancy-list .list-cell {
+    -fx-padding: 5 10 5 10;
+    -fx-text-fill: #0d47a1;
+}
+
+.fancy-list .list-cell:filled:even {
+    -fx-background-color: #e3f2fd;
+}
+
+.fancy-list .list-cell:filled:odd {
+    -fx-background-color: #ffffff;
+}
+
+.fancy-list .list-cell:filled:selected {
+    -fx-background-color: linear-gradient(to right, #ff9800, #ffc107);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.placeholder-text {
+    -fx-text-fill: #9e9e9e;
+    -fx-font-style: italic;
+}
+
+/* TableView : custom row pseudo classes */
+.table-row-cell:inactive > .table-cell {
+    -fx-text-fill: #9e9e9e;
+}
+
+.table-row-cell:high-value {
+    -fx-background: #fff3e0;
+}
+
+.table-row-cell:high-value:filled:selected {
+    -fx-background: -fx-selection-bar-non-focused;
+}
+
+.table-view:focused .table-row-cell:high-value:filled:selected {
+    -fx-background: -fx-selection-bar;
+}
+
+.numeric-cell {
+    -fx-alignment: center-right;
+}
+
+.center-cell {
+    -fx-alignment: center;
+}
+
+/* Containers */
+.pane-a { -fx-background-color: #e8f5e9; }
+.pane-b { -fx-background-color: #e3f2fd; }
+.pane-c { -fx-background-color: #fff8e1; }
+.pane-d { -fx-background-color: #fce4ec; }
+
+.pane-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #455a64;
+}
+
+.scroll-cell {
+    -fx-font-size: 11px;
+    -fx-alignment: center;
+    -fx-border-color: rgba(0, 0, 0, 0.15);
+    -fx-border-width: 0 1 1 0;
+}
+
+.tab-body {
+    -fx-padding: 10;
+    -fx-spacing: 6;
+}
+
+/* TabPaneSkin styleable properties (private enum, EnumConverter) */
+.no-tab-animation {
+    -fx-open-tab-animation: none;
+    -fx-close-tab-animation: none;
+}

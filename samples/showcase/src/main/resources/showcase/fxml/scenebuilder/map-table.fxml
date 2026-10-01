@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.util.HashMap?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.MapValueFactory?>
+<?import javafx.scene.control.cell.TextFieldTableCell?>
+
+<!-- java.util.HashMap items filled from attributes, MapValueFactory (@NamedArg key) and a
+     TextFieldTableCell.forTableColumn() cell factory (fx:factory) -->
+<TableView xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:id="subject"
+           prefWidth="300" prefHeight="80" editable="true" focusTraversable="false">
+    <columns>
+        <TableColumn fx:id="nameColumn" text="Name (TextFieldTableCell)" prefWidth="190">
+            <cellValueFactory>
+                <MapValueFactory key="name"/>
+            </cellValueFactory>
+            <cellFactory>
+                <TextFieldTableCell fx:factory="forTableColumn"/>
+            </cellFactory>
+        </TableColumn>
+        <TableColumn fx:id="bornColumn" text="Born" prefWidth="90">
+            <cellValueFactory>
+                <MapValueFactory key="born"/>
+            </cellValueFactory>
+        </TableColumn>
+    </columns>
+    <items>
+        <FXCollections fx:factory="observableArrayList">
+            <HashMap name="Ada Lovelace" born="1815"/>
+            <HashMap name="Alan Turing" born="1912"/>
+        </FXCollections>
+    </items>
+</TableView>

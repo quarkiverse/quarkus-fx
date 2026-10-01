@@ -1,0 +1,239 @@
+/* Windows, dialogs and popups pages */
+
+.demo-caption {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4a5363;
+}
+
+.demo-note {
+    -fx-font-size: 11px;
+    -fx-text-fill: #626b78;
+}
+
+.launcher-box {
+    -fx-background-color: #f7f9fc;
+    -fx-border-color: #c9d1dc;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.live-section {
+    -fx-padding: 0;
+}
+
+/* ----------------------------------------------------------------------------------------------- stage contents */
+
+.stage-content {
+    -fx-padding: 12;
+    -fx-spacing: 8;
+}
+
+.stage-content .stage-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.stage-content .stage-text {
+    -fx-font-size: 11px;
+    -fx-text-fill: #3b4350;
+}
+
+.decorated-content {
+    -fx-background-color: linear-gradient(to bottom right, #eaf3ff, #c3dbf5);
+}
+
+.undecorated-content {
+    -fx-background-color: #fdfaf3;
+    -fx-border-color: #7a6a4a;
+    -fx-border-width: 2;
+    -fx-padding: 0;
+}
+
+.undecorated-content .custom-title-bar {
+    -fx-background-color: linear-gradient(#8a7650, #6d5c3c);
+    -fx-padding: 5 8 5 10;
+}
+
+.undecorated-content .custom-title-bar .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.undecorated-content .body {
+    -fx-padding: 10 12 12 12;
+    -fx-spacing: 6;
+}
+
+.transparent-content {
+    -fx-background-color: transparent;
+    -fx-padding: 16;
+}
+
+.transparent-content .stage-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.transparent-content .stage-text {
+    -fx-font-size: 11px;
+}
+
+.transparent-content .glass {
+    /* shadows are painted as background layers: effects are not pixel-stable between snapshots */
+    -fx-background-color: rgba(0, 0, 0, 0.10), rgba(0, 0, 0, 0.16), rgba(24, 58, 120, 0.72);
+    -fx-background-insets: -3 -3 -6 -3, -1 -1 -3 -1, 0;
+    -fx-background-radius: 31, 29, 28;
+    -fx-border-color: rgba(255, 255, 255, 0.55);
+    -fx-border-radius: 28;
+    -fx-border-width: 1.5;
+    -fx-padding: 10 16 10 16;
+    -fx-spacing: 5;
+}
+
+.transparent-content .glass .label {
+    -fx-text-fill: white;
+}
+
+.utility-content {
+    -fx-background-color: #2e3440;
+    -fx-padding: 8;
+}
+
+.utility-content .tool {
+    -fx-background-color: #3b4252;
+    -fx-background-radius: 6;
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-alignment: center;
+}
+
+.utility-content .tool.selected {
+    -fx-background-color: #5e81ac;
+}
+
+.utility-content .label {
+    -fx-text-fill: #e5e9f0;
+}
+
+.unified-content {
+    -fx-background-color: #f4f4f6;
+}
+
+.unified-content .tool-bar {
+    -fx-background-color: linear-gradient(#e9e9ed, #d9d9df);
+}
+
+.extended-content {
+    -fx-background-color: #ffffff;
+}
+
+.extended-content .header-area {
+    -fx-background-color: linear-gradient(to right, #5b2a86, #9b3d8f);
+    -fx-padding: 6 10 6 76;
+}
+
+.extended-content .header-area .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.modal-content {
+    -fx-background-color: #fff8f0;
+    -fx-border-color: #e09b3d;
+    -fx-border-width: 0 0 0 6;
+}
+
+/* ------------------------------------------------------------------------------------------------ mock windows */
+
+/* shadows are painted as background layers: effects are not pixel-stable between snapshots */
+.mock-window {
+    -fx-background-color: rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.07), rgba(0, 0, 0, 0.10), #b8bec8, white;
+    -fx-background-insets: -3 -3 -5 -3, -2 -2 -3 -2, -1 -1 -1 -1, 0, 1;
+    -fx-background-radius: 10, 9, 8, 7, 6;
+}
+
+.mock-title-bar {
+    -fx-background-color: linear-gradient(#ececec, #d8d8d8);
+    -fx-background-radius: 6 6 0 0;
+    -fx-background-insets: 1 1 0 1;
+    -fx-padding: 4 8 4 8;
+    -fx-spacing: 5;
+    -fx-alignment: center-left;
+}
+
+.mock-title-bar.utility {
+    -fx-padding: 2 6 2 6;
+}
+
+.mock-title-bar .label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #333333;
+}
+
+.mock-title-bar.utility .label {
+    -fx-font-size: 9px;
+}
+
+/* an image referenced relatively to this stylesheet : a jar or file URL in JVM mode, a resource: URL in a native image */
+.css-icon {
+    -fx-graphic: url("../images/icon-16.png");
+    -fx-graphic-text-gap: 6;
+}
+
+/* ------------------------------------------------------------------------------------------------------ popups */
+
+.custom-popup {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: #3a7bd5;
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+    -fx-padding: 12 14 12 14;
+    -fx-spacing: 8;
+}
+
+.custom-popup-shadow {
+    /* shadows are painted as background layers: effects are not pixel-stable between snapshots */
+    -fx-background-color: rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.07), rgba(0, 0, 0, 0.10);
+    -fx-background-insets: 0, 2 2 1 2, 4 4 2 4;
+    -fx-background-radius: 16, 14, 12;
+    -fx-padding: 4 4 6 4;
+}
+
+.custom-popup .popup-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f4e8c;
+}
+
+.popup-demo-target {
+    -fx-background-color: #eef3fa;
+    -fx-border-color: #9db4d6;
+    -fx-border-style: dashed;
+    -fx-padding: 6 10 6 10;
+}
+
+/* ------------------------------------------------------------------------------------------ embedded dialog panes */
+
+.dialog-pane.embedded-dialog {
+    -fx-background-color: rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.08), #b7bec9, -fx-background;
+    -fx-background-insets: -2 -2 -3 -2, -1 -1 -2 -1, 0, 1;
+}
+
+.extended-content .header-bar-area {
+    -fx-background-color: linear-gradient(to right, #5b2a86, #9b3d8f);
+    -fx-min-height: 32;
+}
+
+.extended-content .header-bar-area .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.gallery-cell {
+    -fx-background-color: #e9edf2;
+    -fx-background-radius: 4;
+    -fx-padding: 2;
+}

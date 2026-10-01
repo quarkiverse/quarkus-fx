@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.transform.Rotate?>
+<!-- Effects, transforms and clips declared in FXML -->
+<HBox xmlns:fx="http://javafx.com/fxml/1" spacing="10" alignment="CENTER_LEFT">
+    <Label fx:id="subject" text="Shadow" style="-fx-font-weight: bold; -fx-text-fill: #1565c0;">
+        <effect>
+            <DropShadow radius="3" offsetX="2" offsetY="2" color="#00000088"/>
+        </effect>
+    </Label>
+    <Rectangle fx:id="rotated" width="22" height="22" fill="#fb8c00">
+        <transforms>
+            <Rotate angle="30" pivotX="11" pivotY="11"/>
+        </transforms>
+    </Rectangle>
+    <Rectangle fx:id="clipped" width="28" height="28" fill="#43a047">
+        <clip>
+            <Circle centerX="14" centerY="14" radius="12"/>
+        </clip>
+        <effect>
+            <InnerShadow radius="4" color="#1b5e20"/>
+        </effect>
+    </Rectangle>
+</HBox>

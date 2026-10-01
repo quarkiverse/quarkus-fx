@@ -1,0 +1,15 @@
+# firstName,lastName,email,age,department,active,progress
+Ada,Lovelace,ada@example.org,36,Research,true,0.92
+Grace,Hopper,grace@example.org,52,Engineering,true,0.75
+Alan,Turing,alan@example.org,41,Research,false,0.40
+Margaret,Hamilton,margaret@example.org,33,Engineering,true,0.88
+Linus,Torvalds,linus@example.org,29,Engineering,true,0.55
+Barbara,Liskov,barbara@example.org,47,Research,true,0.67
+Dennis,Ritchie,dennis@example.org,44,Operations,false,0.20
+Katherine,Johnson,katherine@example.org,38,Operations,true,1.00
+Edsger,Dijkstra,edsger@example.org,58,Research,false,0.30
+Radia,Perlman,radia@example.org,31,Design,true,0.61
+Tim,Berners-Lee,tim@example.org,35,Design,true,0.47
+Frances,Allen,frances@example.org,49,Engineering,true,0.83
+Ken,Thompson,ken@example.org,45,Operations,true,0.12
+Hedy,Lamarr,hedy@example.org,27,Design,false,0.05

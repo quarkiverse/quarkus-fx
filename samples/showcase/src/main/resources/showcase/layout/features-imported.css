@@ -1,0 +1,22 @@
+/* Imported by features.css through @import (relative url) */
+
+.imported-box {
+    -fx-background-color: #5e35b1;
+    -fx-background-radius: 8;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 6 10 6 10;
+    -fx-font-weight: bold;
+}
+
+/* Redefined by features.css : the importing stylesheet comes later and wins */
+.imported-overridden {
+    -fx-background-color: #b71c1c;
+    -fx-background-radius: 8;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 6 10 6 10;
+}
+
+/* Looked-up color only defined in the imported stylesheet, used by features.css */
+.features-page {
+    -imported-color: #3949ab;
+}

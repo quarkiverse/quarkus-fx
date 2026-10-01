@@ -1,0 +1,477 @@
+name: Showcase cycle
+
+# The JVM vs native cycles of the showcase (samples/showcase, its tools/Cycle.java) against the commit of the run, on
+# four platforms : called by showcase.yml. The variants of each platform are in the plan job.
+#
+# Linux runs in the image of samples/showcase/docker/linux (Xvfb 1920x1200). Windows and macOS run on the desktop of the
+# runner, prepared by the scripts of .github/scripts (the display mode, the windows in front). The showcase is built with
+# the Quarkus version of quarkus-fx. No Windows on arm64 : neither JavaFX nor GraalVM exist for it. A non-blocking
+# variant (blocking false in the plan) fails its job without failing the run : the platforms that never ran on GitHub
+# start so.
+on:
+  workflow_call:
+    inputs:
+      platforms:
+        description: 'The platforms, a JSON array of Linux-arm64, Linux-x64, Windows-x64, macOS-arm64 (empty : all four)'
+        type: string
+        default: ''
+      nightly:
+        description: Also the nightly variants (other Prism pipelines, see the plan job)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# bash runs the steps with -eo pipefail : a cycle piped to tee still fails its step
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # One matrix per family (Linux in Docker, Windows, macOS) from the table below, the platforms input and nightly
+  plan:
+    name: Plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      linux: ${{ steps.plan.outputs.linux }}
+      linux-count: ${{ steps.plan.outputs.linux-count }}
+      windows: ${{ steps.plan.outputs.windows }}
+      windows-count: ${{ steps.plan.outputs.windows-count }}
+      macos: ${{ steps.plan.outputs.macos }}
+      macos-count: ${{ steps.plan.outputs.macos-count }}
+    steps:
+      - name: Variants
+        id: plan
+        env:
+          PLATFORMS: ${{ inputs.platforms }}
+          NIGHTLY: ${{ inputs.nightly }}
+          # label : the directory name of the runs (comparison/*-<label>) and of the artifacts ; args : options of
+          # tools/Cycle.java (after -- : options of both runs) ; nightly : only with the input nightly ; blocking false :
+          # continue-on-error (set it to true once the variant is reliably green)
+          VARIANTS: |
+            [
+              {"platform": "Linux-arm64", "runner": "ubuntu-24.04-arm", "label": "linux-arm64", "args": "--trace", "nightly": false, "blocking": false},
+              {"platform": "Linux-arm64", "runner": "ubuntu-24.04-arm", "label": "linux-arm64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
+              {"platform": "Linux-x64", "runner": "ubuntu-24.04", "label": "linux-x64", "args": "", "nightly": false, "blocking": false},
+              {"platform": "Linux-x64", "runner": "ubuntu-24.04", "label": "linux-x64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
+              {"platform": "Windows-x64", "runner": "windows-2025", "label": "win-x64", "args": "--trace", "nightly": false, "blocking": false},
+              {"platform": "Windows-x64", "runner": "windows-2025", "label": "win-x64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
+              {"platform": "macOS-arm64", "runner": "macos-26", "label": "mac-arm64", "args": "--trace", "nightly": false, "blocking": false},
+              {"platform": "macOS-arm64", "runner": "macos-26", "label": "mac-arm64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false}
+            ]
+        run: |
+          all='["Linux-arm64","Linux-x64","Windows-x64","macOS-arm64"]'
+          want=${PLATFORMS:-$all}
+          if ! unknown=$(jq -c --argjson all "$all" 'if type == "array" then . - $all else error("not an array") end' <<< "$want"); then
+            echo "::error title=Showcase platforms::not a JSON array : $want"; exit 1
+          fi
+          if [[ $unknown != '[]' ]]; then
+            echo "::error title=Showcase platforms::unknown $unknown (known : $all)"; exit 1
+          fi
+          echo "### Variants" >> "$GITHUB_STEP_SUMMARY"
+          for family in linux windows macos; do
+            matrix=$(jq -c --argjson want "$want" --argjson nightly "${NIGHTLY:-false}" --arg family "$family" '{include: [.[]
+                | select(.platform | ascii_downcase | startswith($family))
+                | select(.platform as $p | $want | any(. == $p))
+                | select($nightly or (.nightly | not))]}' <<< "$VARIANTS")
+            echo "$family=$matrix" >> "$GITHUB_OUTPUT"
+            echo "$family-count=$(jq '.include | length' <<< "$matrix")" >> "$GITHUB_OUTPUT"
+            jq -r '.include[] | "- \(.label) `\(.args)` on \(.runner)\(if .blocking then "" else " (non-blocking)" end)"' \
+              <<< "$matrix" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+  linux:
+    needs: plan
+    if: needs.plan.outputs.linux-count != '0'
+    name: ${{ matrix.label }} on ${{ matrix.runner }}${{ !matrix.blocking && ' (non-blocking)' || '' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.linux) }}
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: ${{ !matrix.blocking }}
+    timeout-minutes: 90
+    env:
+      IMAGE: quarkus-fx-showcase-linux
+      LABEL: ${{ matrix.label }}
+      ARGS: ${{ matrix.args }}
+      RUNNER: ${{ matrix.runner }}
+      BLOCKING: ${{ matrix.blocking }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # The showcase is built with the Quarkus version of quarkus-fx (its pom.xml property quarkus.version)
+      - name: Quarkus version of quarkus-fx
+        run: |
+          version=$(sed -n 's:.*<quarkus.version>\(.*\)</quarkus.version>.*:\1:p' pom.xml | head -1)
+          if [[ -z $version ]]; then echo "::error title=quarkus-fx::no quarkus.version in pom.xml"; exit 1; fi
+          echo "QUARKUS_VERSION=$version" >> "$GITHUB_ENV"
+          echo "Quarkus $version (quarkus-fx)" >> "$GITHUB_STEP_SUMMARY"
+
+      # Mounted as /root/.m2 in the container : the dependencies and the Maven wrapper distribution (saved at the end,
+      # by push and scheduled runs only)
+      - name: Restore the Maven repository
+        id: m2
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: showcase-m2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: showcase-m2-${{ runner.os }}-${{ runner.arch }}-
+
+      - uses: docker/setup-buildx-action@v4
+
+      # The image is multi-arch (ubuntu:24.04 and the GraalVM builder image jdk-25 have amd64 and arm64 variants)
+      - name: Build the Linux image
+        uses: docker/build-push-action@v7
+        with:
+          context: samples/showcase/docker/linux
+          load: true
+          tags: ${{ env.IMAGE }}
+          cache-from: type=gha,scope=showcase-linux-${{ runner.arch }}
+          # written by push and scheduled runs only
+          cache-to: ${{ (github.event_name == 'push' || github.event_name == 'schedule') && format('type=gha,mode=min,scope=showcase-linux-{0}', runner.arch) || '' }}
+
+      # docker run, not a job container : the entry point of the image starts the X server. The Build workflow runs the
+      # tests and checks the format : only the runtime and deployment modules are installed here, without running the
+      # format plugins (-Dformat.skip, the property of quarkiverse-parent : -Dno-format validates the format).
+      - name: Install quarkus-fx
+        id: install
+        run: |
+          docker run --rm --init -v "$PWD":/quarkus-fx -w /quarkus-fx \
+            -v "$HOME/.m2":/root/.m2 "$IMAGE" ./mvnw -B -ntp install -DskipTests -Dformat.skip -pl deployment -am \
+            2>&1 | tee install.log
+
+      # Cycle.java exits 1 when a build or a run fails or when the runs do not match. The step timeout leaves the report
+      # and the uploads to run (the watchdog of Snapshot.java ends a hung run after 900 s)
+      - name: Cycle ${{ matrix.label }} ${{ matrix.args }}
+        timeout-minutes: 70
+        run: |
+          docker run --rm --init -v "$PWD/samples/showcase":/showcase -v "$HOME/.m2":/root/.m2 "$IMAGE" \
+            java tools/Cycle.java "$LABEL" "--maven-args=-Dquarkus.platform.version=$QUARKUS_VERSION" $ARGS \
+            2>&1 | tee cycle.log
+
+      # The verdict and what differs, in the summary of the run and as annotations ; in the log of this step, what the
+      # artifacts would tell (the checks and errors, where the images differ, the control, the exceptions of the runs)
+      - name: Report
+        if: always()
+        run: if [ -f .github/scripts/cycle-report.sh ]; then bash .github/scripts/cycle-report.sh; fi
+
+      # A build that failed downloaded only a part of the dependencies : the Maven repository is not saved then
+      - name: Builds
+        id: built
+        if: always()
+        run: echo "failed=$(grep -m1 -o -E '(JVM|native) build FAILED' cycle.log 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+
+      # The container runs as root : give the files back to the runner user before the uploads and the cache
+      - name: Restore the file ownership
+        if: always()
+        run: |
+          sudo chown -R "$(id -u):$(id -g)" . "$HOME/.m2" || true
+          # the snapshots of quarkus-fx are built from the checked out commit : never from the cache
+          rm -rf "$HOME/.m2/repository/io/quarkiverse/fx"
+
+      # once the dependencies are there, whatever the cycle gave
+      - name: Save the Maven repository
+        if: steps.install.outcome == 'success' && steps.m2.outputs.cache-hit != 'true' && (github.event_name == 'push' || github.event_name == 'schedule') && !cancelled() && hashFiles('cycle.log') != '' && !contains(steps.built.outputs.failed, 'FAILED')
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: ${{ steps.m2.outputs.cache-primary-key }}
+
+      - name: Upload the verdict, logs and reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: showcase-${{ matrix.label }}
+          path: |
+            cycle.log
+            install.log
+            samples/showcase/comparison/diff-${{ matrix.label }}
+            samples/showcase/comparison/logs-${{ matrix.label }}
+            samples/showcase/comparison/*-${{ matrix.label }}/report.json
+            samples/showcase/comparison/*-${{ matrix.label }}/run.log
+            samples/showcase/comparison/trace-${{ matrix.label }}/metadata-diff.md
+            samples/showcase/comparison/trace-${{ matrix.label }}/metadata/reachability-metadata.json
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 14
+
+      # The images of the runs (index.html of the diff directory shows them side by side, control/index.html the JVM and
+      # the trace ones)
+      - name: Upload the images
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: showcase-${{ matrix.label }}-images
+          path: |
+            samples/showcase/comparison/jvm-${{ matrix.label }}
+            samples/showcase/comparison/native-${{ matrix.label }}
+            samples/showcase/comparison/diff-${{ matrix.label }}
+            samples/showcase/comparison/trace-${{ matrix.label }}/*.png
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 7
+
+  windows:
+    needs: plan
+    if: needs.plan.outputs.windows-count != '0'
+    name: ${{ matrix.label }} on ${{ matrix.runner }}${{ !matrix.blocking && ' (non-blocking)' || '' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.windows) }}
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: ${{ !matrix.blocking }}
+    timeout-minutes: 150
+    env:
+      LABEL: ${{ matrix.label }}
+      ARGS: ${{ matrix.args }}
+      RUNNER: ${{ matrix.runner }}
+      BLOCKING: ${{ matrix.blocking }}
+    steps:
+      - name: Prepare git
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v7
+
+      - name: Quarkus version of quarkus-fx
+        run: |
+          version=$(sed -n 's:.*<quarkus.version>\(.*\)</quarkus.version>.*:\1:p' pom.xml | head -1)
+          if [[ -z $version ]]; then echo "::error title=quarkus-fx::no quarkus.version in pom.xml"; exit 1; fi
+          echo "QUARKUS_VERSION=$version" >> "$GITHUB_ENV"
+          echo "Quarkus $version (quarkus-fx)" >> "$GITHUB_STEP_SUMMARY"
+
+      # Oracle GraalVM for JDK 25, the GraalVM of the native job of the Build workflow (it sets up MSVC)
+      - name: Set up GraalVM for JDK 25
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          distribution: graalvm
+          github-token: ${{ github.token }}
+
+      - name: Restore the Maven repository
+        id: m2
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: showcase-m2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: showcase-m2-${{ runner.os }}-${{ runner.arch }}-
+
+      # The largest display mode (the runners start at 1024x768, the showcase main window is 1400x900 at 40,40), every
+      # window minimized, no screen saver ; the screen, the window in front and a screenshot in the log
+      - name: Prepare the desktop
+        shell: pwsh
+        continue-on-error: true
+        timeout-minutes: 5
+        run: ./.github/scripts/windows-desktop.ps1 -Prepare -Screenshot desktop-start.png
+
+      - name: Install quarkus-fx
+        id: install
+        run: ./mvnw -B -ntp install -DskipTests -Dformat.skip -pl deployment -am 2>&1 | tee install.log
+
+      # every window minimized again right before the cycle (the agent terminal may cover the showcase window)
+      - name: Minimize the windows
+        shell: pwsh
+        continue-on-error: true
+        timeout-minutes: 2
+        run: ./.github/scripts/windows-desktop.ps1 -Minimize
+
+      - name: Cycle ${{ matrix.label }} ${{ matrix.args }}
+        working-directory: samples/showcase
+        timeout-minutes: 90
+        run: |
+          java tools/Cycle.java "$LABEL" "--maven-args=-Dquarkus.platform.version=$QUARKUS_VERSION" $ARGS \
+            2>&1 | tee ../../cycle.log
+
+      - name: Desktop after the cycle
+        if: always()
+        shell: pwsh
+        continue-on-error: true
+        timeout-minutes: 5
+        run: ./.github/scripts/windows-desktop.ps1 -Screenshot desktop-end.png
+
+      - name: Report
+        if: always()
+        run: if [ -f .github/scripts/cycle-report.sh ]; then bash .github/scripts/cycle-report.sh; fi
+
+      # A build that failed downloaded only a part of the dependencies : the Maven repository is not saved then
+      - name: Builds
+        id: built
+        if: always()
+        run: echo "failed=$(grep -m1 -o -E '(JVM|native) build FAILED' cycle.log 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+
+      - name: Clean the Maven repository
+        if: always()
+        run: rm -rf ~/.m2/repository/io/quarkiverse/fx
+
+      - name: Save the Maven repository
+        if: steps.install.outcome == 'success' && steps.m2.outputs.cache-hit != 'true' && (github.event_name == 'push' || github.event_name == 'schedule') && !cancelled() && hashFiles('cycle.log') != '' && !contains(steps.built.outputs.failed, 'FAILED')
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: ${{ steps.m2.outputs.cache-primary-key }}
+
+      - name: Upload the verdict, logs and reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: showcase-${{ matrix.label }}
+          path: |
+            cycle.log
+            install.log
+            desktop-*.png
+            samples/showcase/comparison/diff-${{ matrix.label }}
+            samples/showcase/comparison/logs-${{ matrix.label }}
+            samples/showcase/comparison/*-${{ matrix.label }}/report.json
+            samples/showcase/comparison/*-${{ matrix.label }}/run.log
+            samples/showcase/comparison/trace-${{ matrix.label }}/metadata-diff.md
+            samples/showcase/comparison/trace-${{ matrix.label }}/metadata/reachability-metadata.json
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 14
+
+      - name: Upload the images
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: showcase-${{ matrix.label }}-images
+          path: |
+            samples/showcase/comparison/jvm-${{ matrix.label }}
+            samples/showcase/comparison/native-${{ matrix.label }}
+            samples/showcase/comparison/diff-${{ matrix.label }}
+            samples/showcase/comparison/trace-${{ matrix.label }}/*.png
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 7
+
+  macos:
+    needs: plan
+    if: needs.plan.outputs.macos-count != '0'
+    name: ${{ matrix.label }} on ${{ matrix.runner }}${{ !matrix.blocking && ' (non-blocking)' || '' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.macos) }}
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: ${{ !matrix.blocking }}
+    timeout-minutes: 150
+    env:
+      LABEL: ${{ matrix.label }}
+      ARGS: ${{ matrix.args }}
+      RUNNER: ${{ matrix.runner }}
+      BLOCKING: ${{ matrix.blocking }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Quarkus version of quarkus-fx
+        run: |
+          version=$(sed -n 's:.*<quarkus.version>\(.*\)</quarkus.version>.*:\1:p' pom.xml | head -1)
+          if [[ -z $version ]]; then echo "::error title=quarkus-fx::no quarkus.version in pom.xml"; exit 1; fi
+          echo "QUARKUS_VERSION=$version" >> "$GITHUB_ENV"
+          echo "Quarkus $version (quarkus-fx)" >> "$GITHUB_STEP_SUMMARY"
+
+      # Oracle GraalVM for JDK 25, the GraalVM of the native job of the Build workflow
+      - name: Set up GraalVM for JDK 25
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          distribution: graalvm
+          github-token: ${{ github.token }}
+
+      - name: Restore the Maven repository
+        id: m2
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: showcase-m2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: showcase-m2-${{ runner.os }}-${{ runner.arch }}-
+
+      # The session, the display (its largest mode at scale 1), the front application, a screenshot
+      - name: Prepare the desktop
+        continue-on-error: true
+        timeout-minutes: 5
+        run: bash .github/scripts/macos-desktop.sh --prepare desktop-start.png
+
+      - name: Install quarkus-fx
+        id: install
+        run: ./mvnw -B -ntp install -DskipTests -Dformat.skip -pl deployment -am 2>&1 | tee install.log
+
+      # 7 GB of memory on the runner : native-image gets 5g (Cycle.java gives it 6g otherwise)
+      - name: Cycle ${{ matrix.label }} ${{ matrix.args }}
+        working-directory: samples/showcase
+        timeout-minutes: 120
+        run: |
+          java tools/Cycle.java "$LABEL" \
+            "--maven-args=-Dquarkus.platform.version=$QUARKUS_VERSION,-Dquarkus.native.native-image-xmx=5g" $ARGS \
+            2>&1 | tee ../../cycle.log
+
+      - name: Desktop after the cycle
+        if: always()
+        continue-on-error: true
+        timeout-minutes: 5
+        run: bash .github/scripts/macos-desktop.sh desktop-end.png
+
+      - name: Report
+        if: always()
+        run: if [ -f .github/scripts/cycle-report.sh ]; then bash .github/scripts/cycle-report.sh; fi
+
+      # A build that failed downloaded only a part of the dependencies : the Maven repository is not saved then
+      - name: Builds
+        id: built
+        if: always()
+        run: echo "failed=$(grep -m1 -o -E '(JVM|native) build FAILED' cycle.log 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+
+      - name: Clean the Maven repository
+        if: always()
+        run: rm -rf ~/.m2/repository/io/quarkiverse/fx
+
+      - name: Save the Maven repository
+        if: steps.install.outcome == 'success' && steps.m2.outputs.cache-hit != 'true' && (github.event_name == 'push' || github.event_name == 'schedule') && !cancelled() && hashFiles('cycle.log') != '' && !contains(steps.built.outputs.failed, 'FAILED')
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: ${{ steps.m2.outputs.cache-primary-key }}
+
+      - name: Upload the verdict, logs and reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: showcase-${{ matrix.label }}
+          path: |
+            cycle.log
+            install.log
+            desktop-*.png
+            samples/showcase/comparison/diff-${{ matrix.label }}
+            samples/showcase/comparison/logs-${{ matrix.label }}
+            samples/showcase/comparison/*-${{ matrix.label }}/report.json
+            samples/showcase/comparison/*-${{ matrix.label }}/run.log
+            samples/showcase/comparison/trace-${{ matrix.label }}/metadata-diff.md
+            samples/showcase/comparison/trace-${{ matrix.label }}/metadata/reachability-metadata.json
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 14
+
+      - name: Upload the images
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: showcase-${{ matrix.label }}-images
+          path: |
+            samples/showcase/comparison/jvm-${{ matrix.label }}
+            samples/showcase/comparison/native-${{ matrix.label }}
+            samples/showcase/comparison/diff-${{ matrix.label }}
+            samples/showcase/comparison/trace-${{ matrix.label }}/*.png
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 7

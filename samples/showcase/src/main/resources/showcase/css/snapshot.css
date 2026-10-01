@@ -1,0 +1,4 @@
+/* Applied in snapshot mode only : removes time dependent rendering from snapshots */
+.text-input {
+    -fx-display-caret: false;
+}

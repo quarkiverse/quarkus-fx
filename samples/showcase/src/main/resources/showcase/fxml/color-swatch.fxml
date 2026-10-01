@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.shape.Rectangle?>
+
+<fx:root xmlns:fx="http://javafx.com/fxml/1" type="javafx.scene.layout.HBox"
+         styleClass="color-swatch" spacing="5" alignment="CENTER_LEFT">
+    <Rectangle fx:id="chip" width="16" height="16" arcWidth="5" arcHeight="5" stroke="#00000066"
+               fill="${controller.swatchColor}"/>
+    <Label fx:id="nameLabel" text="${controller.swatchName}" styleClass="swatch-name"/>
+</fx:root>

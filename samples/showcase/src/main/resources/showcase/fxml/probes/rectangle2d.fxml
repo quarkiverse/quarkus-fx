@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Rectangle2D?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<!-- Image @NamedArg constructors with location relative urls, Rectangle2D viewport -->
+<HBox xmlns:fx="http://javafx.com/fxml/1" spacing="6">
+    <ImageView fx:id="subject" fitWidth="40" fitHeight="40">
+        <image>
+            <Image url="@../../images/pattern.png"/>
+        </image>
+        <viewport>
+            <Rectangle2D minX="64" minY="64" width="96" height="96"/>
+        </viewport>
+    </ImageView>
+    <ImageView fx:id="photo">
+        <image>
+            <Image url="@../../images/photo.jpg" requestedWidth="66" requestedHeight="44" preserveRatio="true" smooth="true"/>
+        </image>
+    </ImageView>
+</HBox>
