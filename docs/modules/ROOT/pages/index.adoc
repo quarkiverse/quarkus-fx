@@ -210,6 +210,16 @@ Some JavaFX features rely on AWT or Swing:
 
 AWT and Swing do not work in a native executable on their own: add the https://github.com/quarkiverse/quarkus-desktop[Quarkus Desktop] extension your application needs.
 Quarkus FX detects it and configures these JavaFX features for the native executable.
+Quarkus Desktop is available on Maven Central (version 0.1.0 and later), and needs Quarkus 3.40 or later, for example :
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.quarkiverse.desktop</groupId>
+    <artifactId>quarkus-desktop-swing</artifactId>
+    <version>0.1.0</version>
+</dependency>
+----
 
 [cols="1,2"]
 |===
@@ -223,7 +233,7 @@ Quarkus FX detects it and configures these JavaFX features for the native execut
 |===
 
 Without Quarkus Desktop, these features only work in JVM mode.
-Quarkus Desktop builds native executables for Windows, Linux and macOS (macOS: a Quarkus version whose quarkus-awt supports macOS, see https://github.com/quarkusio/quarkus/pull/56979[quarkusio/quarkus#56979], and GraalVM 25.1 or later on Apple silicon).
+Quarkus Desktop builds native executables for Windows, Linux and macOS (macOS: Quarkus 4.0.0.Beta1 or later, whose quarkus-awt supports macOS, see https://github.com/quarkusio/quarkus/pull/56979[quarkusio/quarkus#56979], and GraalVM 25.1 or later on Apple silicon).
 On macOS, AWT runs embedded in the JavaFX application, as in JVM mode: the application handlers of `java.awt.Desktop` (About, Preferences, Quit, open files) are not called and the `apple.awt.application.*` properties have no effect; use the JavaFX APIs.
 Do not block the startup thread waiting for AWT work done on another thread.
 
