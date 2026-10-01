@@ -50,9 +50,10 @@ public class QuarkusFxApplication implements QuarkusApplication {
     }
 
     private static void startServingMainRunLoop(FxLifecycle lifecycle, String... args) {
-        // Started from another thread as in JVM mode : Glass performs its event loop on this thread, through the main run
-        // loop. Starting the toolkit on this thread instead (Platform::startup) makes Glass run its event loop in place,
-        // and JavaFX 24+ then frees its application delegate while that loop still uses it (NullPointerException at exit).
+        // Started from another thread as in JVM mode : Glass performs its event loop on this thread, through the main
+        // run loop. Starting the toolkit on this thread instead (Platform::startup) makes Glass run its event loop in
+        // place, and JavaFX 24+ then frees its application delegate while that loop still uses it (NullPointerException
+        // at exit).
         Thread attachment = new Thread(() -> {
             try {
                 lifecycle.start(args);
@@ -62,8 +63,8 @@ public class QuarkusFxApplication implements QuarkusApplication {
                 // The application cannot run : do not keep the process waiting for an exit that will never be requested
                 Quarkus.asyncExit(1);
             } finally {
-                // Quarkus shuts down once run() returns, and this thread only returns once JavaFX has exited : detach
-                // from JavaFX and exit it now, while this thread still performs its event loop
+                // Quarkus shuts down once run() returns, and the first thread only returns from run() once JavaFX has
+                // exited : detach from JavaFX and exit it now, while the first thread still performs its event loop
                 lifecycle.detach();
             }
         }, "quarkus-fx-attachment");
