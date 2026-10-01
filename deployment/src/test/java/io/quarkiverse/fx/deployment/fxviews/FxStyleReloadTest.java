@@ -1,5 +1,19 @@
 package io.quarkiverse.fx.deployment.fxviews;
 
+import static org.awaitility.Awaitility.await;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import jakarta.inject.Inject;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
+
 import io.quarkiverse.fx.FxPlatform;
 import io.quarkiverse.fx.deployment.base.FxTestBase;
 import io.quarkiverse.fx.deployment.fxviews.controllers.ComponentWithStyleController;
@@ -7,22 +21,10 @@ import io.quarkiverse.fx.style.StylesheetWatchService;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkiverse.fx.views.StylesheetReloadStrategy;
 import io.quarkus.test.QuarkusUnitTest;
-import jakarta.inject.Inject;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Parent;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.api.io.TempDir;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.awaitility.Awaitility.await;
 
 class FxStyleReloadTest extends FxTestBase {
 

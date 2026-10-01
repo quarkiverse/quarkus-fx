@@ -1,9 +1,5 @@
 package io.quarkiverse.fx.style;
 
-import io.quarkus.logging.Log;
-import javafx.application.Platform;
-import javafx.collections.ObservableList;
-
 import java.io.IOException;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
@@ -15,6 +11,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
+
+import io.quarkus.logging.Log;
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
 
 /** Watches source stylesheets. All registrations are closed when the FX runtime detaches. */
 public final class StylesheetWatchService {
@@ -95,7 +95,7 @@ public final class StylesheetWatchService {
                             .anyMatch(event -> event.kind() == StandardWatchEventKinds.OVERFLOW
                                     || this.path.getFileName().equals(event.context()));
                     if (changed) {
-                      this.refresh();
+                        this.refresh();
                     }
                     if (!key.reset()) {
                         break;
@@ -106,7 +106,7 @@ public final class StylesheetWatchService {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {
-              this.close();
+                this.close();
             }
         }
 
@@ -116,7 +116,7 @@ public final class StylesheetWatchService {
                 this.stylesheets = null;
                 REGISTRATIONS.remove(this);
                 try {
-                  this.service.close();
+                    this.service.close();
                 } catch (IOException e) {
                     Log.warn("Could not close stylesheet watcher", e);
                 }
