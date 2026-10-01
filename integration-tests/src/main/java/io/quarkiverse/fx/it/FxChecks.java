@@ -472,12 +472,12 @@ public class FxChecks {
     }
 
     /**
-     * Exits with the code : QuarkusFxApplication.run returns 0 once Quarkus exits, and the first exit code wins.
+     * Exits with the code : QuarkusFxApplication.run returns 0 once Quarkus exits, and the first exit code wins. Quarkus FX
+     * exits JavaFX once it has detached from it (Platform::exit before would discard that work, and delay the exit).
      */
     private static void exit(int code) {
         System.out.flush();
         Quarkus.asyncExit(code);
-        Platform.exit();
         if (ImageMode.current().isNativeImage()) {
             // an executable that does not exit fails its test instead of hanging it (no timeout in the test launcher)
             Thread watchdog = new Thread(() -> {
