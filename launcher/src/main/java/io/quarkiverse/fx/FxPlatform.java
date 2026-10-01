@@ -1,15 +1,15 @@
 package io.quarkiverse.fx;
 
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.stage.Stage;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.stage.Stage;
 
 /**
  * Process-wide toolkit ownership, loaded outside the reloadable Quarkus runtime.
@@ -77,7 +77,7 @@ public final class FxPlatform {
 
     /** Called on the FX thread; keeps only scalar state between application generations. */
     public void rememberWindow(Stage stage) {
-      this.windowBounds = new WindowBounds(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+        this.windowBounds = new WindowBounds(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
     }
 
     public void restoreWindow(Stage stage) {
