@@ -51,8 +51,8 @@ class FxStartupTest {
             // Ordinary FX event handlers run with the persistent thread's classloader.
             // Loaders created there must still resolve the current application's controllers.
             ClassLoader runtimeLoader = Thread.currentThread().getContextClassLoader();
-            FxPlatform.launch().invoke(FxPlatform.class.getClassLoader(),
-                    application -> Assertions.assertSame(runtimeLoader, this.loaders.get().getClassLoader()));
+            Assertions.assertTrue(FxPlatform.launch().invoke(FxPlatform.class.getClassLoader(),
+                    application -> Assertions.assertSame(runtimeLoader, this.loaders.get().getClassLoader())));
 
         } catch (Exception e) {
             Assertions.fail(e);

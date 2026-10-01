@@ -24,5 +24,8 @@ public class FxItFailureTest {
         assertTrue(output.contains("RESULT environment OK"), output);
         assertTrue(output.contains("RESULT deliberate-failure FAILED"), output);
         assertTrue(output.contains("SUMMARY ok=1 failed=1 [deliberate-failure]"), output);
+        // Quarkus.asyncExit while JavaFX runs : FxShutdownEvent on the FX thread (the first thread of a macOS native
+        // executable)
+        assertTrue(output.contains("FX-SHUTDOWN fxThread=true"), output);
     }
 }

@@ -42,6 +42,9 @@ public class FxItTest {
             assertTrue(output.contains("RESULT " + check + " OK"), check + "\n" + output);
         }
         assertTrue(output.contains("SUMMARY ok=" + CHECKS.size() + " failed=0"), output);
+        // Quarkus.asyncExit while JavaFX runs : FxShutdownEvent on the FX thread (the first thread of a macOS native
+        // executable)
+        assertTrue(output.contains("FX-SHUTDOWN fxThread=true"), output);
         assertEquals(expectedMode(), value(output, "mode"), output);
         // The JavaFX version of the build : the default of Quarkus FX, JavaFX 25 on JDK 23 and later (javafx-25 profile)
         String javaFxVersion = System.getProperty("javafx.expected.version");

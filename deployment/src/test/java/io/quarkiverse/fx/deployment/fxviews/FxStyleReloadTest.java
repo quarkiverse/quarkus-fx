@@ -73,15 +73,15 @@ class FxStyleReloadTest extends FxTestBase {
             FxPlatform platform = FxPlatform.launch();
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
             // invoke also drains the initial refreshes queued by watch().
-            platform.invoke(loader, application -> Assertions.assertEquals(2, watched.size()));
+            Assertions.assertTrue(platform.invoke(loader, application -> Assertions.assertEquals(2, watched.size())));
             int initialChanges = changes.get();
             Files.writeString(first, ".root { -fx-opacity: 0.5; }");
             await().atMost(Duration.ofSeconds(5)).until(() -> changes.get() > initialChanges);
-            platform.invoke(loader, application -> {
+            Assertions.assertTrue(platform.invoke(loader, application -> {
                 Assertions.assertEquals(2, watched.size());
                 Assertions.assertEquals(first.toUri().toString(), watched.get(0));
                 Assertions.assertEquals(second.toUri().toString(), watched.get(1));
-            });
+            }));
         }
         StylesheetWatchService.stopAll();
         await().atMost(Duration.ofSeconds(5)).until(() -> Thread.getAllStackTraces().keySet().stream()
