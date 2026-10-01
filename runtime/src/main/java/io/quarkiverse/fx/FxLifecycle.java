@@ -73,6 +73,15 @@ public class FxLifecycle {
     }
 
     void stop(@Observes @Priority(1) ShutdownEvent event) {
+        this.detach();
+    }
+
+    /**
+     * Detaches this Quarkus runtime from the JavaFX shell, and exits JavaFX in a packaged application. Called when Quarkus
+     * shuts down, and by {@link QuarkusFxApplication} in a macOS native executable before Quarkus shuts down : JavaFX no
+     * longer runs then. Only the first call detaches.
+     */
+    synchronized void detach() {
         if (this.retainUiAcrossRestarts()) {
             // Legacy behavior: the original UI and its CSS watchers survive the runtime restart.
             return;
