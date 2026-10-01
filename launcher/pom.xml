@@ -9,10 +9,14 @@
   <artifactId>quarkus-fx-launcher</artifactId>
   <name>Quarkus FX - Persistent launcher</name>
   <dependencies>
+    <!-- Provided by the JavaFX modules of quarkus-fx (javafx-fxml), or by those of the application : as a dependency of
+         the launcher, it would be as near to the application as the javafx-graphics of its JavaFX modules, and win over
+         a later version of theirs (javafx-graphics 22 with javafx-controls 25) -->
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-graphics</artifactId>
       <version>${javafx.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

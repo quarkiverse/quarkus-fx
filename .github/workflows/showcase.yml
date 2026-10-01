@@ -1,0 +1,51 @@
+name: Showcase
+
+# The JVM vs native cycles of the showcase (samples/showcase) against this commit, on four platforms (Linux arm64 and
+# x64, Windows x64, macOS arm64), run by showcase-cycle.yml : on every push to main, on pull requests labelled
+# "showcase", and manually. Informational : the platforms are non-blocking (a failed cycle is a failed job with a
+# warning, the run stays green), and this is not a required check.
+on:
+  push:
+    branches:
+      - "main"
+    # the documentation cannot change the cycles (the Build workflow still builds it)
+    paths-ignore:
+      - '.gitignore'
+      - 'CODEOWNERS'
+      - 'LICENSE'
+      - '**/*.md'
+      - '**/*.adoc'
+      - '*.txt'
+      - 'docs/**'
+      - '.all-contributorsrc'
+      - '.github/project.yml'
+  pull_request:
+    types: [ labeled, synchronize, reopened ]
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: Platforms, a JSON array (Linux-arm64, Linux-x64, Windows-x64, macOS-arm64) ; empty for all four
+        default: ''
+      nightly:
+        description: Also the nightly variants
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  showcase:
+    # pull requests : labelled "showcase", and when the label added is that one (another label does not rerun it)
+    if: >-
+      github.event_name != 'pull_request'
+      || (contains(github.event.pull_request.labels.*.name, 'showcase')
+          && (github.event.action != 'labeled' || github.event.label.name == 'showcase'))
+    # on the job : the skipped runs of other labels do not cancel a running cycle ; one group per manual run
+    concurrency:
+      group: showcase-${{ github.event_name }}-${{ github.event.pull_request.number || (github.event_name == 'workflow_dispatch' && github.run_id) || github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/showcase-cycle.yml
+    with:
+      platforms: ${{ inputs.platforms || '' }}
+      nightly: ${{ github.event_name == 'workflow_dispatch' && inputs.nightly }}

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Imports of nested classes (SpinnerValueFactory.IntegerSpinnerValueFactory) and their @NamedArg constructors,
+     as written by SceneBuilder -->
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" spacing="5">
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Label text="Integer"/>
+        <Spinner fx:id="subject" prefWidth="80">
+            <valueFactory>
+                <SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="10" initialValue="4" amountToStepBy="2"/>
+            </valueFactory>
+        </Spinner>
+        <Label text="Double"/>
+        <Spinner fx:id="decimal" prefWidth="80">
+            <valueFactory>
+                <SpinnerValueFactory.DoubleSpinnerValueFactory min="0" max="1" initialValue="0.25" amountToStepBy="0.5"/>
+            </valueFactory>
+        </Spinner>
+    </HBox>
+    <Label fx:id="bound" text="${'bound: ' + subject.value}"/>
+</VBox>

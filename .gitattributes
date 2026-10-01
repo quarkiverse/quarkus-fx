@@ -1,0 +1,11 @@
+# Windows scripts need CRLF line endings, Unix scripts LF
+*.cmd text eol=crlf
+mvnw text eol=lf
+*.sh text eol=lf
+.github/quarkus-ecosystem-test text eol=lf
+# The build formats the Java sources with LF line endings (quarkiverse-parent) : checked out with LF on every platform,
+# so that a build does not rewrite them on Windows (core.autocrlf)
+*.java text eol=lf
+# The libjvm stand-ins of WebKit (runtime/src/main/c/build-libjvm-stand-in.sh)
+*.so binary
+*.dylib binary

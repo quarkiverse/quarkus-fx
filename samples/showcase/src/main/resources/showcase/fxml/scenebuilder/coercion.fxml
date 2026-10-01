@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Attribute coercion through static valueOf(String) methods : KeyCombination (accelerator), Duration (tooltip
+     delays), and fx:constant on Cursor and Insets -->
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" spacing="5">
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <padding>
+            <Insets fx:constant="EMPTY"/>
+        </padding>
+        <MenuButton fx:id="menu" mnemonicParsing="false" text="File">
+            <items>
+                <MenuItem fx:id="save" mnemonicParsing="false" text="Save" accelerator="Shortcut+S"/>
+                <MenuItem fx:id="redo" mnemonicParsing="false" text="Redo" accelerator="Shortcut+Shift+Z"/>
+                <SeparatorMenuItem/>
+                <CheckMenuItem fx:id="wrap" mnemonicParsing="false" text="Wrap" selected="true"/>
+            </items>
+        </MenuButton>
+        <Button fx:id="subject" mnemonicParsing="false" text="Tooltip + HAND cursor">
+            <cursor>
+                <Cursor fx:constant="HAND"/>
+            </cursor>
+            <tooltip>
+                <Tooltip fx:id="tip" text="Tooltip declared in FXML" showDelay="250ms" hideDelay="1.5s"/>
+            </tooltip>
+        </Button>
+    </HBox>
+    <Label fx:id="accelerators" text="accelerators"/>
+</VBox>

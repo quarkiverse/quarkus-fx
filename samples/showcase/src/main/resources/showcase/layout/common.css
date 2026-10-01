@@ -1,0 +1,32 @@
+/* Shared by the layout and CSS pages */
+
+.layout-page {
+    -fx-font-size: 12px;
+}
+
+.demo-caption {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #455a64;
+}
+
+.demo-area {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #c5cdd3;
+    -fx-border-width: 1;
+}
+
+.block {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.pane-bg {
+    -fx-background-color: #eceff1;
+}
+
+.note {
+    -fx-font-size: 10px;
+    -fx-text-fill: #607d8b;
+}

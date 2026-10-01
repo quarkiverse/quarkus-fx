@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.paint.LinearGradient?>
+<?import javafx.scene.paint.Stop?>
+<?import javafx.scene.shape.Rectangle?>
+<!-- LinearGradient @NamedArg constructor with Stops and a CycleMethod -->
+<Rectangle xmlns:fx="http://javafx.com/fxml/1" fx:id="subject" width="116" height="40" arcWidth="10" arcHeight="10">
+    <fill>
+        <LinearGradient startX="0" startY="0" endX="0.5" endY="0" cycleMethod="REFLECT">
+            <stops>
+                <Stop offset="0" color="#e53935"/>
+                <Stop offset="0.5" color="#fdd835"/>
+                <Stop offset="1">
+                    <color>
+                        <Color red="0.12" green="0.53" blue="0.9"/>
+                    </color>
+                </Stop>
+            </stops>
+        </LinearGradient>
+    </fill>
+</Rectangle>

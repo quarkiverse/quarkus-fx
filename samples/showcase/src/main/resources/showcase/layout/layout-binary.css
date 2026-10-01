@@ -1,0 +1,19 @@
+/*
+ * Converted at runtime to a binary stylesheet (Stylesheet.convertToBinary) by layout-css-features, read back with
+ * Stylesheet.loadBinary and applied to a node as a data:application/octet-stream URI.
+ */
+.binary-css {
+    -fx-background-color: #004d40, linear-gradient(to bottom, #26a69a, #00796b),
+        radial-gradient(center 85% 50%, radius 45%, #ffffff66, transparent);
+    -fx-background-insets: 0, 1, 1;
+    -fx-background-radius: 4, 3, 3;
+    -fx-border-color: #ffab00;
+    -fx-border-style: dashed;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-text-fill: #e0f2f1;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #00000066, 3, 0, 0, 1);
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
+}

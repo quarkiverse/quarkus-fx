@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root"
+      fx:controller="io.quarkiverse.fx.showcase.pages.fxml.ShowcaseViewController"
+      stylesheets="@ShowcaseView.css" styleClass="showcase-view" prefWidth="316" maxWidth="316">
+    <VBox styleClass="view-header">
+        <Label fx:id="titleLabel" text="%view.title" styleClass="view-title"/>
+        <Label text="%view.subtitle" styleClass="view-subtitle"/>
+    </VBox>
+    <VBox styleClass="view-body" spacing="8">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Button fx:id="actionButton" text="%view.button" onAction="#onAction"/>
+            <Label fx:id="counterLabel" text="%view.noClicks" styleClass="counter"/>
+        </HBox>
+        <Label text="%view.progress" styleClass="view-note"/>
+        <ProgressBar fx:id="progress" progress="0.62" prefWidth="290" styleClass="view-progress"/>
+        <HBox spacing="6">
+            <ToggleButton text="%view.toggleA" selected="true"/>
+            <ToggleButton text="%view.toggleB"/>
+            <CheckBox text="%view.check" selected="true">
+                <HBox.margin>
+                    <Insets left="8" top="4"/>
+                </HBox.margin>
+            </CheckBox>
+        </HBox>
+    </VBox>
+</VBox>

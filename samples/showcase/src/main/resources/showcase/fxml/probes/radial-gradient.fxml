@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.paint.RadialGradient?>
+<?import javafx.scene.paint.Stop?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Rectangle?>
+<!-- RadialGradient @NamedArg constructor -->
+<HBox xmlns:fx="http://javafx.com/fxml/1" spacing="8">
+    <Circle fx:id="subject" radius="20">
+        <fill>
+            <RadialGradient focusAngle="45" focusDistance="0.4" centerX="0.5" centerY="0.5" radius="0.6" proportional="true">
+                <stops>
+                    <Stop offset="0" color="#ffffff"/>
+                    <Stop offset="1" color="#00897b"/>
+                </stops>
+            </RadialGradient>
+        </fill>
+    </Circle>
+    <Rectangle width="48" height="40">
+        <fill>
+            <RadialGradient centerX="0.5" centerY="0.5" radius="0.25" cycleMethod="REPEAT">
+                <stops>
+                    <Stop offset="0" color="#6a1b9a"/>
+                    <Stop offset="1" color="#f8bbd0"/>
+                </stops>
+            </RadialGradient>
+        </fill>
+    </Rectangle>
+</HBox>

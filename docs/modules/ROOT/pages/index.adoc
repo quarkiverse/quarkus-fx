@@ -68,25 +68,35 @@ public class MyFxmlController {
 
 The application will automatically be launched (thanks to a call to `javafx.application.Application::launch`) when the extension is present.
 
-If you need to customize the launch, you can provide a custom `@QuarkusMain`, such as :
+If you need to customize the launch, you can provide a custom `@QuarkusMain`, and let Quarkus FX launch the JavaFX application :
 
 .Custom main
 [source,java]
 ----
-package io.quarkiverse.fx.fxapp;
+package org.acme;
 
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 
 @QuarkusMain
-public class MyFxMain implements QuarkusApplication {
+public class MyMain implements QuarkusApplication {
     @Override
     public int run(String... args) {
+        // Custom code, run before the JavaFX application is launched
         return new QuarkusFxApplication().run(args);
     }
 }
 ----
+
+`QuarkusFxApplication::run` launches the JavaFX application and returns when Quarkus exits : call `Quarkus.asyncExit()` to exit the application, for example when its primary stage is hidden.
+Quarkus FX then fires `FxShutdownEvent` on the FX thread and exits JavaFX itself: do not call `Platform.exit()` as well.
+An application that calls `Platform.exit()` before `Quarkus.asyncExit()` still exits at once, but `FxShutdownEvent` is then fired only when Quarkus FX detaches before JavaFX has exited, which is not guaranteed.
+
+IMPORTANT: Do not call `Application::launch` in `run`.
+In a macOS native executable, `run` is called on the first thread of the process, which must run the macOS event loop for the application to show its windows : `Application::launch` blocks that thread, and the application never shows a window.
+`QuarkusFxApplication::run` launches the JavaFX application from another thread and, in a macOS native executable, runs the macOS event loop on the first thread until JavaFX exits.
+With Quarkus Desktop, which keeps the first thread in the macOS event loop itself (as the `java` launcher does), `run` is called on another thread, and launches the JavaFX application as in JVM mode.
 
 When the application is started, two main events are fired in sequence :
 
@@ -148,9 +158,30 @@ include::includes/quarkus-fx.adoc[]
 
 Initial native support has been added, to build an executable with GraalVM.
 
+[IMPORTANT]
+====
+On macOS, native executables need JavaFX 24 or later (JavaFX 24 needs Java 22 or later).
+With an earlier version, the executable crashes when the JavaFX toolkit exits, for example when the last window is closed ("Fatal error: Must either be at a safepoint or in native mode"): up to JavaFX 23, JavaFX detaches the first thread of the process from the VM when it exits.
+Quarkus FX logs a warning when it builds a macOS native executable with an earlier version.
+
+Quarkus FX depends on an earlier JavaFX version: declare the JavaFX modules of the application with a later version, for example :
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.openjfx</groupId>
+    <artifactId>javafx-fxml</artifactId>
+    <version>25.0.4</version>
+</dependency>
+----
+
+`javafx-fxml` brings `javafx-controls`, `javafx-graphics` and `javafx-base` in the same version: declare the other JavaFX modules the application uses (for example `javafx-media` or `javafx-web`) with that version too.
+====
+
 === Generate reachability metadata
 
 The extension automatically configures reflection and runtime initialization of the JavaFX components, for supported operating systems (Windows, Mac & Linux).
+The JavaFX features relying on AWT or Swing also need Quarkus Desktop, see <<awt-swing>>.
 
 You will also need to build your application reachability metadata.
 To do so, you can :
@@ -167,6 +198,85 @@ Try to load all UI components in the application and do all possible interaction
 Upon exit, `tracing-output/reachability-metadata.json` will be generated.
 
 Copy `tracing-output/reachability-metadata.json` to `src/main/resources/META-INF/native-image/{groupId}/{artifactId}/reachability-metadata.json`
+
+[[awt-swing]]
+=== AWT, Swing interop and printing
+
+Some JavaFX features rely on AWT or Swing:
+
+* printing (`javafx.print`, `WebEngine.print`, `HTMLEditor.print`),
+* the image formats JavaFX does not decode itself (for example TIFF), loaded with ImageIO (JavaFX 24 and later), and `SwingFXUtils`,
+* the J2D rendering pipeline (`-Dprism.order=j2d`),
+* the system beep of `WebView`, for example when cutting or copying without a selection (without Quarkus Desktop, it crashes the native executable),
+* `SwingNode` (Swing components in a JavaFX scene) and `JFXPanel` (a JavaFX scene in a Swing application), which also need `org.openjfx:javafx-swing`.
+
+AWT and Swing do not work in a native executable on their own: add the https://github.com/quarkiverse/quarkus-desktop[Quarkus Desktop] extension your application needs.
+Quarkus FX detects it and configures these JavaFX features for the native executable.
+Quarkus Desktop is available on Maven Central (version 0.1.0 and later), and needs Quarkus 3.40 or later, for example :
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.quarkiverse.desktop</groupId>
+    <artifactId>quarkus-desktop-swing</artifactId>
+    <version>0.1.0</version>
+</dependency>
+----
+
+[cols="1,2"]
+|===
+|Dependency |JavaFX features working in native executables
+
+|`io.quarkiverse.desktop:quarkus-desktop-awt`
+|printing, the ImageIO image formats, `SwingFXUtils`, the J2D pipeline and the system beep of `WebView`
+
+|`io.quarkiverse.desktop:quarkus-desktop-swing` (includes `quarkus-desktop-awt`)
+|the above, plus `SwingNode` and `JFXPanel` when `org.openjfx:javafx-swing` is a dependency
+|===
+
+Without Quarkus Desktop, these features only work in JVM mode.
+Quarkus Desktop builds native executables for Windows, Linux and macOS (macOS: Quarkus 4.0.0.Beta1 or later, whose quarkus-awt supports macOS, see https://github.com/quarkusio/quarkus/pull/56979[quarkusio/quarkus#56979], and GraalVM 25.1 or later on Apple silicon).
+On macOS, AWT runs embedded in the JavaFX application, as in JVM mode: the application handlers of `java.awt.Desktop` (About, Preferences, Quit, open files) are not called and the `apple.awt.application.*` properties have no effect; use the JavaFX APIs.
+Do not block the startup thread waiting for AWT work done on another thread.
+
+NOTE: A Swing application embedding JavaFX with `JFXPanel` starts the JavaFX runtime itself: provide your own `@QuarkusMain`, otherwise Quarkus FX launches a JavaFX application too.
+`FxApplicationStartupEvent`, `FxPostStartupEvent`, `FxStartupLatch`, `@RunOnFxThread` and `HostServices` injection rely on the JavaFX `Application` launched by Quarkus FX, and are not available in that case.
+
+=== WebView
+
+The WebKit library of JavaFX links `libjvm`, the library of the JVM, without using it, on macOS, on Linux x86_64, and on Linux aarch64 with JavaFX 24: a native executable has no `libjvm`.
+When the native executable of an application depending on `javafx-web` starts on macOS or Linux, Quarkus FX writes an empty stand-in in the directory where JavaFX extracts its native libraries (`~/.openjfx/cache/<JavaFX version>/<architecture>`, or the `javafx.cachedir` system property), replacing a different file of that name: `WebView` works as in JVM mode.
+
+* On macOS, WebKit finds `libjvm.dylib` next to it.
+In the directory of the executable, where GraalVM 25.1 and later writes its own `libjvm.dylib` for AWT, an existing `libjvm.dylib` is kept.
+* On Linux, Quarkus FX loads `libjvm.so`, or a temporary copy when that directory cannot be written.
+With Quarkus Desktop, the stand-in also satisfies the `libjvm.so` dependency of the AWT library, in place of the `libjvm.so` that GraalVM writes next to the executable.
+This is equivalent: the `libjvm.so` of GraalVM is empty too, and the native executable itself provides the JVM functions that AWT uses.
+
+Quarkus FX reads `javafx.cachedir` when the executable starts: set it on the command line (`-Djavafx.cachedir=...`), not with `System::setProperty`.
+
+=== Class path resource URLs
+
+In a native executable, class path resources have `resource:` URLs (`Class::getResource`) instead of `jar:` or `file:` URLs.
+Quarkus FX percent-encodes the resource names in these URLs, and decodes them when they are opened, as the JDK does for `jar:` URLs: resources whose names contain spaces, non-ASCII characters or other characters that a URI does not accept (stylesheets, CSS `url()`, `@import` and `@font-face`, `Media` and `AudioClip`, `WebView` pages and their resources, `URL::toURI`) work as in JVM mode.
+Like the JDK, it encodes non-ASCII characters as UTF-8: the URL of `images/café.png` ends with `images/caf%C3%A9.png`.
+This applies to GraalVM 25.0 (Community, Oracle GraalVM, Mandrel) and GraalVM Community 25.2 to 25.4; later GraalVM versions encode these URLs themselves.
+
+Do not store `resource:` URLs: they depend on the build (`resource:/3!/images/logo.png`).
+
+A `WebView` page loaded from a class path URL (`WebEngine::load`) has the same origin as in JVM mode, where its URL is a `jar:file:` URL: XMLHttpRequest and `fetch` of its resources, module scripts, workers, local storage, `history.pushState`, canvas `getImageData` and iframe documents work as in JVM mode.
+WebKit gets it as a `jar:file:/resource:/...` URL, which JavaScript and the DOM see (`document.URL`, `location`, the URLs of its links and images, `getDocumentURI()`); `WebEngine::getLocation` and the history return the `resource:` URL.
+To open a URL taken from the page in Java, replace its `jar:file:/resource:/` prefix with `resource:/`.
+A page that navigates to a `resource:` URL itself (an absolute link, `location.href`) gets an opaque origin: use relative URLs between class path pages.
+As in JVM mode, a missing class path page or resource (including one not included in the native executable) fails to load ("File not found"), instead of loading as an empty page, script, stylesheet or response.
+
+=== macOS versions and window style
+
+A macOS native executable declares the minimum macOS version and the SDK version of the `java` launcher of the JDK that builds it, as a JVM application does, so that its windows have the style of JVM mode.
+macOS chooses the style of the windows of an executable from its SDK version, and the `java` launcher of current JDKs is linked with the macOS 14 SDK: windows have the style of macOS 15 and before (a centered title).
+
+With Quarkus Desktop (`quarkus-desktop-awt`), Quarkus Desktop declares these versions (`quarkus.desktop.awt.macos.jdk-build-version`).
+To check the versions of an executable: `otool -l <executable> | grep -A4 LC_BUILD_VERSION`.
 
 === Build executable
 

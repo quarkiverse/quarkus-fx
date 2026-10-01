@@ -1,0 +1,10 @@
+/* User agent stylesheet of the Badge control (Region.getUserAgentStylesheet) : lowest priority defaults */
+.badge {
+    -badge-color: #607d8b;
+    -badge-size: 40;
+    -badge-shape: circle;
+    -badge-outlined: false;
+    -badge-text-fill: #ffffff;
+    -badge-ring-width: 0;
+    -fx-padding: 2;
+}

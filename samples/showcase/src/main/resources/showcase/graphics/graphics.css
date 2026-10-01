@@ -1,0 +1,139 @@
+/* Stylesheet of the "Shapes, Paint & Effects" pages (also parsed by their CSS checks). */
+
+.gfx-page {
+    -fx-font-size: 12px;
+}
+
+.gfx-section {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #263238;
+}
+
+.gfx-stage {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cfd8dc;
+}
+
+.gfx-stage-dark {
+    -fx-background-color: #1c262b;
+    -fx-border-color: #cfd8dc;
+}
+
+.gfx-caption {
+    -fx-font-size: 10px;
+    -fx-text-fill: #455a64;
+}
+
+.gfx-matrix-header {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #37474f;
+}
+
+.gfx-matrix-row {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #263238;
+}
+
+/* ---- Shapes ---- */
+
+.css-stroke {
+    -fx-fill: #e1bee7;
+    -fx-stroke: #6a1b9a;
+    -fx-stroke-width: 4;
+    -fx-stroke-dash-array: 12 8 2 8;
+    -fx-stroke-dash-offset: 3;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: bevel;
+    -fx-stroke-type: outside;
+    -fx-stroke-miter-limit: 4;
+}
+
+.css-shape {
+    -fx-shape: "M 50 4 L 62 36 L 96 37 L 69 58 L 79 92 L 50 72 L 21 92 L 31 58 L 4 37 L 38 36 Z";
+    -fx-scale-shape: true;
+    -fx-background-color: #bf360c, linear-gradient(to bottom, #ffe082, #ff8f00);
+    -fx-background-insets: 0, 3;
+    -fx-min-width: 66;
+    -fx-pref-width: 66;
+    -fx-max-width: 66;
+    -fx-min-height: 62;
+    -fx-pref-height: 62;
+    -fx-max-height: 62;
+}
+
+/* ---- Paint ---- */
+
+.css-linear-fill {
+    -fx-fill: linear-gradient(from 0% 0% to 100% 100%, #00c6ff 0%, #0072ff 60%, #0d2a5c 100%);
+}
+
+.css-radial-fill {
+    -fx-fill: radial-gradient(focus-angle 30deg, focus-distance 40%, center 50% 50%, radius 30%, reflect, #fff59d, #f57f17);
+}
+
+.css-background-layers {
+    -fx-background-color: linear-gradient(to right, #43cea2, #185a9d), rgba(255, 255, 255, 0.85);
+    -fx-background-insets: 0, 7 26 7 26;
+    -fx-background-radius: 0, 10;
+    /* relative URL, resolved against this stylesheet */
+    -fx-background-image: url("../images/icon-16.png");
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+
+.css-image-pattern {
+    /* absolute path, resolved by the class loader */
+    -fx-background-color: image-pattern("/showcase/images/pattern.png", 0, 0, 0.5, 1, true);
+}
+
+.css-repeating-pattern {
+    /* image-pattern URLs are not resolved against the stylesheet : absolute class path */
+    -fx-background-color: repeating-image-pattern("/showcase/images/tile.png");
+}
+
+.css-ladder {
+    /* text color picked from the background brightness */
+    -fx-background: #1565c0;
+    -fx-background-color: -fx-background;
+    -fx-text-fill: ladder(-fx-background, white 49%, black 50%);
+    -fx-font-weight: bold;
+    -fx-padding: 3 8 3 8;
+}
+
+.css-ladder.light {
+    -fx-background: #ffe082;
+}
+
+.css-derived {
+    -fx-base: #2e7d32;
+    -fx-background-color: derive(-fx-base, 60%), derive(-fx-base, -20%);
+    -fx-background-insets: 0, 8;
+}
+
+/* ---- Effects ---- */
+
+.css-dropshadow {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 12, 0.3, 3, 4);
+}
+
+.css-innershadow {
+    -fx-effect: innershadow(gaussian, #0d47a1, 10, 0.25, 2, 2);
+}
+
+/* ---- Blend modes and transforms ---- */
+
+.css-blend {
+    -fx-blend-mode: multiply;
+    -fx-opacity: 0.8;
+}
+
+.css-transform {
+    -fx-rotate: 30;
+    -fx-scale-x: 1.5;
+    -fx-scale-y: 0.5;
+    -fx-translate-x: 12;
+    -fx-translate-y: -4;
+}

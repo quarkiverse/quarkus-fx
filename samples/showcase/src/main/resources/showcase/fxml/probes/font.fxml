@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<!-- Font @NamedArg constructor and the Font.getDefault static factory -->
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="0">
+    <Label fx:id="subject" text="System Bold 15">
+        <font>
+            <Font name="System Bold" size="15"/>
+        </font>
+    </Label>
+    <Label fx:id="serif" text="Serif 13">
+        <font>
+            <Font name="Serif" size="13"/>
+        </font>
+    </Label>
+    <Label fx:id="defaultFont" text="Font.getDefault()">
+        <font>
+            <Font fx:factory="getDefault"/>
+        </font>
+    </Label>
+</VBox>

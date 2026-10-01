@@ -1,0 +1,33 @@
+/* Stylesheet of the StatusCard view, referenced as @StatusCard/StatusCard.css (relative to the views root) */
+
+.status-card > .title {
+    -fx-background-color: linear-gradient(to bottom, #5c6bc0, #3949ab);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.status-card > .title > .text {
+    -fx-fill: white;
+}
+
+.status-card > .content {
+    -fx-background-color: #f5f6fc;
+    -fx-border-color: #9fa8da;
+    -fx-padding: 8 10 10 10;
+}
+
+.status-key {
+    -fx-font-size: 11px;
+    -fx-text-fill: #5c6bc0;
+    -fx-font-weight: bold;
+}
+
+.status-value {
+    -fx-font-size: 11px;
+    -fx-text-fill: #1a237e;
+}
+
+.status-note {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: #616161;
+}

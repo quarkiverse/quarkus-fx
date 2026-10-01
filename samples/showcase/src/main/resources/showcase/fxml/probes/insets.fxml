@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<!-- @NamedArg constructors of Insets -->
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="4">
+    <Label fx:id="subject" text="padded" style="-fx-border-color: #1e88e5; -fx-background-color: #e3f2fd;">
+        <padding>
+            <Insets top="3" right="16" bottom="3" left="16"/>
+        </padding>
+    </Label>
+    <Label fx:id="uniform" text="uniform" style="-fx-border-color: #8e24aa; -fx-background-color: #f3e5f5;">
+        <padding>
+            <Insets topRightBottomLeft="2"/>
+        </padding>
+        <VBox.margin>
+            <Insets left="24"/>
+        </VBox.margin>
+    </Label>
+</VBox>
