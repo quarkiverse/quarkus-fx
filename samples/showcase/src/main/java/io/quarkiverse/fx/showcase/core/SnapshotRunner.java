@@ -114,7 +114,7 @@ public class SnapshotRunner {
             long failed = results.stream().filter(r -> !((List<?>) r.get("errors")).isEmpty()).count();
             LOG.infof("Snapshot run finished : %d pages, %d with errors", results.size(), failed);
             if (exit) {
-                Platform.exit();
+                // quarkus-fx exits JavaFX once it has detached from it (Platform::exit before would discard that work)
                 Quarkus.asyncExit();
             }
         }, Fx.FX_THREAD);

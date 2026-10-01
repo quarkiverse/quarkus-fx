@@ -6,7 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -124,10 +123,8 @@ public final class MainView {
         next.setOnAction(e -> step(1));
         MenuItem quit = new MenuItem("Quit");
         quit.setAccelerator(KeyCombination.keyCombination("Shortcut+Q"));
-        quit.setOnAction(e -> {
-            Platform.exit();
-            Quarkus.asyncExit();
-        });
+        // quarkus-fx exits JavaFX once it has detached from it (Platform::exit before would discard that work)
+        quit.setOnAction(e -> Quarkus.asyncExit());
         Menu showcase = new Menu("Showcase", null, previous, next, new SeparatorMenuItem(), quit);
 
         MenuItem about = new MenuItem("About");
