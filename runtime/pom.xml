@@ -11,6 +11,11 @@
   <name>Quarkus FX - Runtime</name>
   <dependencies>
     <dependency>
+      <groupId>io.quarkiverse.fx</groupId>
+      <artifactId>quarkus-fx-launcher</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-arc</artifactId>
     </dependency>

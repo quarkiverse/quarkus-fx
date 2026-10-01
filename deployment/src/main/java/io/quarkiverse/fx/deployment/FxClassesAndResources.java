@@ -591,6 +591,7 @@ public final class FxClassesAndResources {
             "io.quarkiverse.fx.FxApplication",
             "io.quarkiverse.fx.FxApplicationStartupEvent",
             "io.quarkiverse.fx.FxPostStartupEvent",
+            "io.quarkiverse.fx.FxShellApplication",
             "io.quarkiverse.fx.FxStartupLatch",
             "io.quarkiverse.fx.FxViewLoadEvent",
             "io.quarkiverse.fx.HostServicesProducer",
