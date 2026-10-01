@@ -2,3 +2,4 @@
 * xref:run-on-fx-thread.adoc[]
 * xref:fx-views.adoc[]
 * xref:startup-synchronization.adoc[]
+* xref:hot-reload.adoc[]

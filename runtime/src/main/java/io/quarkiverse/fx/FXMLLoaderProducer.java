@@ -13,9 +13,13 @@ public class FXMLLoaderProducer {
     @Inject
     Instance<Object> instance;
 
+    @Inject
+    FxLifecycle lifecycle;
+
     @Produces
     FXMLLoader produceFXMLLoader() {
         FXMLLoader loader = new FXMLLoader();
+        loader.setClassLoader(this.lifecycle.getApplicationClassLoader());
         loader.setControllerFactory(param -> this.instance.select(param).get());
         return loader;
     }

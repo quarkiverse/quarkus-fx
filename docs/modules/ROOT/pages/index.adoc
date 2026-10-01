@@ -75,17 +75,15 @@ If you need to customize the launch, you can provide a custom `@QuarkusMain`, su
 ----
 package io.quarkiverse.fx.fxapp;
 
-import io.quarkiverse.fx.FxApplication;
+import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
-import javafx.application.Application;
 
 @QuarkusMain
-public class QuarkusFxApplication implements QuarkusApplication {
+public class MyFxMain implements QuarkusApplication {
     @Override
     public int run(String... args) {
-        Application.launch(FxApplication.class, args);
-        return 0;
+        return new QuarkusFxApplication().run(args);
     }
 }
 ----

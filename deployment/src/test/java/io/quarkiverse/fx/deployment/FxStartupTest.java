@@ -1,18 +1,19 @@
 package io.quarkiverse.fx.deployment;
 
+import io.quarkiverse.fx.FxPlatform;
+import io.quarkiverse.fx.FxStartupLatch;
+import io.quarkiverse.fx.QuarkusFxApplication;
+import io.quarkus.test.QuarkusUnitTest;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-
+import javafx.application.HostServices;
+import javafx.fxml.FXMLLoader;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
-
-import io.quarkiverse.fx.FxStartupLatch;
-import io.quarkiverse.fx.QuarkusFxApplication;
-import io.quarkus.test.QuarkusUnitTest;
-import javafx.application.HostServices;
 
 class FxStartupTest {
 
@@ -25,6 +26,9 @@ class FxStartupTest {
 
     @Inject
     HostServices hostServices;
+
+    @Inject
+    Instance<FXMLLoader> loaders;
 
     @Test
     @Timeout(value = 10)
@@ -41,6 +45,12 @@ class FxStartupTest {
 
             // Invoke service
             this.hostServices.getCodeBase();
+
+            // Ordinary FX event handlers run with the persistent thread's classloader.
+            // Loaders created there must still resolve the current application's controllers.
+            ClassLoader runtimeLoader = Thread.currentThread().getContextClassLoader();
+            FxPlatform.launch().invoke(FxPlatform.class.getClassLoader(),
+                    application -> Assertions.assertSame(runtimeLoader, this.loaders.get().getClassLoader()));
 
         } catch (Exception e) {
             Assertions.fail(e);

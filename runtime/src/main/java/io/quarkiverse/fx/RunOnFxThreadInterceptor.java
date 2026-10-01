@@ -21,18 +21,20 @@ public class RunOnFxThreadInterceptor {
     @Inject
     FxStartupLatch startupLatch;
 
+    @Inject
+    FxLifecycle lifecycle;
+
     @AroundInvoke
     public Object runOnFxThread(InvocationContext ctx) throws Exception {
         LOGGER.tracef("intercepted %s on thread %s", ctx.getMethod(), Thread.currentThread());
 
         // Block thread until the startup latch has been cleared
         // This will return immediately after FX is ready and primary Stage instance is available
-        this.startupLatch.await();
-
         if (Platform.isFxApplicationThread()) {
             return ctx.proceed();
         } else {
-            Platform.runLater(() -> {
+            this.startupLatch.await();
+            this.lifecycle.runLater(() -> {
                 try {
                     ctx.proceed();
                 } catch (Exception e) {

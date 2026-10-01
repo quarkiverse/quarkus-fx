@@ -4,7 +4,6 @@ import io.quarkiverse.fx.FxPostStartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -23,10 +22,6 @@ public class QuarkusFxApp {
 
         Stage stage = event.getPrimaryStage();
 
-        stage.setOnCloseRequest(e -> {
-            Platform.exit();
-            System.exit(0);
-        });
 
         try {
             InputStream fxml = this.getClass().getResourceAsStream("/app.fxml");
