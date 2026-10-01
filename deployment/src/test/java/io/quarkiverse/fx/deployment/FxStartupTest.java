@@ -1,19 +1,21 @@
 package io.quarkiverse.fx.deployment;
 
-import io.quarkiverse.fx.FxPlatform;
-import io.quarkiverse.fx.FxStartupLatch;
-import io.quarkiverse.fx.QuarkusFxApplication;
-import io.quarkus.test.QuarkusUnitTest;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-import javafx.application.HostServices;
-import javafx.fxml.FXMLLoader;
+
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import io.quarkiverse.fx.FxPlatform;
+import io.quarkiverse.fx.FxStartupLatch;
+import io.quarkiverse.fx.QuarkusFxApplication;
+import io.quarkus.test.QuarkusUnitTest;
+import javafx.application.HostServices;
+import javafx.fxml.FXMLLoader;
 
 class FxStartupTest {
 
