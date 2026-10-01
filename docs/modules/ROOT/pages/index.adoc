@@ -90,6 +90,8 @@ public class MyMain implements QuarkusApplication {
 ----
 
 `QuarkusFxApplication::run` launches the JavaFX application and returns when Quarkus exits : call `Quarkus.asyncExit()` to exit the application, for example when its primary stage is hidden.
+Quarkus FX then fires `FxShutdownEvent` on the FX thread and exits JavaFX itself: do not call `Platform.exit()` as well.
+An application that calls `Platform.exit()` before `Quarkus.asyncExit()` still exits at once, but `FxShutdownEvent` is then fired only when Quarkus FX detaches before JavaFX has exited, which is not guaranteed.
 
 IMPORTANT: Do not call `Application::launch` in `run`.
 In a macOS native executable, `run` is called on the first thread of the process, which must run the macOS event loop for the application to show its windows : `Application::launch` blocks that thread, and the application never shows a window.

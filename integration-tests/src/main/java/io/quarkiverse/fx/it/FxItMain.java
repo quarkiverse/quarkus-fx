@@ -16,6 +16,11 @@ import io.quarkus.runtime.annotations.QuarkusMain;
  * <li>{@code fx} (default) : FXML views, stylesheets, images, class path resource URLs, HostServices,
  * {@code @RunOnFxThread} and WebView.</li>
  * <li>{@code fail} : a check that fails, for the exit code of a failed run.</li>
+ * <li>{@code platform-exit} : Platform.exit() then Quarkus.asyncExit(), the usual "Quit" of a JavaFX application : the
+ * application exits at once.</li>
+ * <li>{@code quit} : Platform.exit() and Quarkus.asyncExit() back to back in an event handler : the application exits
+ * at once.</li>
+ * <li>{@code system-exit} : System.exit() while JavaFX runs, as a signal. Integration tests of the artifact only.</li>
  * </ul>
  * JavaFX can only be launched once per JVM : a JVM runs one scenario.
  */

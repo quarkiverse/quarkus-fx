@@ -23,9 +23,11 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import io.quarkiverse.fx.FxPostStartupEvent;
+import io.quarkiverse.fx.FxShutdownEvent;
 import io.quarkiverse.fx.views.FxViewData;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkus.runtime.ImageMode;
+import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.Quarkus;
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -54,7 +56,7 @@ import javafx.stage.Stage;
  * it with a timeout : the JavaFX application thread is never blocked. Each check prints
  * {@code RESULT <check> OK <details>} (details : {@code key=value} words) or {@code RESULT <check> FAILED <exception>},
  * then {@code SUMMARY ok=<n> failed=<n> [<failed checks>]} is printed and the application exits with 0, or 1 when a check
- * failed.
+ * failed (platform-exit and system-exit quit as their names say).
  */
 @ApplicationScoped
 public class FxChecks {
@@ -63,7 +65,24 @@ public class FxChecks {
 
     static final String FAIL = "fail";
 
-    static final Set<String> SCENARIOS = Set.of(FX, FAIL);
+    /**
+     * The usual "Quit" of a JavaFX application : Platform.exit(), then Quarkus.asyncExit() once JavaFX has exited.
+     */
+    static final String PLATFORM_EXIT = "platform-exit";
+
+    /**
+     * The usual "Quit" of a JavaFX application, as written in an event handler : Platform.exit(), then
+     * Quarkus.asyncExit() at once.
+     */
+    static final String QUIT = "quit";
+
+    /**
+     * System.exit() while JavaFX runs, as a signal (SIGTERM, Ctrl+C) : the shutdown hooks of Quarkus and of JavaFX run
+     * at the same time. With the artifact of the build only : it would exit the JVM of the tests.
+     */
+    static final String SYSTEM_EXIT = "system-exit";
+
+    static final Set<String> SCENARIOS = Set.of(FX, FAIL, PLATFORM_EXIT, QUIT, SYSTEM_EXIT);
 
     /**
      * A class path directory whose name has spaces and a non-ASCII character (U+00E9, NFC).
@@ -115,6 +134,14 @@ public class FxChecks {
         started.complete(event.getPrimaryStage());
     }
 
+    /**
+     * Fired by Quarkus FX when Quarkus shuts down while JavaFX runs : on the JavaFX application thread.
+     */
+    void onFxShutdown(@Observes FxShutdownEvent event) {
+        System.out.println("FX-SHUTDOWN fxThread=" + Platform.isFxApplicationThread());
+        System.out.flush();
+    }
+
     void start(String scenario) {
         String runThread = Thread.currentThread().getName();
         Thread thread = new Thread(() -> run(scenario, runThread), "fx-it-checks");
@@ -134,6 +161,9 @@ public class FxChecks {
             check("deliberate-failure", () -> {
                 throw new IllegalStateException("the failing check of the fail scenario");
             });
+        } else if (PLATFORM_EXIT.equals(scenario) || QUIT.equals(scenario) || SYSTEM_EXIT.equals(scenario)) {
+            // A window showing, as when the user quits an application
+            check("stage", () -> onFx(() -> stage(stage)));
         } else {
             check("static-initializer", () -> onFx(FxChecks::staticInitializer));
             check("fx-view", () -> onFx(() -> fxView(stage)));
@@ -149,7 +179,17 @@ public class FxChecks {
             check("webview-missing-page", this::webViewMissingPage);
         }
         System.out.println("SUMMARY ok=" + ok + " failed=" + failures.size() + " " + failures);
-        exit(failures.isEmpty() ? 0 : 1);
+        if (!failures.isEmpty()) {
+            exit(1);
+        } else if (PLATFORM_EXIT.equals(scenario)) {
+            platformExit();
+        } else if (QUIT.equals(scenario)) {
+            quit();
+        } else if (SYSTEM_EXIT.equals(scenario)) {
+            systemExit();
+        } else {
+            exit(0);
+        }
     }
 
     private Stage awaitStartup() {
@@ -472,14 +512,75 @@ public class FxChecks {
     }
 
     /**
+     * The usual "Quit" of a JavaFX application : Platform.exit() in an event handler, then Quarkus.asyncExit(), here once
+     * JavaFX has exited. In a packaged application, the window that JavaFX closes as it exits already requests the Quarkus
+     * exit. Quarkus FX finds JavaFX exited when Quarkus shuts down : it must not wait for it.
+     */
+    private static void platformExit() {
+        System.out.println("EXIT exitRequestedAt=" + System.currentTimeMillis());
+        System.out.flush();
+        startExitWatchdog();
+        // The thread of Quarkus FX that runs Application.launch : it ends once JavaFX has exited
+        Thread launcher = Thread.getAllStackTraces().keySet().stream()
+                .filter(thread -> "quarkus-fx-launcher".equals(thread.getName()))
+                .findFirst()
+                .orElse(null);
+        if (launcher == null) {
+            System.out.println("RESULT platform-exit FAILED no quarkus-fx-launcher thread");
+            System.out.flush();
+            Quarkus.asyncExit(1);
+            return;
+        }
+        Platform.runLater(Platform::exit);
+        try {
+            launcher.join(TimeUnit.SECONDS.toMillis(TIMEOUT_SECONDS));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        Quarkus.asyncExit(0);
+    }
+
+    /**
+     * The usual "Quit" of a JavaFX application, as written in an event handler : Platform.exit(), then
+     * Quarkus.asyncExit() at once. Whether Quarkus FX detaches from JavaFX before it exits is a race : either way, the
+     * application exits at once, without an error.
+     */
+    private static void quit() {
+        System.out.println("EXIT exitRequestedAt=" + System.currentTimeMillis());
+        System.out.flush();
+        startExitWatchdog();
+        Platform.runLater(() -> {
+            Platform.exit();
+            Quarkus.asyncExit(0);
+        });
+    }
+
+    /**
+     * As a signal : Quarkus shuts down in its shutdown hook while JavaFX disposes its toolkit in its own.
+     */
+    private static void systemExit() {
+        System.out.println("EXIT exitRequestedAt=" + System.currentTimeMillis());
+        System.out.flush();
+        startExitWatchdog();
+        System.exit(0);
+    }
+
+    /**
      * Exits with the code : QuarkusFxApplication.run returns 0 once Quarkus exits, and the first exit code wins. Quarkus FX
-     * exits JavaFX once it has detached from it (Platform::exit before would discard that work, and delay the exit).
+     * exits JavaFX once it has detached from it (Platform::exit before would skip that work, FxShutdownEvent included).
      */
     private static void exit(int code) {
         System.out.flush();
         Quarkus.asyncExit(code);
-        if (ImageMode.current().isNativeImage()) {
-            // an executable that does not exit fails its test instead of hanging it (no timeout in the test launcher)
+        startExitWatchdog();
+    }
+
+    /**
+     * In the artifact of the build (the jar or the native executable, run by the integration tests), an application that
+     * does not exit fails its test instead of hanging it (no timeout in the test launcher). Not in the JVM of the tests.
+     */
+    private static void startExitWatchdog() {
+        if (LaunchMode.current() == LaunchMode.NORMAL) {
             Thread watchdog = new Thread(() -> {
                 try {
                     Thread.sleep(TimeUnit.SECONDS.toMillis(TIMEOUT_SECONDS));
