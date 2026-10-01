@@ -202,7 +202,8 @@ public class FxViewPage implements FeaturePage {
         }
         checks.add(Checks.expect("startup events order", "StartupEvent, FxApplicationStartupEvent, FxViewLoadEvent, FxPostStartupEvent",
                 () -> String.join(", ", lifecycle.events.stream().map(e -> e.substring(0, e.indexOf(' '))).toList())));
-        checks.add(Checks.expect("FxApplicationStartupEvent application", "FxApplication",
+        // the JavaFX application of quarkus-fx, which outlives the Quarkus runtimes of hot reload
+        checks.add(Checks.expect("FxApplicationStartupEvent application", "FxShellApplication",
                 () -> lifecycle.application.getClass().getSimpleName()));
         VBox eventsBox = FxmlUi.demo("Startup events observed by a bean (@Observes)", events);
 

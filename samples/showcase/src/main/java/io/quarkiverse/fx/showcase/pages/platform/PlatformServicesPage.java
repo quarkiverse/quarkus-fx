@@ -448,7 +448,9 @@ public class PlatformServicesPage implements FeaturePage {
                 executor.shutdownNow();
             }
         }));
-        checks.add(Checks.expect("implicitExit / nested loop running / can start", "true / false / true",
+        // implicit exit off : quarkus-fx keeps JavaFX running when the windows are hidden (hot reload), and exits Quarkus
+        // when the last window is closed
+        checks.add(Checks.expect("implicitExit / nested loop running / can start", "false / false / true",
                 () -> Platform.isImplicitExit() + " / " + Platform.isNestedLoopRunning() + " / "
                         + Platform.canStartNestedEventLoop()));
         checks.add(Checks.expect("Application.getUserAgentStylesheet()", "null (Modena)",
