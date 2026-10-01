@@ -36,6 +36,10 @@ import org.objectweb.asm.Opcodes;
  * initialization of classes the extension initializes at run time.
  * <p>
  * usage: java -cp asm.jar tools/ClinitAudit.java [platform, default: current] [javafx.version=25.0.4] [class_initialization_report.csv]
+ * [--desktop]
+ * <p>
+ * --desktop : the application depends on Quarkus Desktop (quarkus-desktop-swing) and javafx-swing, the AWT_ and SWING_
+ * lists of the extension apply too.
  */
 public class ClinitAudit {
 
@@ -66,7 +70,9 @@ public class ClinitAudit {
     // typically to have X register an accessor into the helper
     static final Map<String, Set<String>> forcedInits = new HashMap<>();
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] arguments) throws Exception {
+        boolean desktop = List.of(arguments).contains("--desktop");
+        String[] args = java.util.Arrays.stream(arguments).filter(a -> !a.startsWith("--")).toArray(String[]::new);
         String platform = args.length > 0 ? args[0] : currentPlatform();
         String fxVersion = args.length > 1 ? args[1] : "25.0.4";
         Path report = args.length > 2 ? Path.of(args[2]) : null;
@@ -99,6 +105,11 @@ public class ClinitAudit {
         List<String> runtimePackages = new ArrayList<>();
         for (String name : both(lists.get("RUNTIME_INITIALIZED_PACKAGES"), lists.get(prefix + "_RUNTIME_INITIALIZED_PACKAGES"))) {
             runtimePackages.add(name.replace('.', '/') + "/");
+        }
+        if (desktop) {
+            for (String name : both(lists.get("AWT_RUNTIME_INITIALIZED_PACKAGES"), lists.get("SWING_RUNTIME_INITIALIZED_PACKAGES"))) {
+                runtimePackages.add(name.replace('.', '/') + "/");
+            }
         }
         String[] suffixes = lists.getOrDefault("RUNTIME_INITIALIZED_CLASS_SUFFIXES", new String[0]);
         Set<String> runtimeInitialized = new TreeSet<>();
@@ -166,7 +177,8 @@ public class ClinitAudit {
             }
             byPackage.computeIfAbsent(pkg, k -> new TreeMap<>()).put(c.replace('/', '.'), lines);
         }
-        System.out.println("# Build-time initialized JavaFX classes (" + platform + ", JavaFX " + fxVersion + ") whose static initializer reaches a hazard"
+        System.out.println("# Build-time initialized JavaFX classes (" + platform + ", JavaFX " + fxVersion + (desktop ? ", Quarkus Desktop" : "")
+                + ") whose static initializer reaches a hazard"
                 + (buildTimeInImage != null ? " - limited to classes initialized at build time in the image" : "") + ": " + count);
         byPackage.forEach((pkg, classes) -> {
             System.out.println("\n## " + pkg);

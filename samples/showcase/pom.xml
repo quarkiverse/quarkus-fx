@@ -12,9 +12,10 @@
     <properties>
         <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <quarkus.platform.version>3.28.2</quarkus.platform.version>
+        <quarkus.platform.version>4.0.0.Beta1</quarkus.platform.version>
         <javafx.version>25.0.4</javafx.version>
         <quarkus-fx.version>999-SNAPSHOT</quarkus-fx.version>
+        <quarkus-desktop.version>0.1.0</quarkus-desktop.version>
         <compiler-plugin.version>3.14.0</compiler-plugin.version>
     </properties>
 
@@ -39,6 +40,12 @@
             <groupId>io.quarkiverse.fx</groupId>
             <artifactId>quarkus-fx</artifactId>
             <version>${quarkus-fx.version}</version>
+        </dependency>
+        <dependency>
+            <!-- AWT and Swing in native executables (Swing interop, printing) -->
+            <groupId>io.quarkiverse.desktop</groupId>
+            <artifactId>quarkus-desktop-swing</artifactId>
+            <version>${quarkus-desktop.version}</version>
         </dependency>
         <dependency>
             <!-- JavaHomeFeature (native executables only) -->

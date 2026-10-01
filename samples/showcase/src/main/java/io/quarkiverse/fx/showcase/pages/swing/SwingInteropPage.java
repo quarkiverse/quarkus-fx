@@ -60,10 +60,13 @@ import io.quarkiverse.fx.showcase.core.FeaturePage;
 import io.quarkiverse.fx.showcase.core.Fx;
 import javafx.animation.AnimationTimer;
 import javafx.animation.PauseTransition;
+import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.embed.swing.SwingNode;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
@@ -84,11 +87,14 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
+import javafx.stage.Popup;
+import javafx.stage.Screen;
 import javafx.util.Duration;
 
 /**
  * Swing interoperability : a SwingNode hosting Swing components created on the EDT, SwingFXUtils conversions between
- * JavaFX images and AWT BufferedImages.
+ * JavaFX images and AWT BufferedImages, and the JavaFX side of the interop (display and render scale of the Swing
+ * content, the SwingNode Disposer thread, ConditionalFeature.SWING, javafx.embed.singleThread).
  */
 @Singleton
 public class SwingInteropPage implements FeaturePage {
@@ -125,8 +131,10 @@ public class SwingInteropPage implements FeaturePage {
         final CompletableFuture<Void> painted = new CompletableFuture<>();
         final VBox swingChecks = new VBox();
         final VBox fxChecks = new VBox();
+        final VBox platformChecks = new VBox();
         final List<Check> conversions = new ArrayList<>();
         SwingNode swingNode;
+        volatile ShowcasePanel panel;
         CompletionStage<?> ready;
     }
 
@@ -167,6 +175,7 @@ public class SwingInteropPage implements FeaturePage {
         HBox.setHgrow(state.swingChecks, Priority.ALWAYS);
         HBox.setHgrow(state.fxChecks, Priority.ALWAYS);
         state.fxChecks.getChildren().setAll(Checks.view("SwingFXUtils", state.conversions));
+        state.fxChecks.getChildren().add(state.platformChecks);
         HBox checks = new HBox(16, state.swingChecks, state.fxChecks);
 
         VBox root = new VBox(12, top, checks);
@@ -186,6 +195,12 @@ public class SwingInteropPage implements FeaturePage {
                 .thenCompose(v -> Fx.pulses(10))
                 .thenCompose(v -> Fx.delay(600))
                 .thenCompose(v -> stable(swingHolder, 10_000))
+                .thenCompose(v -> renderScaleCheck(swingHolder))
+                .thenAccept(renderScale -> {
+                    List<Check> all = platformChecks(state);
+                    all.add(1, renderScale);
+                    state.platformChecks.getChildren().setAll(Checks.view("SwingNode and the JavaFX platform", all));
+                })
                 .thenCompose(v -> Fx.pulses(5));
         // the Swing checks never arrive when the EDT task could not run
         PauseTransition guard = new PauseTransition(Duration.seconds(20));
@@ -237,6 +252,79 @@ public class SwingInteropPage implements FeaturePage {
         return done;
     }
 
+    /**
+     * A SwingNode in a popup window whose render scale is forced to another value than the scale of the screen :
+     * SwingNode passes the render scale of its window to the Swing content
+     * (LightweightFrameWrapper.notifyDisplayChanged, looked up reflectively). The content of the page does not show
+     * it : a Swing content takes the scale of the screen by default. The popup is shown out of the screen, then hidden.
+     */
+    private static CompletionStage<Check> renderScaleCheck(Node owner) {
+        String name = "forced render scale → Swing paint scale";
+        double screenScale = Screen.getPrimary().getOutputScaleX();
+        double forced = screenScale == 2 ? 3 : 2;
+        CompletableFuture<Double> painted = new CompletableFuture<>();
+        Popup popup = new Popup();
+        SwingNode swingNode = new SwingNode();
+        try {
+            popup.renderScaleXProperty().bind(new SimpleDoubleProperty(forced));
+            popup.renderScaleYProperty().bind(new SimpleDoubleProperty(forced));
+            popup.setAutoFix(false);
+            popup.getContent().add(swingNode);
+            SwingUtilities.invokeLater(() -> {
+                JPanel panel = new JPanel() {
+                    @Override
+                    public void paint(Graphics g) {
+                        super.paint(g);
+                        double scale = ((Graphics2D) g).getTransform().getScaleX();
+                        if (scale == forced) {
+                            painted.complete(scale);
+                        }
+                    }
+                };
+                panel.setPreferredSize(new Dimension(80, 40));
+                panel.setBackground(new Color(0x1565C0));
+                swingNode.setContent(panel);
+            });
+            Rectangle2D bounds = Screen.getPrimary().getBounds();
+            popup.show(owner.getScene().getWindow(), bounds.getMinX() - 4000, bounds.getMinY() - 4000);
+        } catch (Throwable t) {
+            popup.hide();
+            return CompletableFuture.completedFuture(Check.fail(name, Checks.describe(t)));
+        }
+        return Fx.timeout(painted, 5_000, "a paint at scale " + forced)
+                .handle((scale, error) -> {
+                    popup.hide();
+                    SwingUtilities.invokeLater(() -> swingNode.setContent(null));
+                    return error == null ? Check.pass(name, forced + " → " + scale)
+                            : Check.fail(name, forced + " → " + describe(error));
+                });
+    }
+
+    /**
+     * Checks of the JavaFX side of the Swing interop, once the Swing content is painted (FX thread).
+     */
+    private static List<Check> platformChecks(State state) {
+        List<Check> checks = new ArrayList<>();
+        // the Swing content is painted at the scale of the screen (crisp at 150 %)
+        ShowcasePanel panel = state.panel;
+        double screenScale = Screen.getPrimary().getOutputScaleX();
+        double paintScale = panel == null ? Double.NaN : panel.paintScale;
+        checks.add(Check.of("Swing content paint scale", paintScale == screenScale,
+                paintScale + " (screen " + screenScale + ")"));
+        checks.add(Checks.expect("Platform.isSupported(SWING)", true,
+                () -> Platform.isSupported(ConditionalFeature.SWING)));
+        // started by the static initializer of com.sun.javafx.embed.swing.Disposer, used by SwingNode.setContent
+        checks.add(Checks.expect("\"SwingNode Disposer\" thread", "alive, daemon",
+                () -> Thread.getAllStackTraces().keySet().stream()
+                        .filter(thread -> thread.getName().equals("SwingNode Disposer"))
+                        .map(thread -> (thread.isAlive() ? "alive" : "dead") + (thread.isDaemon() ? ", daemon" : ""))
+                        .findFirst().orElse("missing")));
+        // true when run with -Djavafx.embed.singleThread=true : the EDT is the JavaFX Application Thread
+        checks.add(Checks.run("FX thread is the EDT", () -> SwingUtilities.isEventDispatchThread()
+                + " (javafx.embed.singleThread=" + System.getProperty("javafx.embed.singleThread") + ")"));
+        return checks;
+    }
+
     private static Label caption(String text) {
         Label label = new Label(text);
         label.setStyle("-fx-font-size: 11px; -fx-text-fill: #52606d; -fx-font-weight: bold;");
@@ -258,6 +346,8 @@ public class SwingInteropPage implements FeaturePage {
     private static final class ShowcasePanel extends JPanel {
         private final Runnable onFirstPaint;
         private boolean painted;
+        /** Horizontal scale of the graphics of the latest paint. */
+        volatile double paintScale = Double.NaN;
 
         ShowcasePanel(Runnable onFirstPaint) {
             super(new BorderLayout(8, 8));
@@ -274,6 +364,7 @@ public class SwingInteropPage implements FeaturePage {
 
         @Override
         public void paint(Graphics g) {
+            paintScale = ((Graphics2D) g).getTransform().getScaleX();
             super.paint(g);
             if (!painted && getWidth() > 0 && getHeight() > 0) {
                 painted = true;
@@ -291,6 +382,7 @@ public class SwingInteropPage implements FeaturePage {
             checks.add(Checks.run("look and feel", () -> UIManager.getLookAndFeel().getName()));
 
             ShowcasePanel panel = new ShowcasePanel(() -> Platform.runLater(() -> state.painted.complete(null)));
+            state.panel = panel;
             panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
             JLabel title = new JLabel("Swing components in a SwingNode");

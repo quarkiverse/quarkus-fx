@@ -23,12 +23,21 @@ import java.util.stream.Stream;
  * quarkus-fx extension registers for a platform (the common lists and the lists of that platform).
  * <p>
  * usage: java tools/MetadataDiff.java reachability-metadata.json [platform, default: current] [javafx.version=25.0.4]
+ * [--desktop]
+ * <p>
+ * --desktop : the application depends on Quarkus Desktop (quarkus-desktop-swing) and javafx-swing, the AWT_ and SWING_
+ * lists of the extension apply too. The JDK types accessed through JNI (by the JavaFX native code, or by AWT itself)
+ * are then compared with the lists of Quarkus Desktop (AwtClassesAndResources, SwingClassesAndResources, read from the
+ * installed deployment jars) : GraalVM and quarkus-awt register many AWT types themselves, the showcase of Quarkus
+ * Desktop verifies that side.
  */
 public class MetadataDiff {
 
     static final Path M2 = Path.of(System.getProperty("user.home"), ".m2", "repository");
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] arguments) throws Exception {
+        boolean desktop = List.of(arguments).contains("--desktop");
+        String[] args = Stream.of(arguments).filter(a -> !a.startsWith("--")).toArray(String[]::new);
         Path metadata = Path.of(args[0]);
         String platform = args.length > 1 ? args[1] : currentPlatform();
         String fxVersion = args.length > 2 ? args[2] : "25.0.4";
@@ -76,10 +85,25 @@ public class MetadataDiff {
         Set<String> jni = new TreeSet<>();
         add(jni, lists.get("JNI_RUNTIME_ACCESS_CLASSES"));
         add(jni, lists.get(prefix + "_JNI_RUNTIME_ACCESS_CLASSES"));
+        // AWT and Swing : methods, "class#method(parameter types)"
+        List<String> desktopJniMethods = desktop ? Stream.of("AWT_JNI_RUNTIME_ACCESS_METHODS",
+                "AWT_WEBVIEW_JNI_RUNTIME_ACCESS_METHODS", "SWING_JNI_RUNTIME_ACCESS_METHODS")
+                .flatMap(name -> Stream.of(nonNull(lists.get(name)))).toList() : List.of();
+        desktopJniMethods.forEach(method -> jni.add(method.substring(0, method.indexOf('#'))));
 
         Set<String> reflective = new TreeSet<>();
         add(reflective, lists.get("REFLECTIVE_CLASSES"));
         add(reflective, lists.get(prefix + "_REFLECTIVE_CLASSES"));
+        List<String> desktopReflective = desktop ? Stream.of("AWT_REFLECTIVE_CLASSES", "AWT_REFLECTIVE_CONSTRUCTORS",
+                "SWING_REFLECTIVE_CLASSES", "SWING_REFLECTIVE_CONSTRUCTORS")
+                .flatMap(name -> Stream.of(nonNull(lists.get(name)))).toList() : List.of();
+        reflective.addAll(desktopReflective);
+        // public classes, by package prefix
+        List<String> publicPrefixes = new ArrayList<>(List.of(nonNull(lists.get("REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES"))));
+        List<String> excludedPublicPrefixes = List.of(nonNull(lists.get("REFLECTIVE_PUBLIC_CLASS_EXCLUDED_PACKAGE_PREFIXES")));
+        List<String> desktopPublicPrefixes = desktop ? Stream.of("AWT_REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES",
+                "SWING_REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES").flatMap(name -> Stream.of(nonNull(lists.get(name))))
+                .toList() : List.of();
         List<Class<?>> roots = new ArrayList<>();
         for (String name : both(lists.get("REFLECTIVE_ROOT_CLASSES"), lists.get("REFLECTIVE_INTERFACES"))) {
             reflective.add(name);
@@ -103,6 +127,11 @@ public class MetadataDiff {
                     reflective.add(name);
                 }
             }
+            if (Modifier.isPublic(c.getModifiers()) && (publicPrefixes.stream().anyMatch(name::startsWith)
+                    && excludedPublicPrefixes.stream().noneMatch(name::startsWith)
+                    || desktopPublicPrefixes.stream().anyMatch(name::startsWith))) {
+                reflective.add(name);
+            }
         }
 
         List<Pattern> resourceGlobs = new ArrayList<>();
@@ -120,8 +149,12 @@ public class MetadataDiff {
         Map<String, Object> md = (Map<String, Object>) new Compare.JsonParser(Files.readString(metadata)).parse();
         Map<String, String> missingJni = new TreeMap<>();
         Map<String, String> missingReflection = new TreeMap<>();
+        Map<String, String> jdkJni = new TreeMap<>();
         Set<String> usedJni = new TreeSet<>();
         Set<String> usedReflection = new TreeSet<>();
+        Set<String> usedDesktopReflection = new TreeSet<>();
+        Set<String> usedDesktopJniMethods = new TreeSet<>();
+        Set<String> desktopListsJni = desktop ? desktopJniClasses(prefix) : Set.of();
         for (Object o : (List<?>) md.getOrDefault("reflection", List.of())) {
             @SuppressWarnings("unchecked")
             Map<String, Object> entry = (Map<String, Object>) o;
@@ -135,12 +168,31 @@ public class MetadataDiff {
                     || type.startsWith("com.sun.pisces") || type.startsWith("com.sun.openpisces");
             String members = members(entry);
             if (Boolean.TRUE.equals(entry.get("jniAccessible"))) {
-                if (fx || type.startsWith("java.") || type.endsWith("[]")) {
+                // AWT, Java2D, Swing, printing (JDK desktop modules) : the side of Quarkus Desktop
+                boolean jdkDesktop = !fx && Stream.of("java.awt.", "javax.swing.", "javax.print.", "javax.imageio.",
+                        "javax.sound.", "javax.accessibility.", "java.beans.", "sun.", "jdk.swing.", "com.sun.java.",
+                        "com.sun.imageio.", "com.sun.media.sound.", "com.sun.accessibility.").anyMatch(type::startsWith);
+                for (String method : desktopJniMethods) {
+                    if (method.startsWith(type + "#") && members.contains(method.substring(method.indexOf('#') + 1,
+                            method.indexOf('(')))) {
+                        usedDesktopJniMethods.add(method);
+                    }
+                }
+                if (desktop && jdkDesktop) {
+                    if (!jni.contains(type) && !desktopListsJni.contains(type)) {
+                        jdkJni.put(type, members);
+                    }
+                } else if (fx || type.startsWith("java.") || type.endsWith("[]")) {
                     usedJni.add(type);
-                    if (!jni.contains(type)) {
+                    // java.lang, java.util... types are accessed by the AWT native code too
+                    if (!jni.contains(type) && !desktopListsJni.contains(type)) {
                         missingJni.put(type, members);
                     }
                 }
+            }
+            // reflection and JNI accesses of a type are merged in one entry
+            if (desktopReflective.contains(type)) {
+                usedDesktopReflection.add(type);
             }
             // the agent merges JNI members into the reflection entry: a JNI entry is only checked for JNI coverage
             boolean reflectionUse = !Boolean.TRUE.equals(entry.get("jniAccessible"));
@@ -159,6 +211,10 @@ public class MetadataDiff {
             Map<String, Object> entry = (Map<String, Object>) o;
             if (entry.get("bundle") != null) {
                 String bundle = String.valueOf(entry.get("bundle"));
+                if (desktop && Stream.of("com.sun.swing.", "com.sun.java.swing.", "sun.", "com.sun.imageio.",
+                        "com.sun.accessibility.", "com.sun.media.sound.").anyMatch(bundle::startsWith)) {
+                    continue; // a bundle of the JDK desktop modules : the side of Quarkus Desktop
+                }
                 if ((bundle.startsWith("com.sun") || bundle.startsWith("javafx")) && !bundles.contains(bundle)) {
                     missingBundles.add(bundle);
                 }
@@ -181,6 +237,16 @@ public class MetadataDiff {
         section("Reflectively accessed JavaFX types not registered for reflection", missingReflection);
         list("JavaFX resources used but not included", missingResources);
         list("JavaFX resource bundles used but not included", missingBundles);
+        if (desktop) {
+            section("JDK desktop types accessed through JNI, in no quarkus-fx or Quarkus Desktop list (GraalVM and "
+                    + "quarkus-awt register many AWT types themselves : see the Quarkus Desktop showcase)", jdkJni);
+            Set<String> unusedReflective = new TreeSet<>(desktopReflective);
+            unusedReflective.removeAll(usedDesktopReflection);
+            list("AWT_ and SWING_ reflection entries not used in this run (candidates to verify)", unusedReflective);
+            Set<String> unusedJniMethods = new TreeSet<>(desktopJniMethods);
+            unusedJniMethods.removeAll(usedDesktopJniMethods);
+            list("AWT_ and SWING_ JNI methods not used in this run (candidates to verify)", unusedJniMethods);
+        }
 
         Set<String> platformJni = new TreeSet<>();
         add(platformJni, lists.get(prefix + "_JNI_RUNTIME_ACCESS_CLASSES"));
@@ -192,13 +258,14 @@ public class MetadataDiff {
         list(prefix + "_REFLECTIVE_CLASSES entries not used in this run (candidates to verify)", platformReflective);
         Set<String> stale = new TreeSet<>();
         for (Map.Entry<String, String[]> e : lists.entrySet()) {
-            if (e.getKey().contains("RESOURCE") || e.getKey().contains("PACKAGES") || e.getKey().contains("SUFFIXES")) {
+            if (e.getKey().contains("RESOURCE") || e.getKey().contains("PACKAGE") || e.getKey().contains("SUFFIXES")) {
                 continue;
             }
             if (e.getKey().startsWith("WINDOWS_") || e.getKey().startsWith("LINUX_") || (!e.getKey().startsWith(prefix) && e.getKey().startsWith("MAC_"))) {
                 continue;
             }
-            for (String name : e.getValue()) {
+            for (String entry : e.getValue()) {
+                String name = entry.contains("#") ? entry.substring(0, entry.indexOf('#')) : entry;
                 if ((name.startsWith("com.sun.") || name.startsWith("javafx.")) && !fxClasses.contains(name)
                         && (name.contains(".mac.") || name.contains(".es2.") || name.contains(".mtl.") || name.contains("coretext")
                                 || !(name.contains(".win.") || name.contains(".gtk.") || name.contains(".monocle.") || name.contains("directwrite")
@@ -208,6 +275,41 @@ public class MetadataDiff {
             }
         }
         list("Registered names that do not exist in the JavaFX " + platform + " jars (stale or other platform)", stale);
+    }
+
+    /**
+     * The classes of the JNI lists of Quarkus Desktop (common and platform lists, and the classes of the method and
+     * field lists), read from the installed deployment jars.
+     */
+    static Set<String> desktopJniClasses(String prefix) throws Exception {
+        Set<String> classes = new TreeSet<>();
+        // the version of the showcase (pom.xml property quarkus-desktop.version)
+        var version = Pattern.compile("<quarkus-desktop.version>([^<]+)</quarkus-desktop.version>")
+                .matcher(Files.readString(Path.of("pom.xml")));
+        String desktopVersion = version.find() ? version.group(1) : "999-SNAPSHOT";
+        for (String[] jar : List.of(
+                new String[] { "quarkus-desktop-awt-deployment", "io.quarkiverse.desktop.awt.deployment.AwtClassesAndResources" },
+                new String[] { "quarkus-desktop-swing-deployment", "io.quarkiverse.desktop.swing.deployment.SwingClassesAndResources" })) {
+            Path path = M2.resolve("io/quarkiverse/desktop/" + jar[0] + "/" + desktopVersion + "/" + jar[0] + "-"
+                    + desktopVersion + ".jar");
+            if (!Files.exists(path)) {
+                continue;
+            }
+            try (URLClassLoader cl = new URLClassLoader(new URL[] { path.toUri().toURL() }, null)) {
+                Class<?> c = cl.loadClass(jar[1]);
+                for (Field f : c.getDeclaredFields()) {
+                    String name = f.getName();
+                    if (Modifier.isStatic(f.getModifiers()) && f.getType() == String[].class
+                            && (name.startsWith("JNI_") || name.startsWith(prefix + "_JNI_"))) {
+                        f.setAccessible(true);
+                        for (String entry : (String[]) f.get(null)) {
+                            classes.add(entry.contains("#") ? entry.substring(0, entry.indexOf('#')) : entry);
+                        }
+                    }
+                }
+            }
+        }
+        return classes;
     }
 
     static void section(String title, Map<String, String> entries) {
