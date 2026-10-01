@@ -5,7 +5,7 @@ name: Showcase cycle
 #
 # Linux runs in the image of samples/showcase/docker/linux (Xvfb 1920x1200). Windows and macOS run on the desktop of the
 # runner, prepared by the scripts of .github/scripts (the display mode, the windows in front). The showcase is built with
-# the Quarkus version of quarkus-fx. No Windows on arm64 : neither JavaFX nor GraalVM exist for it. A non-blocking
+# the Quarkus version of its pom.xml. No Windows on arm64 : neither JavaFX nor GraalVM exist for it. A non-blocking
 # variant (blocking false in the plan) fails its job without failing the run : the platforms that never ran on GitHub
 # start so.
 on:
@@ -101,13 +101,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # The showcase is built with the Quarkus version of quarkus-fx (its pom.xml property quarkus.version)
-      - name: Quarkus version of quarkus-fx
+      # The showcase is built with the Quarkus version of its pom.xml, which Quarkus Desktop supports
+      - name: Quarkus versions
         run: |
-          version=$(sed -n 's:.*<quarkus.version>\(.*\)</quarkus.version>.*:\1:p' pom.xml | head -1)
-          if [[ -z $version ]]; then echo "::error title=quarkus-fx::no quarkus.version in pom.xml"; exit 1; fi
-          echo "QUARKUS_VERSION=$version" >> "$GITHUB_ENV"
-          echo "Quarkus $version (quarkus-fx)" >> "$GITHUB_STEP_SUMMARY"
+          fx=$(sed -n 's:.*<quarkus.version>\(.*\)</quarkus.version>.*:\1:p' pom.xml | head -1)
+          showcase=$(sed -n 's:.*<quarkus.platform.version>\(.*\)</quarkus.platform.version>.*:\1:p' samples/showcase/pom.xml | head -1)
+          echo "Quarkus $showcase (showcase), quarkus-fx built with Quarkus $fx" >> "$GITHUB_STEP_SUMMARY"
 
       # Mounted as /root/.m2 in the container : the dependencies and the Maven wrapper distribution (saved at the end,
       # by push and scheduled runs only)
@@ -150,7 +149,7 @@ jobs:
         timeout-minutes: 70
         run: |
           docker run --rm --init -v "$PWD/samples/showcase":/showcase -v "$HOME/.m2":/root/.m2 "$IMAGE" \
-            java tools/Cycle.java "$LABEL" "--maven-args=-Dquarkus.platform.version=$QUARKUS_VERSION" $ARGS \
+            java tools/Cycle.java "$LABEL" $ARGS \
             2>&1 | tee cycle.log
 
       # The verdict and what differs, in the summary of the run and as annotations ; in the log of this step, what the
@@ -238,12 +237,12 @@ jobs:
 
       - uses: actions/checkout@v7
 
-      - name: Quarkus version of quarkus-fx
+      # The showcase is built with the Quarkus version of its pom.xml, which Quarkus Desktop supports
+      - name: Quarkus versions
         run: |
-          version=$(sed -n 's:.*<quarkus.version>\(.*\)</quarkus.version>.*:\1:p' pom.xml | head -1)
-          if [[ -z $version ]]; then echo "::error title=quarkus-fx::no quarkus.version in pom.xml"; exit 1; fi
-          echo "QUARKUS_VERSION=$version" >> "$GITHUB_ENV"
-          echo "Quarkus $version (quarkus-fx)" >> "$GITHUB_STEP_SUMMARY"
+          fx=$(sed -n 's:.*<quarkus.version>\(.*\)</quarkus.version>.*:\1:p' pom.xml | head -1)
+          showcase=$(sed -n 's:.*<quarkus.platform.version>\(.*\)</quarkus.platform.version>.*:\1:p' samples/showcase/pom.xml | head -1)
+          echo "Quarkus $showcase (showcase), quarkus-fx built with Quarkus $fx" >> "$GITHUB_STEP_SUMMARY"
 
       # Oracle GraalVM for JDK 25, the GraalVM of the native job of the Build workflow (it sets up MSVC)
       - name: Set up GraalVM for JDK 25
@@ -286,7 +285,7 @@ jobs:
         working-directory: samples/showcase
         timeout-minutes: 90
         run: |
-          java tools/Cycle.java "$LABEL" "--maven-args=-Dquarkus.platform.version=$QUARKUS_VERSION" $ARGS \
+          java tools/Cycle.java "$LABEL" $ARGS \
             2>&1 | tee ../../cycle.log
 
       - name: Desktop after the cycle
@@ -370,12 +369,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Quarkus version of quarkus-fx
+      # The showcase is built with the Quarkus version of its pom.xml, which Quarkus Desktop supports
+      - name: Quarkus versions
         run: |
-          version=$(sed -n 's:.*<quarkus.version>\(.*\)</quarkus.version>.*:\1:p' pom.xml | head -1)
-          if [[ -z $version ]]; then echo "::error title=quarkus-fx::no quarkus.version in pom.xml"; exit 1; fi
-          echo "QUARKUS_VERSION=$version" >> "$GITHUB_ENV"
-          echo "Quarkus $version (quarkus-fx)" >> "$GITHUB_STEP_SUMMARY"
+          fx=$(sed -n 's:.*<quarkus.version>\(.*\)</quarkus.version>.*:\1:p' pom.xml | head -1)
+          showcase=$(sed -n 's:.*<quarkus.platform.version>\(.*\)</quarkus.platform.version>.*:\1:p' samples/showcase/pom.xml | head -1)
+          echo "Quarkus $showcase (showcase), quarkus-fx built with Quarkus $fx" >> "$GITHUB_STEP_SUMMARY"
 
       # Oracle GraalVM for JDK 25, the GraalVM of the native job of the Build workflow
       - name: Set up GraalVM for JDK 25
@@ -411,7 +410,7 @@ jobs:
         timeout-minutes: 120
         run: |
           java tools/Cycle.java "$LABEL" \
-            "--maven-args=-Dquarkus.platform.version=$QUARKUS_VERSION,-Dquarkus.native.native-image-xmx=5g" $ARGS \
+            "--maven-args=-Dquarkus.native.native-image-xmx=5g" $ARGS \
             2>&1 | tee ../../cycle.log
 
       - name: Desktop after the cycle

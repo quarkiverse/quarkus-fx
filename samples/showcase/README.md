@@ -14,6 +14,10 @@ in the native image configuration of quarkus-fx.
 - GraalVM for JDK 25, with `JAVA_HOME` and `GRAALVM_HOME` pointing to it (the tools are JDK 25 single-file programs)
 - quarkus-fx `999-SNAPSHOT` installed in the local Maven repository (`./mvnw install -DskipTests` at the root of this
   repository)
+- [Quarkus Desktop](https://github.com/quarkiverse/quarkus-desktop) (`quarkus-desktop-swing`, from Maven Central, which
+  needs Quarkus 3.40 or later): AWT and Swing in native executables, for the pages relying on them (`swing-interop`,
+  `swing-jfxpanel`, `platform-printing`, `platform-awt`). Without it, remove the dependency and exclude these pages
+  (`quarkus.arc.exclude-types`, see `application.properties`)
 - Native builds: see the [Quarkus native prerequisites](https://quarkus.io/guides/building-native-image) (Xcode command
   line tools on macOS, Visual Studio Build Tools on Windows, gcc/zlib/freetype development packages on Linux)
 
@@ -78,12 +82,26 @@ Everything JavaFX needs in a native executable comes from quarkus-fx, except wha
 - `@RegisterForReflection` on the application classes JavaFX reaches by reflection (models of `PropertyValueFactory`,
   JavaBean property adapters, FXML controllers and custom components)
 - `src/main/resources/META-INF/native-image/io.quarkiverse.fx.showcase/quarkus-fx-showcase/`: JNI access for the Java
-  objects exposed to JavaScript in a WebView, serialization of the clipboard custom format, and the Hijrah calendar data
-  (with `JavaHomeFeature`, a workaround for [oracle/graal#11410](https://github.com/oracle/graal/issues/11410))
+  objects exposed to JavaScript in a WebView, serialization of the clipboard custom format, the Hijrah calendar data
+  (with `JavaHomeFeature`, a workaround for [oracle/graal#11410](https://github.com/oracle/graal/issues/11410)), and the
+  private `J2DPrinterJob.getAlwaysOnTop(Class, long)` that `platform-printing` calls reflectively to create the owner of
+  the print dialogs from native code without showing a dialog
+- AWT and Swing: the JDK side comes from Quarkus Desktop, the JavaFX side from quarkus-fx (it detects Quarkus Desktop)
 
 ## JavaFX behaviors the pages work around
 
 They exist in JVM mode too, but make runs differ or fail depending on timing:
+
+- JFXPanel: the display scale of a JFXPanel is computed when it handles its first `COMPONENT_RESIZED` event. When the
+  scene is set on the JavaFX thread before (e.g. right after `pack()`), the embedded window keeps the scale 1.0 and the
+  content is rendered at scale 1 and stretched, depending on which thread is first (reproduced on the JVM).
+  `swing-jfxpanel` sets the scene once the resize event was handled.
+- The ImageIO image loader of JavaFX 25.0.4 fails on RGB(A) TIFFs (`Unsupported image type: TYPE_CUSTOM`), on 8 bit
+  palettes (`ArrayIndexOutOfBoundsException` for the indexes above 127) and when an image is requested at another size
+  (`ClassCastException` of a `ToolkitImage`): `platform-awt` loads gray and 2 bit palette TIFFs.
+- `WebPage.executeCommand("copy")` without a selection crashes the process (`EXCEPTION_ACCESS_VIOLATION`); Ctrl+C and
+  `executeCommand("cut")` beep (`java.awt.Toolkit.beep`, called from WebKit): `platform-awt` uses them, the system beep
+  sounds twice per run.
 
 - Windows clipboard: when another process (e.g. the Windows clipboard history) asks for a format of clipboard content
   JavaFX already replaced, Glass gets no data and calls `GetArrayLength` on a null array (`GlassClipboard.cpp`,
@@ -118,6 +136,9 @@ They exist in JVM mode too, but make runs differ or fail depending on timing:
 - `tools/ClinitAudit.java` (with ASM on the class path): lists the JavaFX classes quarkus-fx leaves initialized at build
   time whose static initializer reaches native code, threads, native memory, system properties or resource bundles:
   `java -cp ~/.m2/repository/org/ow2/asm/asm/9.9/asm-9.9.jar tools/ClinitAudit.java`
+- With Quarkus Desktop, both tools take `--desktop`: the `AWT_` and `SWING_` lists of quarkus-fx apply too, and
+  `MetadataDiff` compares the JDK types accessed through JNI with the lists of Quarkus Desktop (`tools/Cycle.java` passes
+  it)
 
 ## Linux in Docker
 
@@ -131,10 +152,11 @@ docker run --rm --init -v "$PWD":/showcase -v "$HOME/.m2":/root/.m2 quarkus-fx-s
 ## Continuous integration
 
 `.github/workflows/showcase-cycle.yml`, at the root of this repository, runs the cycles on GitHub Actions against the
-commit of the run (the runtime and deployment modules of quarkus-fx installed first), built with the Quarkus version of
-quarkus-fx, on four platforms. A plan job builds the matrices from one table of variants: every run has the default
-variants, and the nightly variants (`nightly`, a manual run) add the software pipeline (`-Dprism.order=sw`) on each
-platform.
+commit of the run (the runtime and deployment modules of quarkus-fx installed first), on four platforms. The showcase is
+built with the Quarkus version of its `pom.xml` (4.0.0.Beta1: Quarkus Desktop needs 3.40 or later, and the AWT support
+of Quarkus on macOS 4.0.0.Beta1 or later). A plan job builds the matrices from one table of variants: every run has the
+default variants, and the nightly variants (`nightly`, a manual run) add the software pipeline (`-Dprism.order=sw`) on
+each platform.
 
 | Platform | Runner | What runs |
 |---|---|---|

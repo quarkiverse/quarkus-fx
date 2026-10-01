@@ -30,6 +30,10 @@ public class GenImages {
         BufferedImage opaque = pattern(256, 256, false);
         ImageIO.write(opaque, "bmp", new File(dir, "pattern.bmp"));
         ImageIO.write(opaque, "gif", new File(dir, "pattern.gif"));
+        // an 8 bit gray TIFF, decoded by the ImageIO image loader of JavaFX (platform-awt)
+        BufferedImage gray = new BufferedImage(256, 256, BufferedImage.TYPE_BYTE_GRAY);
+        gray.createGraphics().drawImage(opaque, 0, 0, null);
+        ImageIO.write(gray, "tiff", new File(dir, "pattern.tiff"));
         ImageIO.write(photo(480, 320), "jpg", new File(dir, "photo.jpg"));
         ImageIO.write(icon(64), "png", new File(dir, "icon.png"));
         ImageIO.write(icon(16), "png", new File(dir, "icon-16.png"));

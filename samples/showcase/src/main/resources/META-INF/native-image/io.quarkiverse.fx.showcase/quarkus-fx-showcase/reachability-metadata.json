@@ -17,6 +17,18 @@
     {
       "type": "java.lang.String",
       "serializable": true
+    },
+    {
+      "type": "com.sun.prism.j2d.print.J2DPrinterJob",
+      "methods": [
+        {
+          "name": "getAlwaysOnTop",
+          "parameterTypes": [
+            "java.lang.Class",
+            "long"
+          ]
+        }
+      ]
     }
   ],
   "resources": [

@@ -1,5 +1,11 @@
 package io.quarkiverse.fx.showcase.pages.platform;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -7,12 +13,20 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
+import javax.print.attribute.standard.DialogOwner;
+
 import jakarta.inject.Singleton;
+
+import com.sun.javafx.scene.NodeHelper;
+import com.sun.javafx.tk.PrintPipeline;
+import com.sun.prism.j2d.PrismPrintPipeline;
+import com.sun.prism.j2d.print.J2DPrinterJob;
 
 import io.quarkiverse.fx.showcase.core.Categories;
 import io.quarkiverse.fx.showcase.core.Check;
 import io.quarkiverse.fx.showcase.core.Checks;
 import io.quarkiverse.fx.showcase.core.FeaturePage;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.print.JobSettings;
 import javafx.print.PageLayout;
@@ -23,7 +37,11 @@ import javafx.print.PrinterAttributes;
 import javafx.print.PrinterJob;
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -40,7 +58,8 @@ import javafx.scene.transform.Scale;
 
 /**
  * javafx.print : printers, their attributes, page layouts and a printer job that is created, inspected and cancelled
- * (nothing is ever printed). Failures are reported as failed checks.
+ * (nothing is ever printed), and the J2D print pipeline, which draws a sample document into a BufferedImage as
+ * PrinterJob.printPage draws on a printer. Failures are reported as failed checks.
  */
 @Singleton
 public class PlatformPrintingPage implements FeaturePage {
@@ -191,8 +210,110 @@ public class PlatformPrintingPage implements FeaturePage {
                 PlatformUi.demo("PrinterJob.createPrinterJob() : settings, then cancelJob()", jobBox),
                 PlatformUi.demo("Default printer : supported papers (points)", papers));
         PlatformUi.width(left, half);
-        VBox right = PlatformUi.checks("Printing checks", checks, 200, half);
+
+        // What PrinterJob.printPage draws, without a printer
+        ImageView printed = new ImageView();
+        try {
+            printed.setImage(printWithJ2D(checks));
+        } catch (Throwable t) {
+            checks.add(Check.fail("PrismPrintPipeline.printNode (J2D)", Checks.describe(t)));
+        }
+        printed.setFitWidth(PRINTED_WIDTH * 0.75);
+        printed.setPreserveRatio(true);
+        printed.setSmooth(true);
+        checks.add(Checks.expect("DialogOwner(long) from native code", "DialogOwner",
+                PlatformPrintingPage::dialogOwner));
+        checks.add(Checks.expect("FXML: Paper fx:constant, $paper.name", "A4 / A4",
+                PlatformPrintingPage::fxmlPaper));
+
+        VBox right = new VBox(10, PlatformUi.checks("Printing checks", checks, 200, half),
+                PlatformUi.demo("J2D print pipeline (PrismPrintGraphics) into a BufferedImage, shown at 75 %",
+                        printed));
+        PlatformUi.width(right, half);
         return PlatformUi.page(0, new HBox(12, left, right));
+    }
+
+    private static final int PRINTED_WIDTH = 400;
+    private static final int PRINTED_HEIGHT = 300;
+
+    /**
+     * Renders the sample document as {@code PrinterJob.printPage} does (J2DPrinterJob : PrismPrintGraphics, the J2D
+     * print pipeline of JavaFX, drawing with Java2D on the Graphics2D of the printer), here on the Graphics2D of a
+     * BufferedImage : nothing is printed.
+     */
+    private static WritableImage printWithJ2D(List<Check> checks) {
+        // with text of other scripts and an emoji, drawn with fallback fonts (J2DFontFactory.getCompositeFont)
+        Text fallback = new Text(12, 284, "Fallback: 日本語 العربية Ελληνικά 🖨");
+        fallback.setFont(Font.font("System", 14));
+        fallback.setFill(Color.web("#37474f"));
+        Node document = new Group(sampleDocument(), fallback);
+        Group root = new Group(document);
+        new Scene(root);
+        // CSS, layout and synchronization of the peers, as J2DPrinterJob does before printing
+        NodeHelper.layoutNodeForPrinting(root);
+        BufferedImage image = new BufferedImage(PRINTED_WIDTH, PRINTED_HEIGHT, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+        try {
+            g.setColor(java.awt.Color.WHITE);
+            g.fillRect(0, 0, PRINTED_WIDTH, PRINTED_HEIGHT);
+            PrismPrintPipeline pipeline = (PrismPrintPipeline) PrintPipeline.getPrintPipeline();
+            checks.add(Checks.expect("PrismPrintPipeline.printNode (J2D)", true,
+                    () -> pipeline.printNode(NodeHelper.getPeer(document), PRINTED_WIDTH, PRINTED_HEIGHT, g)));
+        } finally {
+            g.dispose();
+        }
+        // the title (text : J2DFontFactory) and the table lines (shapes) are drawn in dark colors
+        checks.add(Checks.expect("printed title / lines", "text / shapes",
+                () -> (darkPixels(image, 12, 12, 300, 34) > 200 ? "text" : "no text") + " / "
+                        + (darkPixels(image, 12, 80, 240, 14) > 1000 ? "shapes" : "no shapes")));
+        WritableImage fx = new WritableImage(PRINTED_WIDTH, PRINTED_HEIGHT);
+        fx.getPixelWriter().setPixels(0, 0, PRINTED_WIDTH, PRINTED_HEIGHT, PixelFormat.getIntArgbInstance(),
+                image.getRGB(0, 0, PRINTED_WIDTH, PRINTED_HEIGHT, null, 0, PRINTED_WIDTH), 0, PRINTED_WIDTH);
+        return fx;
+    }
+
+    /**
+     * FXML using javafx.print : FXMLLoader reads the constant and the property of Paper reflectively.
+     */
+    private static String fxmlPaper() throws IOException {
+        String fxml = """
+                <?import javafx.print.Paper?>
+                <?import javafx.scene.control.Label?>
+                <Label xmlns:fx="http://javafx.com/fxml" text="$paper.name">
+                    <fx:define>
+                        <Paper fx:id="paper" fx:constant="A4"/>
+                    </fx:define>
+                </Label>
+                """;
+        FXMLLoader loader = new FXMLLoader();
+        Label label = loader.load(new ByteArrayInputStream(fxml.getBytes(StandardCharsets.UTF_8)));
+        return ((Paper) loader.getNamespace().get("paper")).getName() + " / " + label.getText();
+    }
+
+    /** Pixels darker than mid gray in the given area. */
+    private static int darkPixels(BufferedImage image, int x, int y, int width, int height) {
+        int count = 0;
+        for (int row = y; row < y + height; row++) {
+            for (int column = x; column < x + width; column++) {
+                int rgb = image.getRGB(column, row);
+                if (((rgb >> 16 & 0xFF) + (rgb >> 8 & 0xFF) + (rgb & 0xFF)) / 3 < 200) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    /**
+     * The owner of the print and page setup dialogs : J2DPrinterJob creates it from native code (prism_common) with the
+     * package private DialogOwner(long) constructor and the owner window handle (Windows). The native method is called
+     * here directly, no dialog is shown (reflection registered in the application's reachability-metadata.json).
+     */
+    private static String dialogOwner() throws ReflectiveOperationException {
+        Method method = J2DPrinterJob.class.getDeclaredMethod("getAlwaysOnTop", Class.class, long.class);
+        method.setAccessible(true);
+        Object owner = method.invoke(null, DialogOwner.class, 1L);
+        return owner == null ? "null" : owner.getClass().getSimpleName();
     }
 
     private static String sorted(Collection<? extends Enum<?>> values) {

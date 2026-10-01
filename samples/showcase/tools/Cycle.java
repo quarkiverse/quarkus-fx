@@ -115,7 +115,9 @@ public class Cycle {
                 traced = Snapshot.run("jvm", "trace-" + label, null, options, 900) == 0 ? ""
                         : " (the trace run failed : comparison/trace-" + label + "/run.log)";
                 Path diff = Path.of("comparison", "trace-" + label, "metadata-diff.md");
-                java(diff, "tools/MetadataDiff.java", metadata.resolve("reachability-metadata.json").toString());
+                // the application depends on Quarkus Desktop : the AWT_ and SWING_ lists of quarkus-fx apply
+                java(diff, "tools/MetadataDiff.java", metadata.resolve("reachability-metadata.json").toString(),
+                        "--desktop");
                 Files.readAllLines(diff).stream().filter(l -> l.startsWith("## ")).forEach(System.out::println);
             }
         }
