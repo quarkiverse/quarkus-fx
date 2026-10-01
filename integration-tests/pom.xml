@@ -13,7 +13,8 @@
     <name>Quarkus FX - Integration Tests</name>
 
     <properties>
-        <skipITs>true</skipITs>
+        <!-- The integration tests run against the artifact of the build : the jar, or the native executable -->
+        <skipITs>false</skipITs>
     </properties>
 
     <dependencies>
@@ -125,7 +126,6 @@
             <properties>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
                 <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
-                <skipITs>false</skipITs>
             </properties>
             <build>
                 <plugins>

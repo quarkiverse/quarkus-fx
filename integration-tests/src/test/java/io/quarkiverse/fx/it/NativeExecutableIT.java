@@ -3,6 +3,7 @@ package io.quarkiverse.fx.it;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +18,7 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
 /**
- * Checks the file of the macOS native executable.
+ * Checks the file of the macOS native executable (skipped when the integration tests run against the jar).
  */
 @EnabledOnOs(OS.MAC)
 public class NativeExecutableIT {
@@ -26,6 +27,7 @@ public class NativeExecutableIT {
 
     @BeforeAll
     static void executable() {
+        assumeTrue(FxItIT.isNative(), "no native executable : the integration tests run against the jar");
         executable = Path.of(System.getProperty("native.image.path"));
         assertTrue(Files.isRegularFile(executable), executable + " not found");
     }
