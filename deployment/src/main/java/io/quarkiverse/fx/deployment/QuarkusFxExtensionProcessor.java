@@ -18,6 +18,7 @@ import org.jboss.jandex.VoidType;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.FXMLLoaderProducer;
+import io.quarkiverse.fx.FxLifecycle;
 import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.HostServicesProducer;
 import io.quarkiverse.fx.QuarkusFxApplication;
@@ -41,6 +42,7 @@ import io.quarkus.deployment.annotations.Produce;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
@@ -88,7 +90,8 @@ class QuarkusFxExtensionProcessor {
 
     @BuildStep
     AdditionalBeanBuildItem startupLatch() {
-        return new AdditionalBeanBuildItem(FxStartupLatch.class);
+        return AdditionalBeanBuildItem.builder().addBeanClasses(FxStartupLatch.class, FxLifecycle.class)
+                .setUnremovable().build();
     }
 
     @BuildStep
@@ -142,9 +145,17 @@ class QuarkusFxExtensionProcessor {
     @BuildStep
     void handleLiveReload(
             LiveReloadBuildItem liveReloadBuildItem,
+            BeanContainerBuildItem beanContainer,
             LiveReloadRecorder recorder) {
 
-        recorder.process(liveReloadBuildItem.isLiveReload());
+        recorder.process(liveReloadBuildItem.isLiveReload(), beanContainer.getValue());
+    }
+
+    @BuildStep
+    HotDeploymentWatchedFileBuildItem watchViews() {
+        return HotDeploymentWatchedFileBuildItem.builder()
+                .setLocationPredicate(path -> path.endsWith(".fxml") || path.endsWith(".properties"))
+                .build();
     }
 
     @Record(ExecutionTime.RUNTIME_INIT)

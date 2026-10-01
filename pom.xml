@@ -12,6 +12,7 @@
     <packaging>pom</packaging>
     <name>Quarkus FX - Parent</name>
     <modules>
+        <module>launcher</module>
         <module>deployment</module>
         <module>runtime</module>
     </modules>

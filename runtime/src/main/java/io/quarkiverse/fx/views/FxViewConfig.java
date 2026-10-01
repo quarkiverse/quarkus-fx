@@ -1,5 +1,6 @@
 package io.quarkiverse.fx.views;
 
+import io.quarkiverse.fx.HotReloadStrategy;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
@@ -8,6 +9,16 @@ import io.smallrye.config.WithDefault;
 @ConfigMapping(prefix = "quarkus.fx")
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public interface FxViewConfig {
+
+    /**
+     * JavaFX UI behavior when Quarkus restarts in dev mode (for example, by pressing s).
+     * RECREATE rebuilds the UI using the new CDI container and FXML resources.
+     * PRESERVE retains the original UI without rebinding it to the new CDI container.
+     * Stylesheet refresh is configured separately.
+     * Restart the dev process after changing this setting.
+     */
+    @WithDefault("recreate")
+    HotReloadStrategy hotReloadStrategy();
 
     /**
      * Root location for fx views.

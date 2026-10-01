@@ -3,6 +3,7 @@ package io.quarkiverse.fx.views;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -121,7 +122,7 @@ public class FxViewRepository {
             Objects.requireNonNull(stream, "FXML " + fxml + " not found in classpath.");
         }
 
-        try {
+        try (InputStream fxmlStream = stream) {
             if (bundle != null) {
                 loader.setResources(bundle);
             }
@@ -133,7 +134,7 @@ public class FxViewRepository {
             }
             loader.setLocation(url);
 
-            Object rootNode = loader.load(stream);
+            Object rootNode = loader.load(fxmlStream);
 
             // Stylesheet live reload
             if (stylesheetReload) {
@@ -156,7 +157,7 @@ public class FxViewRepository {
         if (!styleSheets.isEmpty()) {
             // Stylesheet found : manage it
             String targetMarker = this.config.targetResources();
-            for (String styleSheet : styleSheets) {
+            for (String styleSheet : List.copyOf(styleSheets)) {
                 // Find the index of .class directory
                 int targetIndex = styleSheet.indexOf(targetMarker);
 
@@ -169,6 +170,8 @@ public class FxViewRepository {
                     LOGGER.debugf("Stylesheet live reload : substituting '%s' with '%s'", styleSheet, sourcesPath);
 
                     // Set stylesheet and start monitoring changes
+                    int index = styleSheets.indexOf(styleSheet);
+                    styleSheets.set(index, Path.of(sourcesPath).toAbsolutePath().toUri().toString());
                     StylesheetWatchService.setStyleAndStartWatchingTask(() -> styleSheets, sourcesPath);
                 } else {
                     LOGGER.errorf("Could not find '%s' in the stylesheet file path '%s'", targetMarker, styleSheet);

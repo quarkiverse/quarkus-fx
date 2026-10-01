@@ -1,0 +1,75 @@
+= Hot reload
+
+Run your application with `mvn quarkus:dev` and press `s` in the Quarkus console after changing Java or FXML files.
+This uses Quarkus's force-restart command and does not require an HTTP endpoint.
+FXML and resource-bundle (`.properties`) changes are registered with Quarkus's reload scanner.
+Stylesheets retain their existing automatic live-refresh behavior.
+
+== Configuration
+
+JavaFX hot reload is enabled by default:
+
+[source,properties]
+----
+quarkus.fx.hot-reload-strategy=recreate
+----
+
+The available strategies are `recreate` (the default) and `preserve`.
+Set `quarkus.fx.hot-reload-strategy=preserve` to use the previous launch-once behavior.
+JavaFX still starts normally, but pressing `s` only restarts Quarkus: the original windows stay open,
+and JavaFX startup events, FXML loading and scene creation are not repeated.
+The original UI is not rebound to the new CDI container, so restart the dev process to apply Java or FXML changes to it.
+The setting applies only in dev mode. Restart the dev process after changing it.
+
+CSS refresh remains independently controlled by `quarkus.fx.stylesheet-reload-strategy`.
+The lifecycle and cleanup behavior below describes the default, enabled mode.
+
+== Lifecycle
+
+The JavaFX toolkit, application instance and FX thread start once per dev session.
+Each Quarkus restart creates fresh CDI beans, controllers, views and application stages.
+The main window's position and size are restored when available; other UI state resets.
+
+On every attachment the extension fires, on the FX thread, in order:
+
+. `FxApplicationStartupEvent`, with the persistent JavaFX application instance.
+. `FxViewLoadEvent`, with a fresh main stage, to load conventional views.
+. `FxPostStartupEvent`, to let the application install its scene and show the stage.
+
+The JavaFX application supplied by the startup event belongs to the entire dev session.
+Its JavaFX launch parameters are those of the first launch. Use the current Quarkus arguments/configuration for values that must change between reloads.
+
+Closing windows in dev mode leaves the toolkit running. Press `s` to rebuild the UI, or `q` / Ctrl+C to end the dev session.
+In a packaged application, closing the last window requests Quarkus shutdown and the extension exits JavaFX after cleanup.
+
+== Cleaning up application resources
+
+Observe `FxShutdownEvent` to stop application-owned animations, background tasks and subscriptions and remove listeners registered on external objects.
+The event runs on the FX thread while CDI is still available, before the extension hides application windows and destroys the runtime.
+
+[source,java]
+----
+void onFxShutdown(@Observes FxShutdownEvent event) {
+    animation.stop();
+    subscription.cancel();
+}
+----
+
+The extension closes its stylesheet watchers and discards queued `@RunOnFxThread` calls for a detached runtime.
+Applications scheduling callbacks directly with `Platform.runLater` must manage their own cancellation.
+Do not call `Platform.exit()` or `System.exit()` during reload cleanup: exiting the toolkit prevents subsequent reloads in that JVM.
+
+Use `@Singleton` for FXML controllers, as with the other extension examples, so FXML field injection targets the controller instance rather than a CDI client proxy.
+Applications with a custom `@QuarkusMain` can inject `FxLifecycle` and call `start(args)` after Quarkus startup, then use `Quarkus.waitForExit()` to keep the application running.
+Alternatively, delegate to `new QuarkusFxApplication().run(args)` as shown in the startup guide.
+The legacy `Application.launch(FxApplication.class, args)` entry point remains available for a single launch, but does not support hot reload; migrate custom main classes to the lifecycle-aware entry point.
+
+== Classloading
+
+The small `quarkus-fx-launcher` dependency owns the JavaFX shell in Quarkus's persistent base runtime classloader.
+It contains no CDI references and does not retain application callbacks or runtime classloaders.
+FXML loaders and extension lifecycle callbacks use the current runtime classloader; the FX thread's original context classloader is restored afterward.
+
+Keep the launcher and JavaFX dependencies non-reloadable. Do not configure them in `quarkus.class-loading.reloadable-artifacts`.
+They deliberately do not use parent-first loading: the existing `HostServices` CDI producer needs Quarkus bytecode transformation.
+Changes to the launcher or JavaFX dependencies require restarting the dev process.
