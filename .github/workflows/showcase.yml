@@ -1,10 +1,9 @@
 name: Showcase
 
-# The JVM vs native cycles of the Quarkus FX showcase (https://github.com/Eng-Fouad/quarkus-fx-showcase) against this
-# commit, on four platforms (Linux arm64 and x64, Windows x64, macOS arm64) : on every push to main, on pull requests
-# labelled "showcase", and manually. The reusable workflow lives in the showcase repository. Informational : the
-# platforms are non-blocking (a failed cycle is a failed job with a warning, the run stays green), and this is not a
-# required check.
+# The JVM vs native cycles of the showcase (samples/showcase) against this commit, on four platforms (Linux arm64 and
+# x64, Windows x64, macOS arm64), run by showcase-cycle.yml : on every push to main, on pull requests labelled
+# "showcase", and manually. Informational : the platforms are non-blocking (a failed cycle is a failed job with a
+# warning, the run stays green), and this is not a required check.
 on:
   push:
     branches:
@@ -24,9 +23,6 @@ on:
     types: [ labeled, synchronize, reopened ]
   workflow_dispatch:
     inputs:
-      showcase-ref:
-        description: Showcase branch, tag or commit
-        default: main
       platforms:
         description: Platforms, a JSON array (Linux-arm64, Linux-x64, Windows-x64, macOS-arm64) ; empty for all four
         default: ''
@@ -49,10 +45,7 @@ jobs:
     concurrency:
       group: showcase-${{ github.event_name }}-${{ github.event.pull_request.number || (github.event_name == 'workflow_dispatch' && github.run_id) || github.ref }}
       cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-    uses: Eng-Fouad/quarkus-fx-showcase/.github/workflows/cycle.yml@main
+    uses: ./.github/workflows/showcase-cycle.yml
     with:
-      fx-repository: ${{ github.repository }}
-      fx-ref: ${{ github.sha }}
-      showcase-ref: ${{ inputs.showcase-ref || 'main' }}
       platforms: ${{ inputs.platforms || '' }}
       nightly: ${{ github.event_name == 'workflow_dispatch' && inputs.nightly }}

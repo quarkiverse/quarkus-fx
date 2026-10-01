@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.VBox?>
+<!-- fx:include with a nested controller created by the CDI controller factory -->
+<VBox xmlns:fx="http://javafx.com/fxml/1" style="-fx-font-size: 10px;">
+    <fx:include fx:id="inner" source="../loader-badge.fxml"/>
+</VBox>

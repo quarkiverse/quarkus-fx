@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.*?>
+<!-- Static properties (GridPane constraints, HBox.hgrow) and lower case enum coercion -->
+<GridPane xmlns:fx="http://javafx.com/fxml/1" hgap="3" vgap="3" prefWidth="116">
+    <columnConstraints>
+        <ColumnConstraints percentWidth="50"/>
+        <ColumnConstraints percentWidth="50"/>
+    </columnConstraints>
+    <Label text="0,0" style="-fx-background-color: #bbdefb;" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+    <Label text="1,0" style="-fx-background-color: #c8e6c9;" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+    <Label fx:id="subject" text="span 2" alignment="center" style="-fx-background-color: #ffe0b2;" maxWidth="Infinity"
+           GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.halignment="CENTER"/>
+    <HBox GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2" spacing="2">
+        <Label fx:id="grow" text="hgrow" style="-fx-background-color: #f8bbd0;" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+        <Label text="fixed" style="-fx-background-color: #d1c4e9;"/>
+    </HBox>
+</GridPane>

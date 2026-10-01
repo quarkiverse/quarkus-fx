@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<!-- ${...} expression bindings : arithmetic, negation and string concatenation -->
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="2">
+    <Slider fx:id="slider" min="0" max="10" value="3" prefWidth="110"/>
+    <ProgressBar fx:id="subject" progress="${slider.value / 10}" prefWidth="110"/>
+    <CheckBox fx:id="check" text="on" selected="true"/>
+    <Label fx:id="result" text="${'2x = ' + slider.value * 2}" disable="${!check.selected}"
+           visible="${check.selected &amp;&amp; slider.value &gt; 2.5}"/>
+</VBox>

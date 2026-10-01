@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TreeItem?>
+<?import javafx.scene.control.TreeView?>
+
+<!-- TreeItem : a model class that is neither a Node nor Styleable, instantiated and filled by FXMLLoader -->
+<TreeView xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:id="subject"
+          prefWidth="300" prefHeight="98" focusTraversable="false">
+    <root>
+        <TreeItem fx:id="rootItem" value="Showcase" expanded="true">
+            <children>
+                <TreeItem value="FXML" expanded="true">
+                    <children>
+                        <TreeItem fx:id="leaf" value="SceneBuilder style"/>
+                    </children>
+                </TreeItem>
+                <TreeItem value="Platform"/>
+            </children>
+        </TreeItem>
+    </root>
+</TreeView>

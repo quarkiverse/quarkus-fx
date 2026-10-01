@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import java.lang.Double?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.shape.Polygon?>
+<?import javafx.scene.shape.Polyline?>
+<!-- fx:value instances of java.lang.Double in a list property -->
+<HBox xmlns:fx="http://javafx.com/fxml/1" spacing="10">
+    <Polygon fx:id="subject" fill="#5e35b1" stroke="#311b92">
+        <points>
+            <Double fx:value="20.0"/><Double fx:value="0.0"/>
+            <Double fx:value="40.0"/><Double fx:value="36.0"/>
+            <Double fx:value="0.0"/><Double fx:value="36.0"/>
+        </points>
+    </Polygon>
+    <Polyline stroke="#d81b60" strokeWidth="3" fill="transparent" points="0,30,15,5,30,30,45,5,60,30"/>
+</HBox>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- A ToggleGroup (not a Node) in fx:define, shared by RadioButtons and a ToggleButton, and an expression binding
+     that walks through it : ${group.selectedToggle.userData} -->
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" spacing="6">
+    <fx:define>
+        <ToggleGroup fx:id="group"/>
+    </fx:define>
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <RadioButton mnemonicParsing="false" text="Small" toggleGroup="$group" userData="small"/>
+        <RadioButton fx:id="subject" mnemonicParsing="false" text="Medium" toggleGroup="$group" userData="medium"
+                     selected="true"/>
+        <ToggleButton fx:id="large" mnemonicParsing="false" text="Large" toggleGroup="$group" userData="large"/>
+    </HBox>
+    <Label fx:id="selected" text="${'selected: ' + group.selectedToggle.userData}"/>
+</VBox>

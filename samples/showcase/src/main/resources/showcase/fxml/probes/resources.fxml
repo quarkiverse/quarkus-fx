@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<!-- %key resolution from the resource bundle, escaped % and a non-latin value -->
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="1">
+    <Label fx:id="subject" text="%probe.hello"/>
+    <Label fx:id="escaped" text="\%probe.hello"/>
+    <Label fx:id="arabic" text="%probe.arabic"/>
+</VBox>

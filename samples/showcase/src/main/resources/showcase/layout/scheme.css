@@ -1,0 +1,80 @@
+/* Media queries evaluated against Scene.getPreferences() (JavaFX 24+) */
+
+.scheme-root {
+    -scheme-text: #212121;
+    -scheme-muted: #616161;
+    -scheme-card: #ffffff;
+    -scheme-accent: #1e88e5;
+    -fx-background-color: #f1f3f4;
+    -fx-padding: 8 10 8 10;
+    -fx-spacing: 6;
+}
+
+.scheme-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -scheme-text;
+}
+
+.scheme-muted {
+    -fx-font-size: 10px;
+    -fx-text-fill: -scheme-muted;
+}
+
+.scheme-card {
+    -fx-background-color: -scheme-card;
+    -fx-background-radius: 6;
+    -fx-border-color: derive(-scheme-card, -18%);
+    -fx-border-radius: 6;
+    -fx-padding: 8;
+    -fx-spacing: 8;
+}
+
+.scheme-card .label,
+.scheme-card .check-box {
+    -fx-text-fill: -scheme-text;
+}
+
+.scheme-accent {
+    -fx-background-color: -scheme-accent;
+    -fx-background-radius: 3;
+    -fx-min-height: 6;
+    -fx-pref-height: 6;
+}
+
+.indicator {
+    -fx-font-size: 9px;
+    -fx-padding: 2 6 2 6;
+    -fx-background-radius: 8;
+    -fx-background-color: #bdbdbd;
+    -fx-text-fill: #212121;
+}
+
+@media (prefers-color-scheme: dark) {
+    .scheme-root {
+        -scheme-text: #eeeeee;
+        -scheme-muted: #a0a0a0;
+        -scheme-card: #262626;
+        -scheme-accent: #bb86fc;
+        -fx-base: #3a3a3a;
+        -fx-background-color: #121212;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .indicator.motion {
+        -fx-background-color: #ff7043;
+    }
+}
+
+@media (prefers-color-scheme: dark) and (prefers-reduced-motion: reduce) {
+    .indicator.combined {
+        -fx-background-color: #26c6da;
+    }
+}
+
+@media not (prefers-color-scheme: dark) {
+    .indicator.light-only {
+        -fx-background-color: #ffd54f;
+    }
+}

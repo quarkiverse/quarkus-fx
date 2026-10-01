@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.net.URL?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- SceneBuilder style : versioned default namespace, wildcard imports (java.lang.*), stylesheets declared as
+     <URL value="@..."/> (URLBuilder), styleClass as a list of <String> -->
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:id="subject" spacing="5"
+      maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="300">
+    <stylesheets>
+        <URL value="@scenebuilder.css"/>
+    </stylesheets>
+    <styleClass>
+        <String fx:value="sb-card"/>
+        <String fx:value="sb-dashed"/>
+    </styleClass>
+    <Label fx:id="styled" styleClass="sb-accent" text="Styled by &lt;URL value=&quot;@scenebuilder.css&quot;/&gt;"/>
+    <HBox spacing="6" alignment="CENTER_LEFT">
+        <Button fx:id="primary" mnemonicParsing="false" styleClass="sb-primary" text="Primary"/>
+        <Button mnemonicParsing="false" text="Plain"/>
+        <Label styleClass="sb-chip" text="looked-up color"/>
+    </HBox>
+</VBox>

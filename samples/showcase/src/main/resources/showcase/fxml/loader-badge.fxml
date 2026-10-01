@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.shape.Circle?>
+
+<HBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="io.quarkiverse.fx.showcase.pages.fxml.BadgeController"
+      styleClass="badge" spacing="6" alignment="CENTER_LEFT">
+    <Circle radius="5" fill="#ffb300" stroke="#e65100"/>
+    <Label fx:id="badgeText" styleClass="badge-text"/>
+    <Label fx:id="ownerLabel" styleClass="badge-owner"/>
+</HBox>

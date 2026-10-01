@@ -1,0 +1,43 @@
+/* Fonts declared with @font-face (relative URLs, resolved against this stylesheet) */
+@font-face {
+    font-family: 'Roboto Light';
+    src: url('../fonts/Roboto-Light.ttf');
+}
+
+@font-face {
+    font-family: 'Font Awesome 5 Free Solid';
+    src: url("../fonts/fa-solid-900.ttf");
+}
+
+/*
+ * Only ever loaded through this @font-face : the two fonts above are also loaded with Font.loadFont by the pages,
+ * which would hide a failing @font-face. ShowcaseFace-Light.ttf is Roboto Light (Apache License 2.0, copyright
+ * Google) with its name table renamed to the "Showcase Face" family.
+ */
+@font-face {
+    font-family: 'Showcase Face';
+    src: url(ShowcaseFace-Light.ttf) format('truetype');
+}
+
+.roboto-css {
+    -fx-font-family: 'Roboto Light';
+    -fx-font-size: 18px;
+    -fx-text-fill: #37474f;
+}
+
+.awesome-css {
+    -fx-font-family: 'Font Awesome 5 Free Solid';
+    -fx-font-size: 22px;
+    -fx-text-fill: #d81b60;
+}
+
+.face-css {
+    -fx-font-family: 'Showcase Face';
+    -fx-font-size: 18px;
+    -fx-text-fill: #00695c;
+}
+
+.font-shorthand-css {
+    -fx-font: bold italic 16px 'Georgia';
+    -fx-text-fill: #1565c0;
+}

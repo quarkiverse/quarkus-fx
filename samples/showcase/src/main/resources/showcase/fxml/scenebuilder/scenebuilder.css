@@ -1,0 +1,25 @@
+/* Referenced from url-stylesheet.fxml as <URL value="@scenebuilder.css"/> */
+
+.sb-card {
+    -sb-accent: #5e35b1;
+    -fx-background-color: #ede7f6;
+    -fx-background-radius: 6;
+    -fx-padding: 6 8 6 8;
+}
+
+.sb-card .sb-accent {
+    -fx-text-fill: -sb-accent;
+    -fx-font-weight: bold;
+}
+
+.sb-card .sb-primary {
+    -fx-base: derive(-sb-accent, 60%);
+}
+
+.sb-card .sb-chip {
+    -fx-background-color: -sb-accent;
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-padding: 1 6 1 6;
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- fx:include with its own resource bundle (resources="...", loaded by FXMLLoader through ResourceBundle.getBundle)
+     and an explicit charset -->
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" spacing="3">
+    <Label fx:id="subject" text="%probe.hello"/>
+    <fx:include fx:id="inner" source="include-inner.fxml" resources="showcase.fxml.IncludeMessages" charset="UTF-8"/>
+</VBox>

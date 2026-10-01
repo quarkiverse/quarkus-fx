@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.shape.Rectangle?>
+<!-- @NamedArg constructor of Color, Color.valueOf coercion of web colors -->
+<HBox xmlns:fx="http://javafx.com/fxml/1" spacing="5">
+    <Rectangle fx:id="subject" width="36" height="36" arcWidth="8" arcHeight="8">
+        <fill>
+            <Color red="0.9" green="0.3" blue="0.2" opacity="0.85"/>
+        </fill>
+    </Rectangle>
+    <Rectangle fx:id="web" width="36" height="36" fill="#43a047"/>
+    <Rectangle fx:id="rgba" width="36" height="36" fill="rgba(30,136,229,0.6)"/>
+</HBox>
