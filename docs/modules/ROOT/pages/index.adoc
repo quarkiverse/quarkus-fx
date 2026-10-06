@@ -67,6 +67,7 @@ public class MyFxmlController {
 == Startup
 
 The application will automatically be launched (thanks to a call to `javafx.application.Application::launch`) when the extension is present.
+With Quarkus Desktop SWT, JavaFX runs embedded in SWT instead, see <<swt>>.
 
 If you need to customize the launch, you can provide a custom `@QuarkusMain`, and let Quarkus FX launch the JavaFX application :
 
@@ -96,7 +97,7 @@ An application that calls `Platform.exit()` before `Quarkus.asyncExit()` still e
 IMPORTANT: Do not call `Application::launch` in `run`.
 In a macOS native executable, `run` is called on the first thread of the process, which must run the macOS event loop for the application to show its windows : `Application::launch` blocks that thread, and the application never shows a window.
 `QuarkusFxApplication::run` launches the JavaFX application from another thread and, in a macOS native executable, runs the macOS event loop on the first thread until JavaFX exits.
-With Quarkus Desktop, which keeps the first thread in the macOS event loop itself (as the `java` launcher does), `run` is called on another thread, and launches the JavaFX application as in JVM mode.
+With Quarkus Desktop AWT or Swing, which keep the first thread in the macOS event loop themselves (as the `java` launcher does), `run` is called on another thread, and launches the JavaFX application as in JVM mode.
 
 When the application is started, two main events are fired in sequence :
 
@@ -150,6 +151,81 @@ public class MyBean {
 }
 ----
 
+[[swt]]
+== JavaFX embedded in SWT
+
+An https://eclipse.dev/eclipse/swt/[Eclipse SWT] application can show JavaFX scenes with `javafx.embed.swt.FXCanvas`, an SWT widget (and convert images with `SWTFXUtils`), in JVM mode and in native executables, with the `quarkus-desktop-swt` extension of https://github.com/quarkiverse/quarkus-desktop[Quarkus Desktop], which runs the SWT user interface (see its https://docs.quarkiverse.io/quarkus-desktop/dev/swt.html[documentation]).
+It needs Quarkus Desktop 0.2.1 or later and Quarkus 3.40 or later, and `javafx-swt` (the `javafx.swt` module, see <<javafx-swt>>), in the JavaFX version of the application :
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.quarkiverse.desktop</groupId>
+    <artifactId>quarkus-desktop-swt</artifactId>
+    <version>0.2.1</version>
+</dependency>
+<dependency>
+    <groupId>org.openjfx</groupId>
+    <artifactId>javafx-swt</artifactId>
+    <version>25.0.4</version>
+</dependency>
+----
+
+The first `FXCanvas` starts JavaFX on the SWT user interface thread, which becomes the JavaFX Application Thread : create the `FXCanvas` once the user interface runs, for example in an `SwtStartupEvent` observer, and before any JavaFX control (a control needs JavaFX started).
+
+[source,java]
+----
+@ApplicationScoped
+public class MainWindow {
+
+  void onStartup(@Observes SwtStartupEvent event) {
+    Shell shell = new Shell(event.display());
+    shell.setLayout(new FillLayout());
+    FXCanvas canvas = new FXCanvas(shell, SWT.NONE);
+    canvas.setScene(new Scene(new Label("JavaFX in SWT")));
+    shell.open();
+  }
+}
+----
+
+With Quarkus Desktop SWT, Quarkus FX :
+
+* does not launch a JavaFX application : Quarkus Desktop SWT runs the user interface, with its main application when there is an `SwtStartupEvent` observer, or `SwtLifecycle.run()` in your `@QuarkusMain` (see its https://docs.quarkiverse.io/quarkus-desktop/dev/swt.html#startup[documentation]).
+A JavaFX application launched next to SWT does not work (on macOS, SWT crashes when it creates its `Display`) : `QuarkusFxApplication.run` fails,
+* keeps JavaFX running when the last `FXCanvas` is closed (`Platform.setImplicitExit(false)`) : JavaFX cannot start again in the JVM.
+The application exits with SWT, by default when its last shell is closed,
+* runs the `@RunOnFxThread` methods with `Platform.runLater`, once an `FXCanvas` has started JavaFX (they fail with `IllegalStateException` before),
+* configures the native executable for `FXCanvas` and `SWTFXUtils`, in addition to SWT, which Quarkus Desktop SWT configures.
+
+The JavaFX Application Thread is the SWT user interface thread : the `@RunOnUiThread` methods, `UiThread` and `UiThreadExecutor` of Quarkus Desktop SWT run there too.
+`FxApplicationStartupEvent`, `FxPostStartupEvent`, `FxShutdownEvent`, `FxStartupLatch`, the `HostServices` injection, the primary stage of `FxViewRepository` and the `@FxView` views rely on the JavaFX application launched by Quarkus FX : they are not available. Load FXML documents with an injected `FXMLLoader`.
+
+JavaFX starts once per JVM, bound to the thread that started it : after a restart of dev mode, or in a second application started in the same JVM (tests), `FXCanvas` does not work.
+Restart dev mode instead (`q`, then `quarkus:dev` again), and test each application in its own JVM, for example with `@QuarkusMainIntegrationTest`.
+As for SWT, macOS needs `-XstartOnFirstThread` in JVM mode, and dev mode runs no user interface on macOS (see the https://docs.quarkiverse.io/quarkus-desktop/dev/swt.html#macos[documentation of Quarkus Desktop SWT]).
+With `quarkus-desktop-awt` or `quarkus-desktop-swing` too, use the same version of Quarkus Desktop (0.2.1 or later), see https://docs.quarkiverse.io/quarkus-desktop/dev/swt.html#awt-and-swt[Using AWT or Swing with SWT].
+
+`SWTFXUtils.toFXImage` returns `null` with SWT 3.121 and later, in JVM mode too : it looks up members of SWT that SWT no longer has. `SWTFXUtils.fromFXImage` works.
+On Linux, Glass uses the X11 display of GDK : in a Wayland session, start the application with `GDK_BACKEND=x11` (not verified).
+
+The SWT variant of the https://github.com/quarkiverse/quarkus-fx/tree/main/samples/showcase[showcase] (`-Dswt`) shows its pages in an SWT shell through `FXCanvas`, and compares them in JVM mode and as a native executable.
+
+[[javafx-swt]]
+=== javafx-swt
+
+OpenJFX does not publish `javafx-swt` on Maven Central : it ships it in the JavaFX SDK (`lib/javafx-swt.jar`), and nests it in every `org.openjfx:javafx-graphics` platform jar, where it cannot be used.
+Install it once in your Maven repository, with the JavaFX version of the application (it uses JavaFX internals), and keep the artifactId `javafx-swt`, which gives its automatic module name `javafx.swt` :
+
+[source,shell]
+----
+mvn dependency:unpack "-Dartifact=org.openjfx:javafx-graphics:25.0.4:jar:linux" "-Dmdep.unpack.includes=javafx-swt.jar" "-DoutputDirectory=target/javafx-swt"
+mvn install:install-file "-Dfile=target/javafx-swt/javafx-swt.jar" "-DgroupId=org.openjfx" "-DartifactId=javafx-swt" "-Dversion=25.0.4" "-Dpackaging=jar"
+----
+
+Any platform classifier gives the same classes, and `-Dfile=<JavaFX SDK>/lib/javafx-swt.jar` works too.
+Quarkus FX finds `javafx-swt` whatever its coordinates, for example a Gradle `files(...)` dependency (see the https://docs.quarkiverse.io/quarkus-desktop/dev/swt.html#installation[installation of Quarkus Desktop SWT] for the SWT jar with Gradle).
+Declare the other JavaFX modules of the application in that version too (Quarkus FX depends on an earlier one) : `javafx-swt` 25 needs Java 23 or later, as JavaFX 25.
+
 == Properties
 
 include::includes/quarkus-fx.adoc[]
@@ -181,7 +257,7 @@ Quarkus FX depends on an earlier JavaFX version: declare the JavaFX modules of t
 === Generate reachability metadata
 
 The extension automatically configures reflection and runtime initialization of the JavaFX components, for supported operating systems (Windows, Mac & Linux).
-The JavaFX features relying on AWT or Swing also need Quarkus Desktop, see <<awt-swing>>.
+The JavaFX features relying on AWT or Swing also need Quarkus Desktop, see <<awt-swing>>, and so does JavaFX embedded in SWT, see <<swt>>.
 
 You will also need to build your application reachability metadata.
 To do so, you can :
@@ -275,7 +351,7 @@ As in JVM mode, a missing class path page or resource (including one not include
 A macOS native executable declares the minimum macOS version and the SDK version of the `java` launcher of the JDK that builds it, as a JVM application does, so that its windows have the style of JVM mode.
 macOS chooses the style of the windows of an executable from its SDK version, and the `java` launcher of current JDKs is linked with the macOS 14 SDK: windows have the style of macOS 15 and before (a centered title).
 
-With Quarkus Desktop (`quarkus-desktop-awt`), Quarkus Desktop declares these versions (`quarkus.desktop.awt.macos.jdk-build-version`).
+With Quarkus Desktop (`quarkus-desktop-awt` or `quarkus-desktop-swt`), Quarkus Desktop declares these versions (`quarkus.desktop.awt.macos.jdk-build-version`, `quarkus.desktop.swt.macos.jdk-build-version`).
 To check the versions of an executable: `otool -l <executable> | grep -A4 LC_BUILD_VERSION`.
 
 === Build executable
