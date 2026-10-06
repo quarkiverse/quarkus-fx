@@ -208,6 +208,12 @@ With `quarkus-desktop-awt` or `quarkus-desktop-swing` too, use the same version 
 `SWTFXUtils.toFXImage` returns `null` with SWT 3.121 and later, in JVM mode too : it looks up members of SWT that SWT no longer has. `SWTFXUtils.fromFXImage` works.
 On Linux, Glass uses the X11 display of GDK : in a Wayland session, start the application with `GDK_BACKEND=x11` (not verified).
 
+On Windows, JavaFX takes the zoom of SWT, the one of the primary monitor when SWT starts : `FXCanvas` sets it for every JavaFX window (`glass.win.uiScale`, which replaces a `-Dglass.win.uiScale` option).
+By default, SWT 3.132 (the version of Quarkus Desktop SWT 0.2.1) rounds it to a multiple of 100 % (125 % and 150 % give 100 %, 175 % gives 200 %) : at 125 % or 150 %, JavaFX draws at 100 %, and so does SWT, except its text.
+For the zoom of the monitor, start the application with `-Dswt.autoScale=quarter` (the nearest multiple of 25 %) or `-Dswt.autoScale=exact`, in JVM mode and as a native executable.
+SWT reads it once, when it creates its `Display` : setting it in an `SwtStartupEvent` observer is too late.
+SWT 3.133 and later scale each monitor by default on Windows, to the nearest multiple of 25 % (not verified with `FXCanvas`).
+
 The SWT variant of the https://github.com/quarkiverse/quarkus-fx/tree/main/samples/showcase[showcase] (`-Dswt`) shows its pages in an SWT shell through `FXCanvas`, and compares them in JVM mode and as a native executable.
 
 [[javafx-swt]]
