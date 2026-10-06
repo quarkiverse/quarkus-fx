@@ -14,7 +14,8 @@ import java.util.Set;
  * JavaFX features relying on AWT (printing, the J2D pipeline, the ImageIO image loader, {@code SwingFXUtils}) or Swing
  * ({@code SwingNode}, {@code JFXPanel}) have their own lists ({@code AWT_KIND}, {@code SWING_KIND}), applied in addition
  * when the application depends on Quarkus Desktop (quarkus-desktop-awt, quarkus-desktop-swing), which makes AWT and Swing
- * work in native executables.
+ * work in native executables. So has the SWT interop ({@code FXCanvas}, {@code SWTFXUtils}) : {@code SWT_KIND}, with
+ * quarkus-desktop-swt, and platform lists ({@code MAC_SWT_KIND}) for the internals of the SWT of each platform.
  */
 public final class FxClassesAndResources {
 
@@ -40,7 +41,8 @@ public final class FxClassesAndResources {
 
     /**
      * The image builder system property that makes {@code io.quarkiverse.fx.graal.MacBuildVersion} write the versions of
-     * the {@code java} launcher in a macOS native executable (without Quarkus Desktop, which writes them itself).
+     * the {@code java} launcher in a macOS native executable (without Quarkus Desktop : quarkus-desktop-awt and
+     * quarkus-desktop-swt write them themselves).
      */
     static final String MAC_JDK_BUILD_VERSION_PROPERTY = "io.quarkiverse.fx.macos.jdk-build-version";
 
@@ -378,8 +380,8 @@ public final class FxClassesAndResources {
     /**
      * Excluded from {@link #REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES} : printing and Swing interop rely on AWT, their
      * public classes are registered with {@link #AWT_REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES} and
-     * {@link #SWING_REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES} when Quarkus Desktop is present. SWT interop
-     * ({@code javafx.embed.swt}) is not configured.
+     * {@link #SWING_REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES} when Quarkus Desktop is present. The public classes of the
+     * SWT interop ({@code javafx.embed.swt}) are SWT widgets and utilities, which FXML does not create : see the SWT lists.
      */
     static String[] REFLECTIVE_PUBLIC_CLASS_EXCLUDED_PACKAGE_PREFIXES = {
             "javafx.embed.",
@@ -923,7 +925,6 @@ public final class FxClassesAndResources {
     static String[] RESOURCE_GLOBS = {
             // javafx.graphics
             "META-INF/fonts.mf",
-            "javafx-swt.jar",
             // ES2 pipeline shaders (macOS and Linux)
             "com/sun/prism/es2/glsl/*.frag",
             "com/sun/prism/es2/glsl/main.vert",
@@ -1142,5 +1143,107 @@ public final class FxClassesAndResources {
             // platform : this package private method is only called from native code, NoSuchMethodError is thrown into
             // SwingNode without it
             "jdk.swing.interop.LightweightFrameWrapper#overrideNativeWindowHandle(long,java.lang.Runnable)",
+    };
+
+    // ----------------------------------------------------------------------------------------------------------------- SWT
+    // JavaFX embedded in SWT (FXCanvas, SWTFXUtils) : with Quarkus Desktop (quarkus-desktop-swt), which registers SWT
+    // itself and runs its event loop. FXCanvas starts JavaFX on the SWT user interface thread (javafx.embed.isEventThread),
+    // which becomes the JavaFX Application Thread : Quarkus FX does not launch a JavaFX application then. The SWT lists are
+    // applied, in addition to the lists above, when the application depends on quarkus-desktop-swt and javafx-swt (the
+    // javafx.swt module, which OpenJFX does not publish on Maven Central : any coordinates). FXCanvas looks up internals
+    // of the SWT of each platform : these kinds have platform lists (MAC_SWT_KIND). Checked against SWT 3.124.200 (the
+    // version JavaFX builds javafx.swt with), 3.132.0 (quarkus-desktop-swt) and 3.135.0, and javafx-swt 22.0.2 to 27.
+    // Methods are written "class#method(parameter types)", fields "class#field".
+
+    /**
+     * Provided by quarkus-desktop-swt.
+     */
+    static final String DESKTOP_SWT_CAPABILITY = "io.quarkiverse.desktop.swt";
+
+    /**
+     * Public API of quarkus-desktop-swt, present at run time with it : decides, before any build step runs, whether Quarkus
+     * FX launches the JavaFX application (see {@code QuarkusDesktopSwtPresent}).
+     */
+    static final String DESKTOP_SWT_LIFECYCLE_CLASS = "io.quarkiverse.desktop.swt.SwtLifecycle";
+
+    /**
+     * In javafx-swt, whose coordinates are those the application chose : indexed through this resource, whatever the
+     * archive holding it (Maven install-file or system scope, Gradle files()).
+     */
+    static final String SWT_MARKER_CLASS = "javafx.embed.swt.FXCanvas";
+
+    static final String SWT_MARKER_RESOURCE = "javafx/embed/swt/FXCanvas.class";
+
+    static String[] SWT_RUNTIME_INITIALIZED_PACKAGES = {
+            // javafx.swt : FXCanvas reads SWT internals and system properties in its static initializer, sets the system
+            // properties of the embedded toolkit (javafx.embed.isEventThread, glass.win.uiScale) and starts JavaFX
+            // (Platform.startup) ; every class references SWT, initialized at run time by quarkus-desktop-swt
+            "javafx.embed.swt",
+    };
+
+    static String[] SWT_RUNTIME_INITIALIZED_CLASSES = {
+            // javafx.graphics : reached from PlatformImpl.addExportsToFXCanvas only : reads javafx.verbose, looks the Module
+            // methods up reflectively
+            "com.sun.javafx.util.ModuleHelper",
+    };
+
+    /**
+     * Registered as types only (no member).
+     */
+    static String[] SWT_REFLECTIVE_TYPES = {
+            // javafx.graphics : Platform.isSupported(ConditionalFeature.SWT) looks FXCanvas up by name (checkForClass)
+            "javafx.embed.swt.FXCanvas",
+    };
+
+    static String[] SWT_REFLECTIVE_CLASSES = {
+            // javafx.swt : SWTFXUtils.toFXImage looks ImageData fields and blit methods up by name (readValue,
+            // getDeclaredMethod) : SWT 3.121 and later no longer has them, SWTFXUtils returns null as in JVM mode (with all
+            // the members registered, the lookups fail with NoSuchFieldException, not a missing registration error)
+            "org.eclipse.swt.graphics.ImageData",
+    };
+
+    static String[] SWT_REFLECTIVE_METHODS = {
+            // javafx.graphics : ModuleHelper (addExportsToFXCanvas) : its static initializer only catches
+            // NoSuchMethodException
+            "java.lang.Class#getModule()",
+            "java.lang.Module#addExports(java.lang.String,java.lang.Module)",
+            "java.lang.Module#addReads(java.lang.Module)",
+    };
+
+    static String[] WINDOWS_SWT_REFLECTIVE_METHODS = {
+            // javafx.swt : FXCanvas : the zoom of the display, for glass.win.uiScale and renderScale and the scale of the
+            // embedded scene : 100 % without it
+            "org.eclipse.swt.internal.DPIUtil#getDeviceZoom()",
+            // javafx.swt : SWTEvents : the lines scrolled per wheel notch : one without it
+            "org.eclipse.swt.internal.win32.OS#SystemParametersInfo(int,int,int[],int)",
+    };
+
+    static String[] MAC_SWT_REFLECTIVE_METHODS = {
+            // javafx.swt : FXCanvas : the backing scale factor of the screen of the shell, looked up in one try block with
+            // Shell.window : scale 1 without any of them (Retina content blurry)
+            "org.eclipse.swt.internal.cocoa.NSView#window()",
+            "org.eclipse.swt.internal.cocoa.NSWindow#screen()",
+            "org.eclipse.swt.internal.cocoa.NSScreen#backingScaleFactor()",
+    };
+
+    static String[] LINUX_SWT_REFLECTIVE_METHODS = {
+    };
+
+    static String[] SWT_REFLECTIVE_FIELDS = {
+    };
+
+    static String[] WINDOWS_SWT_REFLECTIVE_FIELDS = {
+    };
+
+    static String[] MAC_SWT_REFLECTIVE_FIELDS = {
+            // javafx.swt : FXCanvas : the NSWindow of the shell (see MAC_SWT_REFLECTIVE_METHODS)
+            "org.eclipse.swt.widgets.Shell#window",
+    };
+
+    static String[] LINUX_SWT_REFLECTIVE_FIELDS = {
+            // javafx.swt : FXCanvas.initFx : the GDK event handler of SWT (javafx.embed.eventProc), which Glass calls for the
+            // events of the windows that are not JavaFX ones : Glass dispatches them itself without it. The field does not
+            // exist in the SWT of Windows and macOS (FXCanvas catches the failed lookup)
+            "org.eclipse.swt.widgets.Display#eventProc",
     };
 }

@@ -11,6 +11,7 @@ import jakarta.inject.Singleton;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.style.StylesheetWatchService;
+import io.quarkiverse.fx.swt.SwtEmbeddingRecorder;
 import io.quarkiverse.fx.views.FxViewConfig;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.Quarkus;
@@ -48,8 +49,27 @@ public class FxLifecycle {
     private ListChangeListener<Window> windowsListener;
     private Stage primaryStage;
     private volatile boolean active;
+    private volatile boolean embeddedInSwt;
+
+    /**
+     * With Quarkus Desktop SWT : JavaFX runs embedded in SWT, started by the first FXCanvas on the SWT user interface
+     * thread, which becomes the JavaFX Application Thread. Quarkus FX does not launch a JavaFX application then.
+     */
+    public void embedInSwt() {
+        this.embeddedInSwt = true;
+    }
+
+    public boolean isEmbeddedInSwt() {
+        return this.embeddedInSwt;
+    }
 
     public synchronized void start(String... args) {
+        if (this.embeddedInSwt) {
+            // A JavaFX application launched next to SWT : on macOS, SWT then crashes the JVM when it creates its Display
+            throw new IllegalStateException("Quarkus Desktop SWT is present : JavaFX runs embedded in SWT (FXCanvas), "
+                    + "Quarkus FX does not launch a JavaFX application. Run the SWT user interface instead "
+                    + "(SwtLifecycle.run()), see " + SwtEmbeddingRecorder.GUIDE);
+        }
         if (this.platform != null || (this.liveReload && this.retainUiAcrossRestarts())) {
             return;
         }
@@ -166,8 +186,15 @@ public class FxLifecycle {
         }
     }
 
-    /** Schedules work only while this Quarkus runtime is attached. */
+    /**
+     * Schedules work only while this Quarkus runtime is attached. Embedded in SWT, on the JavaFX Application Thread once
+     * an FXCanvas has started JavaFX : {@link IllegalStateException} before.
+     */
     public void runLater(Runnable action) {
+        if (this.embeddedInSwt) {
+            Platform.runLater(action);
+            return;
+        }
         if (!this.active) {
             return;
         }

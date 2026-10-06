@@ -33,7 +33,10 @@ public class RunOnFxThreadInterceptor {
         if (Platform.isFxApplicationThread()) {
             return ctx.proceed();
         } else {
-            this.startupLatch.await();
+            // Embedded in SWT, no application releases the latch : FXCanvas starts JavaFX, and runLater fails before
+            if (!this.lifecycle.isEmbeddedInSwt()) {
+                this.startupLatch.await();
+            }
             this.lifecycle.runLater(() -> {
                 try {
                     ctx.proceed();

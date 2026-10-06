@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -26,6 +27,7 @@ import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.RunOnFxThreadInterceptor;
 import io.quarkiverse.fx.graal.LibJvmStandInRecorder;
 import io.quarkiverse.fx.livereload.LiveReloadRecorder;
+import io.quarkiverse.fx.swt.SwtEmbeddingRecorder;
 import io.quarkiverse.fx.views.FxView;
 import io.quarkiverse.fx.views.FxViewConfig;
 import io.quarkiverse.fx.views.FxViewRecorder;
@@ -40,12 +42,14 @@ import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Overridable;
 import io.quarkus.deployment.annotations.Produce;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.HotDeploymentWatchedFileBuildItem;
 import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
+import io.quarkus.deployment.builditem.ServiceStartBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.JniRuntimeAccessMethodBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
@@ -53,6 +57,7 @@ import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBundleBuil
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourcePatternsBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageSystemPropertyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveFieldBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedPackageBuildItem;
@@ -121,7 +126,8 @@ class QuarkusFxExtensionProcessor {
         return new AdditionalBeanBuildItem(RunOnFxThread.class, RunOnFxThreadInterceptor.class);
     }
 
-    @BuildStep
+    // Not with Quarkus Desktop SWT : FXCanvas starts JavaFX, embedded in SWT (see embedInSwt)
+    @BuildStep(onlyIfNot = QuarkusDesktopSwtPresent.class)
     void quarkusFxLauncher(
             CombinedIndexBuildItem combinedIndex,
             @Overridable BuildProducer<QuarkusApplicationClassBuildItem> quarkusApplicationClass,
@@ -139,6 +145,44 @@ class QuarkusFxExtensionProcessor {
         } else {
             LOGGER.info("Existing @QuarkusMain annotation were found, Quarkus-FX will not generate QuarkusFxApplication.");
         }
+    }
+
+    /**
+     * With Quarkus Desktop SWT, JavaFX runs embedded in SWT : the first FXCanvas starts it on the SWT user interface thread,
+     * which becomes the JavaFX Application Thread. Quarkus Desktop SWT runs the user interface (its main application when
+     * there is an SwtStartupEvent observer, or SwtLifecycle.run() in a @QuarkusMain), and Quarkus FX does not launch a
+     * JavaFX application : launched first, JavaFX makes SWT crash (macOS) or FXCanvas wait forever for itself.
+     * <p>
+     * Before the SWT user interface runs (a service start, as the user interface of Quarkus Desktop SWT is configured),
+     * Quarkus FX keeps JavaFX when the last FXCanvas is closed, and runs the {@link RunOnFxThread} methods without waiting
+     * for the application it does not launch.
+     */
+    @BuildStep(onlyIf = QuarkusDesktopSwtPresent.class)
+    @Record(ExecutionTime.RUNTIME_INIT)
+    ServiceStartBuildItem embedInSwt(CombinedIndexBuildItem combinedIndex,
+            Optional<QuarkusApplicationClassBuildItem> quarkusApplicationClass, BeanContainerBuildItem beanContainer,
+            SwtEmbeddingRecorder recorder) {
+        IndexView index = combinedIndex.getIndex();
+        LOGGER.info("Quarkus Desktop SWT is present : Quarkus FX does not launch a JavaFX application, JavaFX runs "
+                + "embedded in SWT (FXCanvas)");
+        if (!QuarkusClassLoader.isClassPresentAtRuntime(FxClassesAndResources.SWT_MARKER_CLASS)) {
+            LOGGER.warnf("%s is not on the class path : JavaFX cannot be used with Quarkus Desktop SWT without it. Add "
+                    + "javafx-swt (the javafx.swt module of your JavaFX version, not on Maven Central), see %s",
+                    FxClassesAndResources.SWT_MARKER_CLASS, SwtEmbeddingRecorder.GUIDE);
+        }
+        if (quarkusApplicationClass.isEmpty()
+                && index.getAnnotations(DotName.createSimple(QuarkusMain.class.getName())).isEmpty()) {
+            LOGGER.warnf("Nothing runs the SWT user interface, and Quarkus FX does not launch a JavaFX application with "
+                    + "Quarkus Desktop SWT : observe SwtStartupEvent, or call SwtLifecycle.run() in a @QuarkusMain, see %s",
+                    SwtEmbeddingRecorder.GUIDE);
+        }
+        if (!index.getAnnotations(DotName.createSimple(FxView.class.getName())).isEmpty()) {
+            LOGGER.warnf("The @%s views are not loaded with Quarkus Desktop SWT (Quarkus FX loads them in the primary "
+                    + "stage of the JavaFX application it launches) : load them with an injected FXMLLoader, see %s",
+                    FxView.class.getSimpleName(), SwtEmbeddingRecorder.GUIDE);
+        }
+        recorder.embed(beanContainer.getValue());
+        return new ServiceStartBuildItem("quarkus-fx-swt");
     }
 
     @Record(ExecutionTime.RUNTIME_INIT)
@@ -268,10 +312,11 @@ class QuarkusFxExtensionProcessor {
         if (!fxTargetPlatform.isMac()) {
             return;
         }
-        // Quarkus Desktop declares them (quarkus.desktop.awt.macos.jdk-build-version) : quarkus-desktop-swing depends on
-        // quarkus-desktop-awt
+        // Quarkus Desktop declares them (quarkus.desktop.awt.macos.jdk-build-version, quarkus-desktop-swing depends on
+        // quarkus-desktop-awt ; quarkus.desktop.swt.macos.jdk-build-version, which leaves them to AWT when both are present)
         if (capabilities.isPresent(FxClassesAndResources.DESKTOP_AWT_CAPABILITY)
-                || capabilities.isPresent(FxClassesAndResources.DESKTOP_SWING_CAPABILITY)) {
+                || capabilities.isPresent(FxClassesAndResources.DESKTOP_SWING_CAPABILITY)
+                || capabilities.isPresent(FxClassesAndResources.DESKTOP_SWT_CAPABILITY)) {
             return;
         }
         // Makes io.quarkiverse.fx.graal.MacBuildVersion write the versions of the java launcher in the executable
@@ -492,6 +537,62 @@ class QuarkusFxExtensionProcessor {
         }
     }
 
+    /**
+     * With Quarkus Desktop SWT : javafx-swt, which OpenJFX does not publish on Maven Central, has the coordinates the
+     * application chose (IndexDependencyBuildItem needs them, see indexTransitiveDependencies) : the archive holding
+     * FXCanvas is indexed, whatever it is.
+     */
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void indexJavaFxSwt(Capabilities capabilities, BuildProducer<AdditionalApplicationArchiveMarkerBuildItem> markers) {
+        if (capabilities.isPresent(FxClassesAndResources.DESKTOP_SWT_CAPABILITY)) {
+            markers.produce(new AdditionalApplicationArchiveMarkerBuildItem(FxClassesAndResources.SWT_MARKER_RESOURCE));
+        }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    void registerSwtInterop(FxTargetPlatformBuildItem fxTargetPlatform, Capabilities capabilities,
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<RuntimeInitializedPackageBuildItem> runtimeInitializedPackages,
+            BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitializedClasses,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
+            BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods,
+            BuildProducer<ReflectiveFieldBuildItem> reflectiveFields) {
+        // Not implied by AWT, nor implying it. javafx-swt is in the index when present (indexJavaFxSwt)
+        boolean swt = capabilities.isPresent(FxClassesAndResources.DESKTOP_SWT_CAPABILITY)
+                && combinedIndex.getIndex().getClassByName(FxClassesAndResources.SWT_MARKER_CLASS) != null;
+        LOGGER.debugf("SWT interop registered : %b", swt);
+        if (!swt) {
+            return;
+        }
+        String reason = "JavaFX embedded in SWT";
+        for (String packageName : FxClassesAndResources.SWT_RUNTIME_INITIALIZED_PACKAGES) {
+            runtimeInitializedPackages.produce(new RuntimeInitializedPackageBuildItem(packageName));
+        }
+        for (String className : FxClassesAndResources.SWT_RUNTIME_INITIALIZED_CLASSES) {
+            runtimeInitializedClasses.produce(new RuntimeInitializedClassBuildItem(className));
+        }
+        // Without its constructors (registered by default)
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(FxClassesAndResources.SWT_REFLECTIVE_TYPES)
+                .constructors(false).reason(reason).build());
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(FxClassesAndResources.SWT_REFLECTIVE_CLASSES)
+                .methods().fields().reason(reason).build());
+        // A member registered for reflection registers its class too : Class.forName finds it
+        for (String method : withPlatform(fxTargetPlatform, FxClassesAndResources.SWT_REFLECTIVE_METHODS,
+                FxClassesAndResources.WINDOWS_SWT_REFLECTIVE_METHODS,
+                FxClassesAndResources.MAC_SWT_REFLECTIVE_METHODS,
+                FxClassesAndResources.LINUX_SWT_REFLECTIVE_METHODS)) {
+            reflectiveMethods.produce(reflectiveMethod(reason, method));
+        }
+        for (String field : withPlatform(fxTargetPlatform, FxClassesAndResources.SWT_REFLECTIVE_FIELDS,
+                FxClassesAndResources.WINDOWS_SWT_REFLECTIVE_FIELDS,
+                FxClassesAndResources.MAC_SWT_REFLECTIVE_FIELDS,
+                FxClassesAndResources.LINUX_SWT_REFLECTIVE_FIELDS)) {
+            int separator = field.indexOf('#');
+            reflectiveFields.produce(
+                    new ReflectiveFieldBuildItem(reason, field.substring(0, separator), field.substring(separator + 1)));
+        }
+    }
+
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerJniRuntimeAccessClasses(FxTargetPlatformBuildItem fxTargetPlatform,
             BuildProducer<JniRuntimeAccessBuildItem> jniRuntimeAccessClasses,
@@ -588,11 +689,28 @@ class QuarkusFxExtensionProcessor {
      * A method of a list of {@link FxClassesAndResources}, written "class#method(parameter types)".
      */
     private static JniRuntimeAccessMethodBuildItem jniRuntimeAccessMethod(String method) {
-        int nameStart = method.indexOf('#') + 1;
-        int parametersStart = method.indexOf('(', nameStart) + 1;
-        String parameters = method.substring(parametersStart, method.lastIndexOf(')'));
-        return new JniRuntimeAccessMethodBuildItem(method.substring(0, nameStart - 1),
-                method.substring(nameStart, parametersStart - 1),
-                parameters.isBlank() ? new String[0] : parameters.replace(" ", "").split(","));
+        ListedMethod listed = ListedMethod.parse(method);
+        return new JniRuntimeAccessMethodBuildItem(listed.declaringClass(), listed.name(), listed.parameterTypes());
+    }
+
+    /**
+     * A method of a list of {@link FxClassesAndResources}, written "class#method(parameter types)", registered for
+     * reflection. The parameter types are passed as an array : as separate strings, the constructor is ambiguous with
+     * Quarkus 3.33.
+     */
+    private static ReflectiveMethodBuildItem reflectiveMethod(String reason, String method) {
+        ListedMethod listed = ListedMethod.parse(method);
+        return new ReflectiveMethodBuildItem(reason, listed.declaringClass(), listed.name(), listed.parameterTypes());
+    }
+
+    private record ListedMethod(String declaringClass, String name, String[] parameterTypes) {
+
+        static ListedMethod parse(String method) {
+            int nameStart = method.indexOf('#') + 1;
+            int parametersStart = method.indexOf('(', nameStart) + 1;
+            String parameters = method.substring(parametersStart, method.lastIndexOf(')'));
+            return new ListedMethod(method.substring(0, nameStart - 1), method.substring(nameStart, parametersStart - 1),
+                    parameters.isBlank() ? new String[0] : parameters.replace(" ", "").split(","));
+        }
     }
 }
