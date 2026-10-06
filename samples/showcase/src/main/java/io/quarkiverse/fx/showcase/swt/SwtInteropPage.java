@@ -13,9 +13,12 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.internal.DPIUtil;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+
+import com.sun.javafx.stage.WindowHelper;
 
 import io.quarkiverse.fx.showcase.core.Categories;
 import io.quarkiverse.fx.showcase.core.Check;
@@ -154,15 +157,27 @@ public class SwtInteropPage implements FeaturePage {
                 // FXCanvas paints the last frame of its scene : a few pulses, then the paint of SWT
                 .thenCompose(v -> Fx.delay(200))
                 .thenApply(v -> {
-                    // The FXCanvas scale : the backing scale factor of the screen (macOS) or the zoom of SWT (Windows),
-                    // read by reflection, 1 on Linux
-                    double scale = canvas.getScene().getWindow().getRenderScaleX();
-                    int zoom = shell.getMonitor().getZoom();
-                    double expected = SWT.getPlatform().equals("gtk") ? 1 : zoom / 100.0;
-                    checks.add(Check.of("FXCanvas render scale", scale == expected,
-                            "render scale " + scale + ", monitor zoom " + zoom + " %"));
-
+                    // Control.print runs the paint listener of FXCanvas, which reads its scale again : on macOS, the one
+                    // read when its scene was set, before the shell was shown, may be another
                     ImageData printed = print(canvas);
+
+                    // The scale FXCanvas renders its scene at (EmbeddedScene.setPixelScaleFactors, a float) : the output
+                    // scale of the peer of its window. The window keeps the scale it had when FXCanvas showed it, before
+                    // setting its scene : 1. FXCanvas reads the scale by reflection : the backing scale factor of the
+                    // screen of the shell (macOS, the zoom of its monitor), the zoom of SWT (Windows : with SWT 3.132, the
+                    // zoom of the primary monitor, rounded to a multiple of 100 % unless swt.autoScale says otherwise), 1
+                    // on Linux
+                    float scale = WindowHelper.getPeer(canvas.getScene().getWindow()).getOutputScaleX();
+                    int monitor = shell.getMonitor().getZoom();
+                    int expected = switch (SWT.getPlatform()) {
+                        case "cocoa" -> monitor;
+                        case "win32" -> DPIUtil.getDeviceZoom();
+                        default -> 100;
+                    };
+                    // as the float FXCanvas passes : 1.1 or 1.2 are not exact in a float
+                    checks.add(Check.of("FXCanvas render scale", scale == (float) (expected / 100.0),
+                            scale + " (expected " + expected + " %, monitor " + monitor + " %)"));
+
                     checks.add(color("second FXCanvas painted by SWT (left)", printed, CANVAS_WIDTH / 4, LEFT));
                     checks.add(color("second FXCanvas painted by SWT (right)", printed, CANVAS_WIDTH * 3 / 4, RIGHT));
                     page.getChildren().add(new VBox(8, caption("The second FXCanvas, painted by SWT (Control.print)"),
