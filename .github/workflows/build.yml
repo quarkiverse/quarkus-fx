@@ -1,5 +1,7 @@
 name: Build
 
+# Pull requests : the JVM build on Linux with JDK 17, and the other JDK and platforms (JVM and native) when the pull
+# request has the label full-ci (adding it runs them on the current commit). Pushes to main and manual runs : all.
 on:
   push:
     branches:
@@ -14,6 +16,8 @@ on:
       - '.all-contributorsrc'
       - '.github/project.yml'
   pull_request:
+    # labeled : the label full-ci (another label runs nothing, see the jobs)
+    types: [ opened, synchronize, reopened, labeled ]
     paths-ignore:
       - '.gitignore'
       - 'CODEOWNERS'
@@ -28,8 +32,9 @@ permissions:
   contents: read
   pull-requests: read
 
+# A label other than full-ci : a run of its own (all its jobs are skipped), which does not cancel the run of the commit
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}${{ github.event.action == 'labeled' && github.event.label.name != 'full-ci' && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: true
 
 # bash runs the steps with -eo pipefail : a build piped to tee still fails its step
@@ -39,15 +44,17 @@ defaults:
 
 jobs:
   build:
+    if: github.event.action != 'labeled' || github.event.label.name == 'full-ci'
     name: JVM - JDK ${{ matrix.java-version }} on ${{ matrix.os }}
     # a hung JavaFX test (an application that does not exit) : about 5 minutes otherwise
     timeout-minutes: 30
     strategy:
       fail-fast: false
+      # pull requests : JDK 17 on Linux, unless labelled full-ci
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        os: ${{ fromJSON((github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'full-ci')) && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest"]') }}
         # 17 : the default JavaFX version of Quarkus FX (22) ; 25 : JavaFX 25 in the integration tests (javafx-25 profile)
-        java-version: [ 17, 25 ]
+        java-version: ${{ fromJSON((github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'full-ci')) && '[17, 25]' || '[17]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Prepare git
@@ -79,6 +86,11 @@ jobs:
         run: java .github/scripts/ReportFailures.java maven.log
 
   native:
+    # pull requests labelled full-ci only
+    if: >-
+      github.event_name != 'pull_request'
+      || (contains(github.event.pull_request.labels.*.name, 'full-ci')
+          && (github.event.action != 'labeled' || github.event.label.name == 'full-ci'))
     # macOS native executables need JavaFX 24 or later : GraalVM for JDK 25 builds the integration tests with JavaFX 25
     # (javafx-25 profile)
     name: Native on ${{ matrix.os }}
