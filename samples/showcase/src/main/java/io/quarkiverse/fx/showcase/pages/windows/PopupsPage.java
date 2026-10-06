@@ -336,7 +336,7 @@ public class PopupsPage implements FeaturePage {
     }
 
     private CompletionStage<Void> runLive(Node content) {
-        Stage main = WindowSupport.mainStage(content);
+        Window main = WindowSupport.mainWindow(content);
         WindowSupport.Live live = WindowSupport.startLive(content);
         if (main == null || !(content.getProperties().get(CONTROLS_KEY) instanceof Controls c)) {
             live.checks.add(Check.fail("main window", "page not showing"));
@@ -420,7 +420,7 @@ public class PopupsPage implements FeaturePage {
         });
     }
 
-    private static CompletionStage<Void> capture(WindowSupport.Live live, Target target, Stage main,
+    private static CompletionStage<Void> capture(WindowSupport.Live live, Target target, Window main,
             List<PopupWindow> shown) {
         Set<Window> before = WindowSupport.showingWindows();
         target.show().run();
@@ -453,19 +453,21 @@ public class PopupsPage implements FeaturePage {
     /**
      * The MenuBar of the main window asks for the system menu bar. Only macOS has one : there the menus move to the
      * screen menu bar and no menu button is left in the scene, elsewhere (Windows, Linux) the property is ignored and
-     * the MenuBar shows one button per menu in the scene.
+     * the MenuBar shows one button per menu in the scene. So it is in the SWT variant, on macOS too : the system menu bar
+     * belongs to SWT, JavaFX embedded in it has none.
      */
-    private static Check mainMenuBarCheck(Stage main) {
+    private static Check mainMenuBarCheck(Window main) {
         String name = "Main window MenuBar";
         try {
             MenuBar bar = main.getScene().getRoot().lookupAll(".menu-bar").stream()
                     .filter(n -> n instanceof MenuBar m && m.isUseSystemMenuBar()).map(MenuBar.class::cast)
                     .findFirst().orElseThrow(() -> new IllegalStateException("no MenuBar with useSystemMenuBar"));
             int buttons = bar.lookupAll(".menu").size();
-            int expected = Platforms.isMac() ? 0 : bar.getMenus().size();
+            boolean systemMenuBar = Platforms.isMac() && main instanceof Stage;
+            int expected = systemMenuBar ? 0 : bar.getMenus().size();
             String value = "useSystemMenuBar=" + bar.isUseSystemMenuBar() + ", menus "
                     + bar.getMenus().stream().map(Menu::getText).toList() + ", " + buttons
-                    + " menu buttons left in the scene" + (Platforms.isMac() ? "" : " (no system menu bar)");
+                    + " menu buttons left in the scene" + (systemMenuBar ? "" : " (no system menu bar)");
             return Check.of(name, buttons == expected,
                     buttons == expected ? value : value + ", expected " + expected);
         } catch (Throwable t) {

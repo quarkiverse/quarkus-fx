@@ -23,13 +23,18 @@ import java.util.stream.Stream;
  * quarkus-fx extension registers for a platform (the common lists and the lists of that platform).
  * <p>
  * usage: java tools/MetadataDiff.java reachability-metadata.json [platform, default: current] [javafx.version=25.0.4]
- * [--desktop]
+ * [--desktop|--swt]
  * <p>
  * --desktop : the application depends on Quarkus Desktop (quarkus-desktop-swing) and javafx-swing, the AWT_ and SWING_
  * lists of the extension apply too. The JDK types accessed through JNI (by the JavaFX native code, or by AWT itself)
  * are then compared with the lists of Quarkus Desktop (AwtClassesAndResources, SwingClassesAndResources, read from the
  * installed deployment jars) : GraalVM and quarkus-awt register many AWT types themselves, the showcase of Quarkus
  * Desktop verifies that side.
+ * <p>
+ * --swt : the SWT variant of the showcase (JavaFX embedded in SWT, quarkus-desktop-swt and javafx-swt), the SWT_ lists
+ * of the extension apply too. The JDK types that SWT accesses through JNI are compared with the lists of Quarkus Desktop
+ * (SwtClassesAndResources) : Quarkus Desktop computes the SWT ones from the SWT jar, the showcase of Quarkus Desktop
+ * verifies that side.
  */
 public class MetadataDiff {
 
@@ -37,6 +42,7 @@ public class MetadataDiff {
 
     public static void main(String[] arguments) throws Exception {
         boolean desktop = List.of(arguments).contains("--desktop");
+        boolean swt = List.of(arguments).contains("--swt");
         String[] args = Stream.of(arguments).filter(a -> !a.startsWith("--")).toArray(String[]::new);
         Path metadata = Path.of(args[0]);
         String platform = args.length > 1 ? args[1] : currentPlatform();
@@ -98,6 +104,13 @@ public class MetadataDiff {
                 "SWING_REFLECTIVE_CLASSES", "SWING_REFLECTIVE_CONSTRUCTORS")
                 .flatMap(name -> Stream.of(nonNull(lists.get(name)))).toList() : List.of();
         reflective.addAll(desktopReflective);
+        // SWT : types, and the classes of the methods and fields, "class#member(parameter types)"
+        List<String> swtReflective = swt ? Stream.of("SWT_REFLECTIVE_TYPES", "SWT_REFLECTIVE_CLASSES",
+                "SWT_REFLECTIVE_METHODS", prefix + "_SWT_REFLECTIVE_METHODS", "SWT_REFLECTIVE_FIELDS",
+                prefix + "_SWT_REFLECTIVE_FIELDS").flatMap(name -> Stream.of(nonNull(lists.get(name))))
+                .map(entry -> entry.contains("#") ? entry.substring(0, entry.indexOf('#')) : entry).distinct().toList()
+                : List.of();
+        reflective.addAll(swtReflective);
         // public classes, by package prefix
         List<String> publicPrefixes = new ArrayList<>(List.of(nonNull(lists.get("REFLECTIVE_PUBLIC_CLASS_PACKAGE_PREFIXES"))));
         List<String> excludedPublicPrefixes = List.of(nonNull(lists.get("REFLECTIVE_PUBLIC_CLASS_EXCLUDED_PACKAGE_PREFIXES")));
@@ -154,7 +167,8 @@ public class MetadataDiff {
         Set<String> usedReflection = new TreeSet<>();
         Set<String> usedDesktopReflection = new TreeSet<>();
         Set<String> usedDesktopJniMethods = new TreeSet<>();
-        Set<String> desktopListsJni = desktop ? desktopJniClasses(prefix) : Set.of();
+        Set<String> usedSwtReflection = new TreeSet<>();
+        Set<String> desktopListsJni = desktop || swt ? desktopJniClasses(prefix, desktop, swt) : Set.of();
         for (Object o : (List<?>) md.getOrDefault("reflection", List.of())) {
             @SuppressWarnings("unchecked")
             Map<String, Object> entry = (Map<String, Object>) o;
@@ -193,6 +207,9 @@ public class MetadataDiff {
             // reflection and JNI accesses of a type are merged in one entry
             if (desktopReflective.contains(type)) {
                 usedDesktopReflection.add(type);
+            }
+            if (swtReflective.contains(type)) {
+                usedSwtReflection.add(type);
             }
             // the agent merges JNI members into the reflection entry: a JNI entry is only checked for JNI coverage
             boolean reflectionUse = !Boolean.TRUE.equals(entry.get("jniAccessible"));
@@ -247,6 +264,11 @@ public class MetadataDiff {
             unusedJniMethods.removeAll(usedDesktopJniMethods);
             list("AWT_ and SWING_ JNI methods not used in this run (candidates to verify)", unusedJniMethods);
         }
+        if (swt) {
+            Set<String> unusedReflective = new TreeSet<>(swtReflective);
+            unusedReflective.removeAll(usedSwtReflection);
+            list("SWT_ reflection entries (classes) not used in this run (candidates to verify)", unusedReflective);
+        }
 
         Set<String> platformJni = new TreeSet<>();
         add(platformJni, lists.get(prefix + "_JNI_RUNTIME_ACCESS_CLASSES"));
@@ -258,7 +280,9 @@ public class MetadataDiff {
         list(prefix + "_REFLECTIVE_CLASSES entries not used in this run (candidates to verify)", platformReflective);
         Set<String> stale = new TreeSet<>();
         for (Map.Entry<String, String[]> e : lists.entrySet()) {
-            if (e.getKey().contains("RESOURCE") || e.getKey().contains("PACKAGE") || e.getKey().contains("SUFFIXES")) {
+            // The SWT lists name javafx-swt and SWT classes : javafx-swt is nested in the javafx-graphics jars
+            if (e.getKey().contains("RESOURCE") || e.getKey().contains("PACKAGE") || e.getKey().contains("SUFFIXES")
+                    || e.getKey().contains("SWT_")) {
                 continue;
             }
             if (e.getKey().startsWith("WINDOWS_") || e.getKey().startsWith("LINUX_") || (!e.getKey().startsWith(prefix) && e.getKey().startsWith("MAC_"))) {
@@ -281,18 +305,25 @@ public class MetadataDiff {
      * The classes of the JNI lists of Quarkus Desktop (common and platform lists, and the classes of the method and
      * field lists), read from the installed deployment jars.
      */
-    static Set<String> desktopJniClasses(String prefix) throws Exception {
+    static Set<String> desktopJniClasses(String prefix, boolean desktop, boolean swt) throws Exception {
         Set<String> classes = new TreeSet<>();
-        // the version of the showcase (pom.xml property quarkus-desktop.version)
-        var version = Pattern.compile("<quarkus-desktop.version>([^<]+)</quarkus-desktop.version>")
-                .matcher(Files.readString(Path.of("pom.xml")));
-        String desktopVersion = version.find() ? version.group(1) : "999-SNAPSHOT";
-        for (String[] jar : List.of(
-                new String[] { "quarkus-desktop-awt-deployment", "io.quarkiverse.desktop.awt.deployment.AwtClassesAndResources" },
-                new String[] { "quarkus-desktop-swing-deployment", "io.quarkiverse.desktop.swing.deployment.SwingClassesAndResources" })) {
-            Path path = M2.resolve("io/quarkiverse/desktop/" + jar[0] + "/" + desktopVersion + "/" + jar[0] + "-"
-                    + desktopVersion + ".jar");
-            if (!Files.exists(path)) {
+        // the versions of the showcase (pom.xml property quarkus-desktop.version, of the default variant and of the swt
+        // profile) : the first one whose deployment jar is installed
+        List<String> versions = new ArrayList<>(Pattern.compile("<quarkus-desktop.version>([^<]+)</quarkus-desktop.version>")
+                .matcher(Files.readString(Path.of("pom.xml"))).results().map(m -> m.group(1)).toList());
+        versions.add("999-SNAPSHOT");
+        List<String[]> jars = new ArrayList<>();
+        if (desktop) {
+            jars.add(new String[] { "quarkus-desktop-awt-deployment", "io.quarkiverse.desktop.awt.deployment.AwtClassesAndResources" });
+            jars.add(new String[] { "quarkus-desktop-swing-deployment", "io.quarkiverse.desktop.swing.deployment.SwingClassesAndResources" });
+        }
+        if (swt) {
+            jars.add(new String[] { "quarkus-desktop-swt-deployment", "io.quarkiverse.desktop.swt.deployment.SwtClassesAndResources" });
+        }
+        for (String[] jar : jars) {
+            Path path = versions.stream().map(version -> M2.resolve("io/quarkiverse/desktop/" + jar[0] + "/" + version + "/"
+                    + jar[0] + "-" + version + ".jar")).filter(Files::exists).findFirst().orElse(null);
+            if (path == null) {
                 continue;
             }
             try (URLClassLoader cl = new URLClassLoader(new URL[] { path.toUri().toURL() }, null)) {

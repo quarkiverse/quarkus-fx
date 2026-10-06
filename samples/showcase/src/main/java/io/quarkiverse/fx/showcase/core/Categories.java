@@ -20,12 +20,14 @@ public final class Categories {
     public static final String WEB = "Web";
     public static final String MEDIA = "Media";
     public static final String SWING = "Swing Interop";
+    /** The SWT variant only (swt/SwtInteropPage) */
+    public static final String SWT = "SWT Interop";
     public static final String WINDOWS = "Windows, Dialogs & Popups";
     public static final String FXML = "FXML & quarkus-fx";
     public static final String PLATFORM = "Platform & Concurrency";
 
     public static final List<String> ORDER = List.of(OVERVIEW, CONTROLS, DATA, LAYOUT_CSS, GRAPHICS, TEXT, IMAGES_CANVAS,
-            CHARTS, ANIMATION, GRAPHICS_3D, WEB, MEDIA, SWING, WINDOWS, FXML, PLATFORM);
+            CHARTS, ANIMATION, GRAPHICS_3D, WEB, MEDIA, SWING, SWT, WINDOWS, FXML, PLATFORM);
 
     private Categories() {
     }

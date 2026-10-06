@@ -429,7 +429,7 @@ public class StagesPage implements FeaturePage {
     // -------------------------------------------------------------------------------------------------- live checks
 
     private CompletionStage<Void> runLive(Node content) {
-        Stage main = WindowSupport.mainStage(content);
+        Window main = WindowSupport.mainWindow(content);
         WindowSupport.Live live = WindowSupport.startLive(content);
         if (main == null) {
             live.checks.add(Check.fail("main window", "page not showing"));
@@ -440,7 +440,7 @@ public class StagesPage implements FeaturePage {
         return Fx.pulses(3).thenCompose(v -> openStages(content, main, live));
     }
 
-    private CompletionStage<Void> openStages(Node content, Stage main, WindowSupport.Live live) {
+    private CompletionStage<Void> openStages(Node content, Window main, WindowSupport.Live live) {
         boolean mainFocused = main.isFocused();
         Set<Window> before = WindowSupport.showingWindows();
         Map<Spec, Stage> stages = new LinkedHashMap<>();
@@ -576,7 +576,7 @@ public class StagesPage implements FeaturePage {
      * are only informational on Linux, where the window manager may place windows itself (see
      * {@link WindowSupport#placement(boolean)}).
      */
-    private static Check stageCheck(Spec spec, Stage stage, Stage main, double[] offset) {
+    private static Check stageCheck(Spec spec, Stage stage, Window main, double[] offset) {
         Scene scene = stage.getScene();
         boolean sizeOk = WindowSupport.near(scene.getWidth(), CONTENT_WIDTH, stage)
                 && WindowSupport.near(scene.getHeight(), CONTENT_HEIGHT, stage);

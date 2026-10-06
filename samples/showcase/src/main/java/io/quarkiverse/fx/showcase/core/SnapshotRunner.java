@@ -25,11 +25,11 @@ import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.stage.Screen;
-import javafx.stage.Stage;
 
 /**
  * Renders every page to a PNG file and writes a report (checks and errors) : the output of a JVM run and of a native
@@ -81,7 +81,11 @@ public class SnapshotRunner {
         return dir.isPresent();
     }
 
-    public void run(MainView view, Stage stage, List<FeaturePage> pages) {
+    /**
+     * Renders the pages of the main view, shown in the scene of the main window (of a stage, or of an FXCanvas in the SWT
+     * variant).
+     */
+    public void run(MainView view, Scene scene, List<FeaturePage> pages) {
         Path out = Path.of(dir.orElseThrow()).toAbsolutePath();
         List<FeaturePage> selected = pages.stream()
                 .filter(page -> pageFilter.map(filters -> filters.stream().anyMatch(f -> page.id().startsWith(f.trim())))
@@ -98,9 +102,8 @@ public class SnapshotRunner {
                 .thenRunAsync(() -> {
                     // limited to the scene : focus rings may be painted outside of it
                     SnapshotParameters parameters = parameters();
-                    parameters.setViewport(new Rectangle2D(0, 0, stage.getScene().getWidth() * scale,
-                            stage.getScene().getHeight() * scale));
-                    writeImage(stage.getScene().getRoot().snapshot(parameters, null), out.resolve("_main-window.png"));
+                    parameters.setViewport(new Rectangle2D(0, 0, scene.getWidth() * scale, scene.getHeight() * scale));
+                    writeImage(scene.getRoot().snapshot(parameters, null), out.resolve("_main-window.png"));
                 }, Fx.FX_THREAD);
         for (FeaturePage page : selected) {
             chain = chain.thenComposeAsync(v -> capture(view, page, out), Fx.FX_THREAD).thenAccept(results::add);
@@ -114,7 +117,8 @@ public class SnapshotRunner {
             long failed = results.stream().filter(r -> !((List<?>) r.get("errors")).isEmpty()).count();
             LOG.infof("Snapshot run finished : %d pages, %d with errors", results.size(), failed);
             if (exit) {
-                // quarkus-fx exits JavaFX once it has detached from it (Platform::exit before would discard that work)
+                // quarkus-fx exits JavaFX once it has detached from it (Platform::exit before would discard that work) ;
+                // in the SWT variant, Quarkus Desktop SWT disposes the shells and ends its event loop
                 Quarkus.asyncExit();
             }
         }, Fx.FX_THREAD);

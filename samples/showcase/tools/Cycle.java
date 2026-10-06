@@ -13,8 +13,12 @@ import java.util.List;
  * comparison. Results: comparison/jvm-&lt;label&gt;, comparison/native-&lt;label&gt;, comparison/diff-&lt;label&gt;
  * (summary.txt, index.html), build logs in comparison/logs-&lt;label&gt;.
  * <p>
- * usage: java tools/Cycle.java &lt;label&gt; [--trace] [--skip-jvm] [--skip-native-build] [--offline] [--native-args=...]
- * [--maven-args=...]
+ * usage: java tools/Cycle.java &lt;label&gt; [--trace] [--swt] [--skip-jvm] [--skip-native-build] [--offline]
+ * [--native-args=...] [--maven-args=...]
+ * <p>
+ * --swt builds and runs the SWT variant (mvn -Dswt, target/swt : the pages in an SWT shell, through FXCanvas, see the
+ * swt profile of pom.xml and tools/Snapshot.java). It first installs javafx-swt in the local Maven repository, as the
+ * documentation of quarkus-fx says (OpenJFX does not publish it on Maven Central).
  * <p>
  * --native-args is a comma separated list of native-image options, e.g. --native-args=-H:+PrintClassInitialization.
  * --maven-args is a comma separated list of options of both Maven builds, e.g.
@@ -43,7 +47,7 @@ public class Cycle {
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
-            System.err.println("usage: java tools/Cycle.java <label> [--trace] [--skip-jvm] [--skip-native-build] [--offline] "
+            System.err.println("usage: java tools/Cycle.java <label> [--trace] [--swt] [--skip-jvm] [--skip-native-build] [--offline] "
                     + "[--native-args=...] [--maven-args=...] [-- snapshot options...]");
             System.exit(2);
         }
@@ -54,6 +58,7 @@ public class Cycle {
             System.exit(2);
         }
         boolean trace = false;
+        boolean swt = false;
         boolean skipJvm = false;
         boolean skipNativeBuild = false;
         boolean offline = false;
@@ -69,6 +74,8 @@ public class Cycle {
                 inOptions = true;
             } else if (arg.equals("--trace")) {
                 trace = true;
+            } else if (arg.equals("--swt")) {
+                swt = true;
             } else if (arg.equals("--skip-jvm")) {
                 skipJvm = true;
             } else if (arg.equals("--skip-native-build")) {
@@ -94,6 +101,16 @@ public class Cycle {
 
         Path logs = Path.of("comparison", "logs-" + label);
         Files.createDirectories(logs);
+        if (swt) {
+            // both builds of the SWT variant
+            mavenOptions.add(0, "-Dswt");
+            step("javafx-swt");
+            Path log = logs.resolve("javafx-swt.log");
+            if (maven(log, offline, "-Dswt", "dependency:unpack@javafx-swt", "install:install-file@javafx-swt") != 0) {
+                step("javafx-swt FAILED, see " + log);
+                failed(label, List.of("javafx-swt could not be installed (" + log + ")"));
+            }
+        }
 
         if (!skipJvm) {
             step("JVM build");
@@ -104,7 +121,7 @@ public class Cycle {
                 failed(label, List.of("the JVM build failed (" + logs.resolve("jvm-build.log") + ")"));
             }
             step("JVM snapshots");
-            if (Snapshot.run("jvm", "jvm-" + label, null, snapshotOptions, 900) != 0) {
+            if (Snapshot.run("jvm", "jvm-" + label, null, swt, snapshotOptions, 900) != 0) {
                 failures.add("the JVM run failed (comparison/jvm-" + label + "/run.log)");
             }
             if (trace) {
@@ -112,12 +129,13 @@ public class Cycle {
                 Path metadata = Path.of("comparison", "trace-" + label, "metadata");
                 List<String> options = new ArrayList<>(snapshotOptions);
                 options.add(0, "-agentlib:native-image-agent=config-output-dir=" + metadata);
-                traced = Snapshot.run("jvm", "trace-" + label, null, options, 900) == 0 ? ""
+                traced = Snapshot.run("jvm", "trace-" + label, null, swt, options, 900) == 0 ? ""
                         : " (the trace run failed : comparison/trace-" + label + "/run.log)";
                 Path diff = Path.of("comparison", "trace-" + label, "metadata-diff.md");
-                // the application depends on Quarkus Desktop : the AWT_ and SWING_ lists of quarkus-fx apply
+                // the application depends on Quarkus Desktop : the AWT_ and SWING_ lists of quarkus-fx apply, or the SWT_
+                // ones in the SWT variant
                 java(diff, "tools/MetadataDiff.java", metadata.resolve("reachability-metadata.json").toString(),
-                        "--desktop");
+                        swt ? "--swt" : "--desktop");
                 Files.readAllLines(diff).stream().filter(l -> l.startsWith("## ")).forEach(System.out::println);
             }
         }
@@ -145,7 +163,7 @@ public class Cycle {
         }
 
         step("native snapshots");
-        if (Snapshot.run("native", "native-" + label, null, snapshotOptions, 900) != 0) {
+        if (Snapshot.run("native", "native-" + label, null, swt, snapshotOptions, 900) != 0) {
             failures.add("the native run failed (comparison/native-" + label + "/run.log)");
         }
 

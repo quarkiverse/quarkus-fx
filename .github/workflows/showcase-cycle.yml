@@ -48,18 +48,23 @@ jobs:
           PLATFORMS: ${{ inputs.platforms }}
           NIGHTLY: ${{ inputs.nightly }}
           # label : the directory name of the runs (comparison/*-<label>) and of the artifacts ; args : options of
-          # tools/Cycle.java (after -- : options of both runs) ; nightly : only with the input nightly ; blocking false :
-          # continue-on-error (set it to true once the variant is reliably green)
+          # tools/Cycle.java (after -- : options of both runs, --swt : the SWT variant, JavaFX embedded in SWT) ;
+          # nightly : only with the input nightly ; blocking false : continue-on-error (set it to true once the variant
+          # is reliably green)
           VARIANTS: |
             [
               {"platform": "Linux-arm64", "runner": "ubuntu-24.04-arm", "label": "linux-arm64", "args": "--trace", "nightly": false, "blocking": false},
               {"platform": "Linux-arm64", "runner": "ubuntu-24.04-arm", "label": "linux-arm64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
+              {"platform": "Linux-arm64", "runner": "ubuntu-24.04-arm", "label": "linux-arm64-swt", "args": "--swt", "nightly": false, "blocking": false},
               {"platform": "Linux-x64", "runner": "ubuntu-24.04", "label": "linux-x64", "args": "", "nightly": false, "blocking": false},
               {"platform": "Linux-x64", "runner": "ubuntu-24.04", "label": "linux-x64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
+              {"platform": "Linux-x64", "runner": "ubuntu-24.04", "label": "linux-x64-swt", "args": "--swt", "nightly": false, "blocking": false},
               {"platform": "Windows-x64", "runner": "windows-2025", "label": "win-x64", "args": "--trace", "nightly": false, "blocking": false},
               {"platform": "Windows-x64", "runner": "windows-2025", "label": "win-x64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
+              {"platform": "Windows-x64", "runner": "windows-2025", "label": "win-x64-swt", "args": "--swt", "nightly": false, "blocking": false},
               {"platform": "macOS-arm64", "runner": "macos-26", "label": "mac-arm64", "args": "--trace", "nightly": false, "blocking": false},
-              {"platform": "macOS-arm64", "runner": "macos-26", "label": "mac-arm64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false}
+              {"platform": "macOS-arm64", "runner": "macos-26", "label": "mac-arm64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
+              {"platform": "macOS-arm64", "runner": "macos-26", "label": "mac-arm64-swt", "args": "--swt", "nightly": false, "blocking": false}
             ]
         run: |
           all='["Linux-arm64","Linux-x64","Windows-x64","macOS-arm64"]'
@@ -162,15 +167,16 @@ jobs:
       - name: Builds
         id: built
         if: always()
-        run: echo "failed=$(grep -m1 -o -E '(JVM|native) build FAILED' cycle.log 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+        run: echo "failed=$(grep -m1 -o -E '(JVM|native) build FAILED|javafx-swt FAILED' cycle.log 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
 
       # The container runs as root : give the files back to the runner user before the uploads and the cache
       - name: Restore the file ownership
         if: always()
         run: |
           sudo chown -R "$(id -u):$(id -g)" . "$HOME/.m2" || true
-          # the snapshots of quarkus-fx are built from the checked out commit : never from the cache
-          rm -rf "$HOME/.m2/repository/io/quarkiverse/fx"
+          # the snapshots of quarkus-fx are built from the checked out commit, javafx-swt is installed by the SWT
+          # variant from javafx-graphics (not on Maven Central) : never from the cache
+          rm -rf "$HOME/.m2/repository/io/quarkiverse/fx" "$HOME/.m2/repository/org/openjfx/javafx-swt"
 
       # once the dependencies are there, whatever the cycle gave
       - name: Save the Maven repository
@@ -303,11 +309,11 @@ jobs:
       - name: Builds
         id: built
         if: always()
-        run: echo "failed=$(grep -m1 -o -E '(JVM|native) build FAILED' cycle.log 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+        run: echo "failed=$(grep -m1 -o -E '(JVM|native) build FAILED|javafx-swt FAILED' cycle.log 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
 
       - name: Clean the Maven repository
         if: always()
-        run: rm -rf ~/.m2/repository/io/quarkiverse/fx
+        run: rm -rf ~/.m2/repository/io/quarkiverse/fx ~/.m2/repository/org/openjfx/javafx-swt
 
       - name: Save the Maven repository
         if: steps.install.outcome == 'success' && steps.m2.outputs.cache-hit != 'true' && (github.event_name == 'push' || github.event_name == 'schedule') && !cancelled() && hashFiles('cycle.log') != '' && !contains(steps.built.outputs.failed, 'FAILED')
@@ -427,11 +433,11 @@ jobs:
       - name: Builds
         id: built
         if: always()
-        run: echo "failed=$(grep -m1 -o -E '(JVM|native) build FAILED' cycle.log 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+        run: echo "failed=$(grep -m1 -o -E '(JVM|native) build FAILED|javafx-swt FAILED' cycle.log 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
 
       - name: Clean the Maven repository
         if: always()
-        run: rm -rf ~/.m2/repository/io/quarkiverse/fx
+        run: rm -rf ~/.m2/repository/io/quarkiverse/fx ~/.m2/repository/org/openjfx/javafx-swt
 
       - name: Save the Maven repository
         if: steps.install.outcome == 'success' && steps.m2.outputs.cache-hit != 'true' && (github.event_name == 'push' || github.event_name == 'schedule') && !cancelled() && hashFiles('cycle.log') != '' && !contains(steps.built.outputs.failed, 'FAILED')

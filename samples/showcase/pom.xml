@@ -17,6 +17,9 @@
         <quarkus-fx.version>999-SNAPSHOT</quarkus-fx.version>
         <quarkus-desktop.version>0.1.0</quarkus-desktop.version>
         <compiler-plugin.version>3.14.0</compiler-plugin.version>
+        <!-- The Quarkus Desktop extension of the variant : quarkus-desktop-swing (default) or quarkus-desktop-swt (swt, see
+             the profile) -->
+        <showcase.desktop.extension>quarkus-desktop-swing</showcase.desktop.extension>
     </properties>
 
     <dependencyManagement>
@@ -42,9 +45,9 @@
             <version>${quarkus-fx.version}</version>
         </dependency>
         <dependency>
-            <!-- AWT and Swing in native executables (Swing interop, printing) -->
+            <!-- AWT and Swing in native executables (Swing interop, printing), or SWT in the SWT variant -->
             <groupId>io.quarkiverse.desktop</groupId>
-            <artifactId>quarkus-desktop-swing</artifactId>
+            <artifactId>${showcase.desktop.extension}</artifactId>
             <version>${quarkus-desktop.version}</version>
         </dependency>
         <dependency>
@@ -73,11 +76,6 @@
             <artifactId>javafx-media</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-swing</artifactId>
-            <version>${javafx.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -101,12 +99,144 @@
                 <version>${compiler-plugin.version}</version>
                 <configuration>
                     <parameters>true</parameters>
+                    <!-- the SWT variant only (see the swt profile) -->
+                    <excludes>
+                        <exclude>io/quarkiverse/fx/showcase/swt/**</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <profile>
+            <!-- Swing interop (SwingNode, JFXPanel) : the default variant, not the SWT one -->
+            <id>javafx-swing</id>
+            <activation>
+                <property>
+                    <name>!swt</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-swing</artifactId>
+                    <version>${javafx.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <!--
+                SWT variant (-Dswt) : the pages in an SWT shell, through FXCanvas, with quarkus-desktop-swt alone : Quarkus
+                FX does not launch a JavaFX application then, the first FXCanvas starts JavaFX on the SWT user interface
+                thread (swt/SwtShowcaseApp). It also has the SWT interop page (swt/SwtInteropPage). The pages relying on
+                AWT or Swing (no quarkus-desktop-swing), and those relying on the JavaFX application of Quarkus FX (its
+                startup events, @FxView views, HostServices) are not compiled, and the native configuration of the
+                application is the one of src/main/swt-resources (without the printing of the default variant). It is
+                built into target/swt, next to the default variant.
+
+                javafx-swt (the javafx.swt module of FXCanvas) is not on Maven Central : install it once, as the
+                documentation of Quarkus FX says, with the executions below (tools/Cycle.java does it for the SWT variant) :
+                ./mvnw -Dswt dependency:unpack@javafx-swt install:install-file@javafx-swt
+            -->
+            <id>swt</id>
+            <activation>
+                <property>
+                    <name>swt</name>
+                </property>
+            </activation>
+            <properties>
+                <showcase.desktop.extension>quarkus-desktop-swt</showcase.desktop.extension>
+                <!-- the first version of quarkus-desktop-swt -->
+                <quarkus-desktop.version>0.2.1</quarkus-desktop.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-swt</artifactId>
+                    <version>${javafx.version}</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <directory>${project.basedir}/target/swt</directory>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <excludes>
+                            <exclude>META-INF/native-image/**</exclude>
+                        </excludes>
+                    </resource>
+                    <resource>
+                        <directory>src/main/swt-resources</directory>
+                    </resource>
+                </resources>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>${compiler-plugin.version}</version>
+                        <configuration>
+                            <!-- replace the exclusion of the swt package -->
+                            <excludes combine.self="override">
+                                <exclude>io/quarkiverse/fx/showcase/pages/swing/**</exclude>
+                                <exclude>io/quarkiverse/fx/showcase/pages/platform/PlatformAwtPage.java</exclude>
+                                <exclude>io/quarkiverse/fx/showcase/pages/platform/PlatformPrintingPage.java</exclude>
+                                <exclude>io/quarkiverse/fx/showcase/pages/fxml/FxViewPage.java</exclude>
+                                <exclude>io/quarkiverse/fx/showcase/pages/fxml/FxLifecycleRecorder.java</exclude>
+                                <exclude>io/quarkiverse/fx/showcase/pages/fxml/ShowcaseViewController.java</exclude>
+                                <exclude>io/quarkiverse/fx/showcase/pages/fxml/StatusCardPresenter.java</exclude>
+                                <exclude>io/quarkiverse/fx/showcase/ShowcaseApp.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <!-- javafx-swt.jar is nested in every javafx-graphics platform jar, with the same classes -->
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>3.8.1</version>
+                        <executions>
+                            <execution>
+                                <id>javafx-swt</id>
+                                <phase>none</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>org.openjfx</groupId>
+                                            <artifactId>javafx-graphics</artifactId>
+                                            <version>${javafx.version}</version>
+                                            <classifier>linux</classifier>
+                                            <includes>javafx-swt.jar</includes>
+                                        </artifactItem>
+                                    </artifactItems>
+                                    <outputDirectory>${project.build.directory}/javafx-swt</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-install-plugin</artifactId>
+                        <version>3.1.4</version>
+                        <executions>
+                            <execution>
+                                <id>javafx-swt</id>
+                                <phase>none</phase>
+                                <goals>
+                                    <goal>install-file</goal>
+                                </goals>
+                                <configuration>
+                                    <file>${project.build.directory}/javafx-swt/javafx-swt.jar</file>
+                                    <groupId>org.openjfx</groupId>
+                                    <artifactId>javafx-swt</artifactId>
+                                    <version>${javafx.version}</version>
+                                    <packaging>jar</packaging>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>native</id>
             <activation>

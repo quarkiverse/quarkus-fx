@@ -1,0 +1,28 @@
+{
+  "reflection": [
+    {
+      "type": "io.quarkiverse.fx.showcase.pages.web.WebBridge",
+      "jniAccessible": true,
+      "allPublicConstructors": true,
+      "allPublicMethods": true,
+      "allPublicFields": true
+    },
+    {
+      "type": "io.quarkiverse.fx.showcase.pages.web.WebBridge$Item",
+      "jniAccessible": true,
+      "allPublicConstructors": true,
+      "allPublicMethods": true,
+      "allPublicFields": true
+    },
+    {
+      "type": "java.lang.String",
+      "serializable": true
+    }
+  ],
+  "resources": [
+    {
+      "module": "java.base",
+      "glob": "java/time/chrono/hijrah-config-*.properties"
+    }
+  ]
+}

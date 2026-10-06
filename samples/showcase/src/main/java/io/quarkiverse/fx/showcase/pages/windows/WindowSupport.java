@@ -37,7 +37,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
-import javafx.stage.Stage;
 import javafx.stage.Window;
 
 /**
@@ -159,12 +158,12 @@ final class WindowSupport {
     }
 
     /**
-     * The window showing {@code content} (the main window).
+     * The window showing {@code content} (the main window) : the primary stage, or the window of the FXCanvas in the SWT
+     * variant, which owns the other windows the same way.
      */
-    static Stage mainStage(Node content) {
+    static Window mainWindow(Node content) {
         Scene scene = content.getScene();
-        Window window = scene == null ? null : scene.getWindow();
-        return window instanceof Stage stage ? stage : null;
+        return scene == null ? null : scene.getWindow();
     }
 
     /**

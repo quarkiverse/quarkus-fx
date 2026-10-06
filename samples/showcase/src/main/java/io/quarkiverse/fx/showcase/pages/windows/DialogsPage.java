@@ -429,7 +429,7 @@ public class DialogsPage implements FeaturePage {
     // -------------------------------------------------------------------------------------------------- live checks
 
     private CompletionStage<Void> runLive(Node content) {
-        Stage main = WindowSupport.mainStage(content);
+        Window main = WindowSupport.mainWindow(content);
         WindowSupport.Live live = WindowSupport.startLive(content);
         if (main == null) {
             live.checks.add(Check.fail("main window", "page not showing"));
@@ -498,13 +498,13 @@ public class DialogsPage implements FeaturePage {
         });
     }
 
-    private static String windowInfo(Dialog<?> dialog, Stage main) {
+    private static String windowInfo(Dialog<?> dialog, Window main) {
         Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
         return (stage.getOwner() == main ? "owned" : "not owned") + " " + stage.getModality() + " "
                 + WindowSupport.size(stage.getScene().getWidth(), stage.getScene().getHeight());
     }
 
-    private static CompletionStage<Void> alertScenario(WindowSupport.Live live, Stage main, double x, double y) {
+    private static CompletionStage<Void> alertScenario(WindowSupport.Live live, Window main, double x, double y) {
         Alert alert = alertDialog(main);
         List<String> events = new ArrayList<>();
         alert.setOnShowing(e -> events.add("SHOWING"));
@@ -524,7 +524,7 @@ public class DialogsPage implements FeaturePage {
         });
     }
 
-    private static CompletionStage<Void> textInputScenario(WindowSupport.Live live, Stage main, double x, double y) {
+    private static CompletionStage<Void> textInputScenario(WindowSupport.Live live, Window main, double x, double y) {
         TextInputDialog dialog = textInputDialog(main);
         String defaultValue = dialog.getDefaultValue();
         TextField editor = dialog.getEditor();
@@ -541,7 +541,7 @@ public class DialogsPage implements FeaturePage {
         });
     }
 
-    private static CompletionStage<Void> choiceScenario(WindowSupport.Live live, Stage main, double x, double y) {
+    private static CompletionStage<Void> choiceScenario(WindowSupport.Live live, Window main, double x, double y) {
         ChoiceDialog<String> dialog = choiceDialog(main);
         dialog.setSelectedItem("Native");
         return showAndCapture(live, dialog, "choice-dialog", x, y, () -> {
@@ -555,7 +555,7 @@ public class DialogsPage implements FeaturePage {
         });
     }
 
-    private static CompletionStage<Void> customScenario(WindowSupport.Live live, Stage main, double x, double y) {
+    private static CompletionStage<Void> customScenario(WindowSupport.Live live, Window main, double x, double y) {
         Dialog<ButtonType> dialog = customDialog(main);
         return showAndCapture(live, dialog, "custom-dialog", x, y, () -> {
         }).thenRun(() -> {
