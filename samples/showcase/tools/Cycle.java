@@ -21,7 +21,7 @@ import java.util.List;
  * documentation of quarkus-fx says (OpenJFX does not publish it on Maven Central).
  * <p>
  * --native-args is a comma separated list of native-image options, e.g. --native-args=-H:+PrintClassInitialization.
- * --maven-args is a comma separated list of options of both Maven builds, e.g.
+ * --maven-args is a comma separated list of options of both Maven builds (and of the javafx-swt install, with --swt), e.g.
  * --maven-args=-Dquarkus.platform.version=3.33.3.3,-Dquarkus.native.native-image-xmx=5g (the native build gets a 6g
  * native-image heap otherwise). Options for the snapshot runs can be given after {@code --} and apply to both the JVM
  * and the native run.
@@ -106,7 +106,10 @@ public class Cycle {
             mavenOptions.add(0, "-Dswt");
             step("javafx-swt");
             Path log = logs.resolve("javafx-swt.log");
-            if (maven(log, offline, "-Dswt", "dependency:unpack@javafx-swt", "install:install-file@javafx-swt") != 0) {
+            // with the options of the builds (-Dswt first) : the same local repository and JavaFX version
+            List<String> installArgs = new ArrayList<>(mavenOptions);
+            installArgs.addAll(List.of("dependency:unpack@javafx-swt", "install:install-file@javafx-swt"));
+            if (maven(log, offline, installArgs.toArray(String[]::new)) != 0) {
                 step("javafx-swt FAILED, see " + log);
                 failed(label, List.of("javafx-swt could not be installed (" + log + ")"));
             }

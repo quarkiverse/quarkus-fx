@@ -15,8 +15,8 @@ verdict=${verdict:-no comparison}
 # the JVM run compared with the trace run (Cycle.java --trace) : a hint, an image that differs there too suggests timing
 # or non-determinism rather than the native image
 control=$(grep -m1 '^CONTROL ' cycle.log 2>/dev/null | tr -d '\r')
-# what failed : the last line of the cycle (a build, a run, the comparison), its arguments, a cycle that did not finish,
-# or the steps before it
+# what failed : the last line of the cycle (a build, the javafx-swt install of the SWT variant, a run, the comparison),
+# its arguments, a cycle that did not finish, or the steps before it
 failed="" details=""
 if [ -f cycle.log ]; then
     failed=$(grep -m1 -E "cycle $LABEL FAILED|Invalid label|Unknown option|usage: " cycle.log | tr -d '\r' \
@@ -30,10 +30,12 @@ elif [ -f install.log ]; then
 else
     failed="the job failed before installing quarkus-fx"
 fi
+# the Maven log of a failed build or javafx-swt install
 case "$failed" in
-    *"JVM build failed"*) build=jvm ;;
-    *"native build failed"*) build=native ;;
-    *) build="" ;;
+    *"JVM build failed"*) buildlog=$c/logs-$LABEL/jvm-build.log ;;
+    *"native build failed"*) buildlog=$c/logs-$LABEL/native-build.log ;;
+    *"javafx-swt could not be installed"*) buildlog=$c/logs-$LABEL/javafx-swt.log ;;
+    *) buildlog="" ;;
 esac
 # the first $1 lines of the input, then how many were left out and where they are ($2) : awk reads the whole input,
 # unlike head
@@ -55,9 +57,9 @@ if [ -f "$summary" ]; then
     # at most 15 lines of images : the notes say why they differ
     where=" in the log of the Report step"
     details=$({ differing "$summary" | first 15 "$where"; notes "$summary"; } | first 30 "$where")
-elif [ -n "$build" ]; then
-    details=$(grep -E '^\[ERROR\]|Fatal error|^Error:' "$c/logs-$LABEL/$build-build.log" 2>/dev/null | tr -d '\r' \
-        | first 15 " in $c/logs-$LABEL/$build-build.log")
+elif [ -n "$buildlog" ]; then
+    details=$(grep -E '^\[ERROR\]|Fatal error|^Error:' "$buildlog" 2>/dev/null | tr -d '\r' \
+        | first 15 " in $buildlog")
 elif [ "$failed" = "installing quarkus-fx failed" ]; then
     details=$(grep -E '^\[ERROR\]' install.log | tr -d '\r' | first 15 ' in install.log')
 fi
