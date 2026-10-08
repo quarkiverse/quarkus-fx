@@ -375,7 +375,11 @@ public class ImagesPixelsPage implements FeaturePage {
                         b.put(i, (byte) 0x80).put(i + 1, (byte) 0x80).put(i + 2, (byte) 0x80).put(i + 3, (byte) 0x80);
                     }
                 }
-                return new Rectangle2D(20, 20, 60, 60);
+                // from x = 0 : the software pipeline (sw) of JavaFX 25 reads the dirty region of a byte buffer x bytes,
+                // not x pixels, after the start of its rows (SWArgbPreTexture.update) once the image was rendered (a
+                // texture created afterwards gets the whole buffer) : a square shifted by 15 pixels or not, depending on
+                // the timing of the rendering
+                return new Rectangle2D(0, 20, 80, 60);
             });
             PixelWriter writer = live.getPixelWriter();
             for (int y = 0; y < H; y++) {
