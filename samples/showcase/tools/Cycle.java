@@ -10,8 +10,9 @@ import java.util.List;
 
 /**
  * One JVM vs native iteration : JVM build and snapshots (optionally under the tracing agent), native build and snapshots,
- * comparison. Results: comparison/jvm-&lt;label&gt;, comparison/native-&lt;label&gt;, comparison/diff-&lt;label&gt;
- * (summary.txt, index.html), build logs in comparison/logs-&lt;label&gt;.
+ * comparison (on Windows, after a warm-up run, see {@link #warmUp}). Results: comparison/jvm-&lt;label&gt;,
+ * comparison/native-&lt;label&gt;, comparison/diff-&lt;label&gt; (summary.txt, index.html), build logs in
+ * comparison/logs-&lt;label&gt;.
  * <p>
  * usage: java tools/Cycle.java &lt;label&gt; [--trace] [--swt] [--skip-jvm] [--skip-native-build] [--offline]
  * [--native-args=...] [--maven-args=...]
@@ -123,6 +124,7 @@ public class Cycle {
                 step("JVM build FAILED, see " + logs.resolve("jvm-build.log"));
                 failed(label, List.of("the JVM build failed (" + logs.resolve("jvm-build.log") + ")"));
             }
+            warmUp("jvm", label, swt, snapshotOptions);
             step("JVM snapshots");
             if (Snapshot.run("jvm", "jvm-" + label, null, swt, snapshotOptions, 900) != 0) {
                 failures.add("the JVM run failed (comparison/jvm-" + label + "/run.log)");
@@ -165,6 +167,9 @@ public class Cycle {
                     .forEach(System.out::println);
         }
 
+        if (skipJvm) {
+            warmUp("native", label, swt, snapshotOptions);
+        }
         step("native snapshots");
         if (Snapshot.run("native", "native-" + label, null, swt, snapshotOptions, 900) != 0) {
             failures.add("the native run failed (comparison/native-" + label + "/run.log)");
@@ -195,6 +200,22 @@ public class Cycle {
             failed(label, failures);
         }
         step("cycle " + label + " OK");
+    }
+
+    /**
+     * On Windows, a run of the first page before the runs that are compared, its result left out : the first JavaFX
+     * process of a session (on a new runner) renders the edges of some text runs differently from the next processes,
+     * with LCD and with grayscale antialiasing (the JVM run of a cycle differed from its trace and native runs, which
+     * matched).
+     */
+    static void warmUp(String mode, String label, boolean swt, List<String> snapshotOptions)
+            throws IOException, InterruptedException {
+        if (!Snapshot.isWindows()) {
+            return;
+        }
+        step("warm-up run");
+        Snapshot.run(mode, "warm-up-" + label, "overview-", swt, snapshotOptions, 300);
+        Snapshot.deleteRecursively(Path.of("comparison", "warm-up-" + label));
     }
 
     /**
