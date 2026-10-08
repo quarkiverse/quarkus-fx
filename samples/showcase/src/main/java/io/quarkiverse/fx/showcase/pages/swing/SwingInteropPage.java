@@ -43,6 +43,7 @@ import javax.swing.JSlider;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.plaf.basic.BasicHTML;
 import javax.swing.text.AttributeSet;
@@ -255,35 +256,45 @@ public class SwingInteropPage implements FeaturePage {
     /**
      * A SwingNode in a popup window whose render scale is forced to another value than the scale of the screen :
      * SwingNode passes the render scale of its window to the Swing content
-     * (LightweightFrameWrapper.notifyDisplayChanged, looked up reflectively). The content of the page does not show
-     * it : a Swing content takes the scale of the screen by default. The popup is shown out of the screen, then hidden.
+     * (LightweightFrameWrapper.notifyDisplayChanged, looked up reflectively), whose image buffer gets that scale. The
+     * content of the page does not show it : a Swing content takes the scale of the screen by default. The popup is
+     * shown out of the screen, then hidden.
+     * <p>
+     * The scale is the one of the graphics of the Swing content (JLightweightFrame.getGraphics, polled on the EDT), not
+     * the one of its paints : Swing paints through the back buffer of its RepaintManager, at the scale of the screen,
+     * then draws it into the image buffer (paints at the forced scale only happen without that back buffer).
      */
     private static CompletionStage<Check> renderScaleCheck(Node owner) {
-        String name = "forced render scale → Swing paint scale";
+        String name = "forced render scale → Swing content scale";
         double screenScale = Screen.getPrimary().getOutputScaleX();
         double forced = screenScale == 2 ? 3 : 2;
-        CompletableFuture<Double> painted = new CompletableFuture<>();
+        CompletableFuture<Double> scaled = new CompletableFuture<>();
         Popup popup = new Popup();
         SwingNode swingNode = new SwingNode();
+        Timer poll = new Timer(50, null);
         try {
             popup.renderScaleXProperty().bind(new SimpleDoubleProperty(forced));
             popup.renderScaleYProperty().bind(new SimpleDoubleProperty(forced));
             popup.setAutoFix(false);
             popup.getContent().add(swingNode);
             SwingUtilities.invokeLater(() -> {
-                JPanel panel = new JPanel() {
-                    @Override
-                    public void paint(Graphics g) {
-                        super.paint(g);
-                        double scale = ((Graphics2D) g).getTransform().getScaleX();
-                        if (scale == forced) {
-                            painted.complete(scale);
-                        }
-                    }
-                };
+                JPanel panel = new JPanel();
                 panel.setPreferredSize(new Dimension(80, 40));
                 panel.setBackground(new Color(0x1565C0));
                 swingNode.setContent(panel);
+                // no graphics until the content has its image buffer
+                poll.addActionListener(e -> {
+                    Graphics g = panel.getGraphics();
+                    if (g != null) {
+                        double scale = ((Graphics2D) g).getTransform().getScaleX();
+                        g.dispose();
+                        if (scale == forced) {
+                            poll.stop();
+                            scaled.complete(scale);
+                        }
+                    }
+                });
+                poll.start();
             });
             Rectangle2D bounds = Screen.getPrimary().getBounds();
             popup.show(owner.getScene().getWindow(), bounds.getMinX() - 4000, bounds.getMinY() - 4000);
@@ -291,10 +302,13 @@ public class SwingInteropPage implements FeaturePage {
             popup.hide();
             return CompletableFuture.completedFuture(Check.fail(name, Checks.describe(t)));
         }
-        return Fx.timeout(painted, 5_000, "a paint at scale " + forced)
+        return Fx.timeout(scaled, 5_000, "the scale " + forced)
                 .handle((scale, error) -> {
                     popup.hide();
-                    SwingUtilities.invokeLater(() -> swingNode.setContent(null));
+                    SwingUtilities.invokeLater(() -> {
+                        poll.stop();
+                        swingNode.setContent(null);
+                    });
                     return error == null ? Check.pass(name, forced + " → " + scale)
                             : Check.fail(name, forced + " → " + describe(error));
                 });
