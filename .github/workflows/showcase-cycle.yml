@@ -32,7 +32,7 @@ jobs:
   # One matrix per family (Linux in Docker, Windows, macOS) from the table below, the platforms input and nightly
   plan:
     name: Plan
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
       linux: ${{ steps.plan.outputs.linux }}
@@ -47,24 +47,24 @@ jobs:
         env:
           PLATFORMS: ${{ inputs.platforms }}
           NIGHTLY: ${{ inputs.nightly }}
-          # label : the directory name of the runs (comparison/*-<label>) and of the artifacts ; args : options of
-          # tools/Cycle.java (after -- : options of both runs, --swt : the SWT variant, JavaFX embedded in SWT) ;
-          # nightly : only with the input nightly ; blocking false : continue-on-error (set it to true once the variant
-          # is reliably green)
+          # runner : the latest runner image of the platform (Linux arm64 has no -latest label) ; label : the directory
+          # name of the runs (comparison/*-<label>) and of the artifacts ; args : options of tools/Cycle.java (after
+          # -- : options of both runs, --swt : the SWT variant, JavaFX embedded in SWT) ; nightly : only with the input
+          # nightly ; blocking false : continue-on-error (set it to true once the variant is reliably green)
           VARIANTS: |
             [
               {"platform": "Linux-arm64", "runner": "ubuntu-24.04-arm", "label": "linux-arm64", "args": "--trace", "nightly": false, "blocking": false},
               {"platform": "Linux-arm64", "runner": "ubuntu-24.04-arm", "label": "linux-arm64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
               {"platform": "Linux-arm64", "runner": "ubuntu-24.04-arm", "label": "linux-arm64-swt", "args": "--swt", "nightly": false, "blocking": false},
-              {"platform": "Linux-x64", "runner": "ubuntu-24.04", "label": "linux-x64", "args": "", "nightly": false, "blocking": false},
-              {"platform": "Linux-x64", "runner": "ubuntu-24.04", "label": "linux-x64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
-              {"platform": "Linux-x64", "runner": "ubuntu-24.04", "label": "linux-x64-swt", "args": "--swt", "nightly": false, "blocking": false},
-              {"platform": "Windows-x64", "runner": "windows-2025", "label": "win-x64", "args": "--trace", "nightly": false, "blocking": false},
-              {"platform": "Windows-x64", "runner": "windows-2025", "label": "win-x64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
-              {"platform": "Windows-x64", "runner": "windows-2025", "label": "win-x64-swt", "args": "--swt", "nightly": false, "blocking": false},
-              {"platform": "macOS-arm64", "runner": "macos-26", "label": "mac-arm64", "args": "--trace", "nightly": false, "blocking": false},
-              {"platform": "macOS-arm64", "runner": "macos-26", "label": "mac-arm64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
-              {"platform": "macOS-arm64", "runner": "macos-26", "label": "mac-arm64-swt", "args": "--swt", "nightly": false, "blocking": false}
+              {"platform": "Linux-x64", "runner": "ubuntu-latest", "label": "linux-x64", "args": "", "nightly": false, "blocking": false},
+              {"platform": "Linux-x64", "runner": "ubuntu-latest", "label": "linux-x64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
+              {"platform": "Linux-x64", "runner": "ubuntu-latest", "label": "linux-x64-swt", "args": "--swt", "nightly": false, "blocking": false},
+              {"platform": "Windows-x64", "runner": "windows-latest", "label": "win-x64", "args": "--trace", "nightly": false, "blocking": false},
+              {"platform": "Windows-x64", "runner": "windows-latest", "label": "win-x64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
+              {"platform": "Windows-x64", "runner": "windows-latest", "label": "win-x64-swt", "args": "--swt", "nightly": false, "blocking": false},
+              {"platform": "macOS-arm64", "runner": "macos-latest", "label": "mac-arm64", "args": "--trace", "nightly": false, "blocking": false},
+              {"platform": "macOS-arm64", "runner": "macos-latest", "label": "mac-arm64-sw", "args": "-- -Dprism.order=sw", "nightly": true, "blocking": false},
+              {"platform": "macOS-arm64", "runner": "macos-latest", "label": "mac-arm64-swt", "args": "--swt", "nightly": false, "blocking": false}
             ]
         run: |
           all='["Linux-arm64","Linux-x64","Windows-x64","macOS-arm64"]'
@@ -388,11 +388,13 @@ jobs:
           showcase=$(sed -n 's:.*<quarkus.platform.version>\(.*\)</quarkus.platform.version>.*:\1:p' samples/showcase/pom.xml | head -1)
           echo "Quarkus $showcase (showcase), quarkus-fx built with Quarkus $fx" >> "$GITHUB_STEP_SUMMARY"
 
-      # Oracle GraalVM for JDK 25, the GraalVM of the native job of the Build workflow
-      - name: Set up GraalVM for JDK 25
+      # The latest innovation release of Oracle GraalVM 25 (JDK 25) : Quarkus builds the AWT and Swing of Quarkus
+      # Desktop into macOS native executables with GraalVM 25.1 or later (the native job of the Build workflow, without
+      # AWT, has Oracle GraalVM for JDK 25)
+      - name: Set up GraalVM 25 (latest innovation release)
         uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '25'
+          version: '25i-latest'
           distribution: graalvm
           github-token: ${{ github.token }}
 

@@ -1,7 +1,8 @@
 name: Build
 
 # Pull requests : the JVM build on Linux with JDK 17, and the other JDK and platforms (JVM and native) when the pull
-# request has the label full-ci (adding it runs them on the current commit). Pushes to main and manual runs : all.
+# request has the label full-ci (adding it runs them on the current commit), as are the showcase cycles of the Showcase
+# workflow. Pushes to main and manual runs : all.
 on:
   push:
     branches:

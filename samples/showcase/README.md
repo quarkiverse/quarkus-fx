@@ -85,7 +85,7 @@ of the process, where a native executable runs its main method.
 ## Continuous integration
 
 `.github/workflows/showcase.yml`, at the root of this repository, runs the cycle on Linux arm64 and x64, Windows x64 and
-macOS arm64: on pushes to main, on pull requests labelled `showcase`, and manually. It is informational (non-blocking).
+macOS arm64: on pushes to main, on pull requests labelled `full-ci`, and manually. It is informational (non-blocking).
 
 ## Pages
 

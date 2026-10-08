@@ -1,9 +1,9 @@
 name: Showcase
 
 # The JVM vs native cycles of the showcase (samples/showcase) against this commit, on four platforms (Linux arm64 and
-# x64, Windows x64, macOS arm64), run by showcase-cycle.yml : on every push to main, on pull requests labelled
-# "showcase", and manually. Informational : the platforms are non-blocking (a failed cycle is a failed job with a
-# warning, the run stays green), and this is not a required check.
+# x64, Windows x64, macOS arm64), run by showcase-cycle.yml : on every push to main, on pull requests labelled full-ci
+# (with the other platforms and JDK of the Build workflow), and manually. Informational : the platforms are
+# non-blocking (a failed cycle is a failed job with a warning, the run stays green), and this is not a required check.
 on:
   push:
     branches:
@@ -36,11 +36,11 @@ permissions:
 
 jobs:
   showcase:
-    # pull requests : labelled "showcase", and when the label added is that one (another label does not rerun it)
+    # pull requests : labelled full-ci, and when the label added is that one (another label does not rerun it)
     if: >-
       github.event_name != 'pull_request'
-      || (contains(github.event.pull_request.labels.*.name, 'showcase')
-          && (github.event.action != 'labeled' || github.event.label.name == 'showcase'))
+      || (contains(github.event.pull_request.labels.*.name, 'full-ci')
+          && (github.event.action != 'labeled' || github.event.label.name == 'full-ci'))
     # on the job : the skipped runs of other labels do not cancel a running cycle ; one group per manual run
     concurrency:
       group: showcase-${{ github.event_name }}-${{ github.event.pull_request.number || (github.event_name == 'workflow_dispatch' && github.run_id) || github.ref }}
