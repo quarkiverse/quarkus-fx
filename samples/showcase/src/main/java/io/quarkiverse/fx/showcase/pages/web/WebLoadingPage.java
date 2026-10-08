@@ -228,6 +228,10 @@ public class WebLoadingPage implements FeaturePage {
                 .thenCompose(v -> Fx.pulses(10))
                 // images are decoded and painted asynchronously by WebKit
                 .thenCompose(v -> WebSupport.stable(root, 10_000))
+                // an image painted scaled (the zoom of the views) at two sizes within 500 ms is painted at low quality,
+                // then again at high quality 500 ms later (the ImageQualityController of WebKit)
+                .thenCompose(v -> Fx.delay(600))
+                .thenCompose(v -> WebSupport.stable(root, 10_000))
                 .thenCompose(v -> Fx.delay(200));
         return root;
     }
