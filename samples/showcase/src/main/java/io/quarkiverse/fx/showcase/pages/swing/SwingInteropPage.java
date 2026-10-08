@@ -368,12 +368,23 @@ public class SwingInteropPage implements FeaturePage {
             this.onFirstPaint = onFirstPaint;
         }
 
+        /**
+         * A vertical gradient of solid rows, as the gradients of the Metal look and feel, not a GradientPaint : with the
+         * XRender pipeline (Linux), the X server renders a GradientPaint, and its colors differed by one level between
+         * the JVM and the native runs on Linux x64.
+         */
         @Override
         protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setPaint(new GradientPaint(0, 0, new Color(0xE3F2FD), 0, getHeight(), new Color(0xFFF8E1)));
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            g2.dispose();
+            int height = getHeight();
+            for (int y = 0; y < height; y++) {
+                float t = height > 1 ? y / (float) (height - 1) : 0;
+                g.setColor(new Color(mix(0xE3, 0xFF, t), mix(0xF2, 0xF8, t), mix(0xFD, 0xE1, t)));
+                g.fillRect(0, y, getWidth(), 1);
+            }
+        }
+
+        private static int mix(int from, int to, float t) {
+            return Math.round(from + (to - from) * t);
         }
 
         @Override
