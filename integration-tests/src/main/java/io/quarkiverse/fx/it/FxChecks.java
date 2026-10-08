@@ -104,6 +104,11 @@ public class FxChecks {
     static final int ACCENT_ARGB = 0xff0096c9; // FxPalette.ACCENT, views/Main.css
 
     static final long TIMEOUT_SECONDS = 60;
+    /**
+     * The creation of the first web view : WebKit loads its native library, extracted from the JavaFX jar in JVM mode,
+     * which took more than a minute on a new Windows runner.
+     */
+    static final long FIRST_WEB_VIEW_TIMEOUT_SECONDS = 180;
 
     @Inject
     FxViewRepository viewRepository;
@@ -397,7 +402,7 @@ public class FxChecks {
     private Object webView() throws Exception {
         URL page = resource(ENCODED_DIRECTORY + "page.html");
         CompletableFuture<Worker.State> loaded = new CompletableFuture<>();
-        WebEngine engine = onFx(() -> load(page.toExternalForm(), loaded));
+        WebEngine engine = onFx(() -> load(page.toExternalForm(), loaded), FIRST_WEB_VIEW_TIMEOUT_SECONDS);
         Worker.State state = await(loaded);
         if (state != Worker.State.SUCCEEDED) {
             throw new IllegalStateException("load of " + page + " : " + state + " "
@@ -489,6 +494,10 @@ public class FxChecks {
      * Runs the task on the JavaFX application thread and waits for its result.
      */
     private static <T> T onFx(Callable<T> task) throws Exception {
+        return onFx(task, TIMEOUT_SECONDS);
+    }
+
+    private static <T> T onFx(Callable<T> task, long timeoutSeconds) throws Exception {
         CompletableFuture<T> result = new CompletableFuture<>();
         Platform.runLater(() -> {
             try {
@@ -497,12 +506,16 @@ public class FxChecks {
                 result.completeExceptionally(t);
             }
         });
-        return await(result);
+        return await(result, timeoutSeconds);
     }
 
     private static <T> T await(CompletableFuture<T> future) throws Exception {
+        return await(future, TIMEOUT_SECONDS);
+    }
+
+    private static <T> T await(CompletableFuture<T> future, long timeoutSeconds) throws Exception {
         try {
-            return future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            return future.get(timeoutSeconds, TimeUnit.SECONDS);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof Exception cause) {
                 throw cause;
