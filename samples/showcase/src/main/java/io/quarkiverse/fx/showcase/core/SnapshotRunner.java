@@ -164,7 +164,13 @@ public class SnapshotRunner {
                     return Fx.pulses(2);
                 })
                 .thenComposeAsync(v -> {
-                    WritableImage image = view.pageFrame().snapshot(parameters(), null);
+                    // The last of 3 snapshots, as WindowSupport.capture : Prism renders a complex shape (rotated, or a
+                    // clip) directly the first 2 times, then from a cached mask, whose anti-aliased edges differ. How
+                    // many times the page was rendered before depends on the timing of its repaints.
+                    WritableImage image = null;
+                    for (int i = 0; i < 3; i++) {
+                        image = view.pageFrame().snapshot(parameters(), null);
+                    }
                     String file = page.id() + ".png";
                     writeImage(image, out.resolve(file));
                     result.put("snapshot", file);
