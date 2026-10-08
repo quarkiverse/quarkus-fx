@@ -13,6 +13,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BooleanSupplier;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import io.quarkiverse.fx.showcase.core.Checks;
@@ -43,6 +44,12 @@ final class MediaSupport {
     static final char FORWARD = '';
     static final char MUTE = '';
     static final char VOLUME = '';
+
+    /**
+     * The identity of an object in its default toString : the errors of the JavaFX media players name the player
+     * ([com.sun.media.jfxmediaimpl.platform.gstreamer.GSTMediaPlayer@1b6d3586]), whose identity differs from run to run
+     */
+    private static final Pattern IDENTITY = Pattern.compile("(?<=[\\w$])@\\p{XDigit}{1,8}\\b");
 
     private static String iconFamily;
     private static boolean iconFamilyLoaded;
@@ -281,7 +288,7 @@ final class MediaSupport {
         while (error instanceof java.util.concurrent.CompletionException && error.getCause() != null) {
             error = error.getCause();
         }
-        return Checks.describe(error);
+        return withoutIdentities(Checks.describe(error));
     }
 
     /**
@@ -289,12 +296,20 @@ final class MediaSupport {
      */
     static String playerError(MediaPlayer player) {
         if (player.getError() != null) {
-            return player.getError().getType() + ": " + player.getError().getMessage();
+            return withoutIdentities(player.getError().getType() + ": " + player.getError().getMessage());
         }
         if (player.getMedia().getError() != null) {
-            return player.getMedia().getError().getType() + ": " + player.getMedia().getError().getMessage();
+            return withoutIdentities(player.getMedia().getError().getType() + ": "
+                    + player.getMedia().getError().getMessage());
         }
         return null;
+    }
+
+    /**
+     * {@code text} without the object identities (see {@link #IDENTITY}) : the same in every run.
+     */
+    static String withoutIdentities(String text) {
+        return IDENTITY.matcher(text).replaceAll("");
     }
 
     /**
