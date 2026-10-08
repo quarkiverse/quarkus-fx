@@ -115,10 +115,20 @@ public class AudioPage implements FeaturePage {
         }
 
         /**
-         * Whether the media file exists but its player did not become READY.
+         * Whether the player decoded its media : READY, with a known duration. Without a decoder for its codec (AAC on
+         * Windows without Media Foundation), the player reports an error, or, depending on the timing, READY with an
+         * unknown duration and no track first.
+         */
+        boolean decoded() {
+            return player != null && error == null && status == MediaPlayer.Status.READY && media != null
+                    && MediaSupport.known(media.getDuration());
+        }
+
+        /**
+         * Whether the media file exists but its player did not decode it.
          */
         boolean failed() {
-            return source != null && (player == null || status != MediaPlayer.Status.READY);
+            return source != null && !decoded();
         }
 
         /**
@@ -140,7 +150,8 @@ public class AudioPage implements FeaturePage {
                 int cause = failure.indexOf(" <- ");
                 return MediaSupport.audioOutputMissing() + ": " + (cause < 0 ? failure : failure.substring(0, cause));
             }
-            return codecUnavailable() ? MediaSupport.codecUnavailable(codec, failure()) : null;
+            // without the failure : an error or a READY player without duration, depending on the timing
+            return codecUnavailable() ? MediaSupport.codecUnavailable(codec, null) : null;
         }
 
         String failure() {
@@ -297,7 +308,7 @@ public class AudioPage implements FeaturePage {
         if (player.status == null && player.error == null) {
             return;
         }
-        boolean ok = player.error == null && player.status == MediaPlayer.Status.READY;
+        boolean ok = player.decoded();
         boolean unavailable = !ok && player.unavailable() != null;
         player.statusLabel.getStyleClass().removeAll("waiting", "failed");
         if (!ok) {
@@ -407,7 +418,7 @@ public class AudioPage implements FeaturePage {
     private static void showChecks(State state) {
         List<Check> media = new ArrayList<>();
         for (Player player : state.players) {
-            if (player.player == null || player.status != MediaPlayer.Status.READY) {
+            if (!player.decoded()) {
                 String unavailable = player.unavailable();
                 media.add(unavailable != null
                         ? Check.info(player.file + ": status", unavailable)
@@ -420,18 +431,20 @@ public class AudioPage implements FeaturePage {
         }
         List<String> metadata = new ArrayList<>();
         for (Player player : state.players) {
-            metadata.add(player.media == null ? "-" : MediaSupport.metadata(player.media.getMetadata()));
+            metadata.add(!player.decoded() ? "-" : MediaSupport.metadata(player.media.getMetadata()));
         }
         media.add(Check.info("metadata (wav, aiff, m4a)", String.join(", ", metadata)));
-        // "1, 1, 1" : no call for a player that this system cannot play (codec or audio output device not available)
+        // "1, 1, 1" ; "-" for a player that this system cannot play (codec or audio output device not available) : it
+        // may report READY before its error, depending on the timing
         media.add(Checks.expect("onReady handler calls (wav, aiff, m4a)",
-                String.join(", ", state.players.stream().map(p -> p.unavailable() != null ? "0" : "1").toList()),
-                () -> String.join(", ", state.players.stream().map(p -> String.valueOf(p.readyEvents)).toList())));
+                String.join(", ", state.players.stream().map(p -> p.unavailable() != null ? "-" : "1").toList()),
+                () -> String.join(", ", state.players.stream()
+                        .map(p -> p.unavailable() != null ? "-" : String.valueOf(p.readyEvents)).toList())));
         List<String> classpath = new ArrayList<>();
         boolean classpathOk = true;
         boolean classpathInfo = false;
         for (Player player : state.classpathPlayers) {
-            boolean ok = player.player != null && player.status == MediaPlayer.Status.READY;
+            boolean ok = player.decoded();
             String unavailable = ok ? null : player.unavailable();
             classpathOk &= ok || unavailable != null;
             classpathInfo |= unavailable != null;

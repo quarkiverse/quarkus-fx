@@ -210,8 +210,8 @@ final class MediaSupport {
      */
     static String codecUnavailable(String codec, Object error) {
         return codec + " decoding not available on this system (needs "
-                + Platforms.pick("AVFoundation", "Media Foundation", "the ffmpeg libraries, libavcodec") + "): "
-                + error;
+                + Platforms.pick("AVFoundation", "Media Foundation", "the ffmpeg libraries, libavcodec") + ")"
+                + (error == null ? "" : ": " + error);
     }
 
     static <T extends javafx.scene.layout.Region> T fixHeight(T region, double height) {
@@ -231,6 +231,13 @@ final class MediaSupport {
         double seconds = Math.round(duration.toSeconds() * 10) / 10.0;
         int minutes = (int) (seconds / 60);
         return String.format(Locale.ROOT, "%d:%04.1f", minutes, seconds - minutes * 60);
+    }
+
+    /**
+     * Whether {@code duration} is known : neither unknown nor indefinite.
+     */
+    static boolean known(Duration duration) {
+        return duration != null && !duration.isUnknown() && !duration.isIndefinite();
     }
 
     /**
