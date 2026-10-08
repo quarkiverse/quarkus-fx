@@ -1,9 +1,10 @@
 #!/bin/bash
 # The verdict of a cycle (tools/Cycle.java) in the summary of the run and as an annotation of the job : an error for a
-# blocking job, a warning for a non-blocking one (annotations are readable through the public API without logging in,
-# unlike the logs). Run from the workspace (samples/showcase/, cycle.log, install.log) with LABEL, RUNNER and BLOCKING
-# set. The log of the step gets what the artifacts would tell : the environment of the runs, the checks and errors,
-# every image that differs and where, the control of --trace and the exceptions of the runs.
+# blocking job, a warning for a non-blocking one or a cycle that passed on its rechecks (annotations are readable
+# through the public API without logging in, unlike the logs). Run from the workspace (samples/showcase/, cycle.log,
+# install.log) with LABEL, RUNNER and BLOCKING set. The log of the step gets what the artifacts would tell : the
+# environment of the runs, the checks and errors, every image that differs and where, the rechecks, the control of
+# --trace and the exceptions of the runs.
 # Portable : bash 3.2 and the BSD tools of macOS, Git Bash on Windows, GNU tools on Linux. Exits 0 : the cycle step
 # fails the job. No head after a command that may write more than a pipe holds : a step may ignore SIGPIPE, and that
 # command would then write errors.
@@ -15,6 +16,8 @@ verdict=${verdict:-no comparison}
 # the JVM run compared with the trace run (Cycle.java --trace) : a hint, an image that differs there too suggests timing
 # or non-determinism rather than the native image
 control=$(grep -m1 '^CONTROL ' cycle.log 2>/dev/null | tr -d '\r')
+# the pages that differ run again (Cycle.java) : the verdict of the rechecks
+recheck=$(grep -m1 '^RECHECK : ' cycle.log 2>/dev/null | tr -d '\r')
 # what failed : the last line of the cycle (a build, the javafx-swt install of the SWT variant, a run, the comparison),
 # its arguments, a cycle that did not finish, or the steps before it
 failed="" details=""
@@ -74,11 +77,17 @@ for run in jvm native; do
     environment="$environment$run: $keys
 "
 done
+# what the cycle concluded : why it failed, the rechecks when the pages that differed matched there, or the verdict
+outcome=${failed:-${recheck:-$verdict}}
 suffix="" level=error
 if [ "$BLOCKING" != true ]; then suffix=" (non-blocking)" level=warning; fi
+# a cycle that passed on its rechecks : a warning
+if [ -z "$failed" ]; then level=warning; fi
 if [ -n "$failed" ] || [ "${verdict#MATCH}" = "$verdict" ]; then
     # one line : the % and the line breaks encoded
-    message=$({ printf '%s\n' "${failed:-$verdict}"; if [ -n "$control" ]; then printf '%s\n' "$control"; fi
+    message=$({ printf '%s\n' "$outcome"
+                if [ -n "$recheck" ] && [ "$recheck" != "$outcome" ]; then printf '%s\n' "$recheck"; fi
+                if [ -n "$control" ]; then printf '%s\n' "$control"; fi
                 printf '%s\n' "$details"; } \
         | awk 'BEGIN { ORS = "" } { gsub(/%/, "%25"); gsub(/\r/, "%0D"); if (NR > 1) print "%0A"; print }')
     echo "::$level title=Showcase $LABEL on $RUNNER$suffix::$message"
@@ -87,6 +96,7 @@ fi
     echo "### $LABEL on $RUNNER$suffix"
     echo
     echo "\`$verdict\`"
+    if [ -n "$recheck" ]; then echo; echo "\`$recheck\`"; fi
     if [ -n "$control" ]; then echo; echo "\`$control\`"; fi
     if [ -n "$failed" ]; then echo; echo "$failed"; fi
     if [ -n "$environment" ]; then echo; echo '```'; printf '%s' "$environment"; echo '```'; fi
@@ -136,9 +146,10 @@ exceptions() {
 # The job log : readable without the artifacts. Workflow commands are off while it prints lines of the runs.
 token="cycle-report-$$-$RANDOM"
 echo "::stop-commands::$token"
-echo "== Showcase $LABEL on $RUNNER$suffix : ${failed:-$verdict}"
-if [ -n "$failed" ]; then printf '%s\n' "$verdict"; fi
+echo "== Showcase $LABEL on $RUNNER$suffix : $outcome"
+if [ "$outcome" != "$verdict" ]; then printf '%s\n' "$verdict"; fi
 if [ -n "$control" ]; then printf '%s\n' "$control"; fi
+if [ -n "$recheck" ]; then grep -E '^RECHECK ' cycle.log | tr -d '\r'; fi
 if [ -n "$environment" ]; then printf '%s' "$environment"; fi
 if [ -f "$summary" ]; then
     all=$(notes "$summary")

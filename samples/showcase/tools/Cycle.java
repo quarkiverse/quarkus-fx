@@ -6,13 +6,19 @@ import java.nio.file.Path;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * One JVM vs native iteration : JVM build and snapshots (optionally under the tracing agent), native build and snapshots,
- * comparison (on Windows, after a warm-up run, see {@link #warmUp}). Results: comparison/jvm-&lt;label&gt;,
- * comparison/native-&lt;label&gt;, comparison/diff-&lt;label&gt; (summary.txt, index.html), build logs in
- * comparison/logs-&lt;label&gt;.
+ * comparison (on Windows, after a warm-up run, see {@link #warmUp}), and the rechecks of the pages that differ (see
+ * {@link #recheck}). Results: comparison/jvm-&lt;label&gt;, comparison/native-&lt;label&gt;,
+ * comparison/diff-&lt;label&gt; (summary.txt, index.html), build logs in comparison/logs-&lt;label&gt;.
  * <p>
  * usage: java tools/Cycle.java &lt;label&gt; [--trace] [--swt] [--skip-jvm] [--skip-native-build] [--offline]
  * [--native-args=...] [--maven-args=...]
@@ -35,13 +41,20 @@ import java.util.List;
  * page that only sometimes differs between two JVM runs may match in this pair.
  * <p>
  * Exit code 0 when both runs wrote their report and exited normally and the comparison matches (the runtime dependent
- * pages excepted, see Compare.java) : the last line is then {@code cycle <label> OK}, and {@code cycle <label> FAILED :
- * <reasons>} otherwise, with the exit code 1 (also for a failed build). 2 for invalid arguments (with a usage or an
- * error message).
+ * pages excepted, see Compare.java), or each page that differs matches on a recheck : the last line is then
+ * {@code cycle <label> OK}, and {@code cycle <label> FAILED : <reasons>} otherwise, with the exit code 1 (also for a
+ * failed build). 2 for invalid arguments (with a usage or an error message).
  */
 public class Cycle {
 
     static final String CONTROL = "CONTROL jvm vs trace (a hint : a slower JVM run, under the tracing agent) : ";
+    static final String RECHECK = "RECHECK ";
+    /** The rechecks of the pages that differ, at most (see {@link #recheck}) */
+    static final int RECHECKS = 3;
+    /** The watchdog of a recheck run (the pages that differ, not all of them) */
+    static final long RECHECK_TIMEOUT_SECONDS = 300;
+    /** The differences of two runs outside their pages, see {@link #differingPages} */
+    static final String OUTSIDE_PAGES = "(outside pages)";
     // the output of the Java tools is in the native encoding, not UTF-8 on Windows : the verdicts and the image names
     // are ASCII, and any byte is a character of ISO-8859-1
     static final Charset CONSOLE = StandardCharsets.ISO_8859_1;
@@ -182,11 +195,8 @@ public class Cycle {
         List<String> lines = Files.readAllLines(summary, CONSOLE);
         String verdict = lines.isEmpty() ? "no comparison" : lines.getFirst();
         System.out.println(verdict);
-        if (compared != 0) {
-            failures.add(verdict.startsWith("MISMATCH") ? "the runs do not match (comparison/diff-" + label + ")" : verdict);
-        }
         if (traced != null) {
-            // informational : the verdict of the cycle stays the one of the JVM vs native comparison
+            // informational : it does not change the verdict of the cycle
             String control;
             try {
                 control = control(label, lines);
@@ -194,6 +204,19 @@ public class Cycle {
                 control = CONTROL + "no comparison, " + e;
             }
             System.out.println(control + traced);
+        }
+        if (compared != 0) {
+            String mismatch = verdict.startsWith("MISMATCH") ? "the runs do not match (comparison/diff-" + label + ")"
+                    : verdict;
+            if (failures.isEmpty() && verdict.startsWith("MISMATCH")) {
+                // both runs completed : the pages that differ run again
+                String recheck = recheck(label, lines, swt, snapshotOptions);
+                if (recheck != null) {
+                    failures.add(mismatch + ", " + recheck);
+                }
+            } else {
+                failures.add(mismatch);
+            }
         }
 
         if (!failures.isEmpty()) {
@@ -216,6 +239,128 @@ public class Cycle {
         step("warm-up run");
         Snapshot.run(mode, "warm-up-" + label, null, swt, snapshotOptions, 900);
         Snapshot.deleteRecursively(Path.of("comparison", "warm-up-" + label));
+    }
+
+    /**
+     * Two runs that completed and differ, checked again : the pages that differ (see {@link #differingPages}) run
+     * again, alone, in both modes, at most {@link #RECHECKS} times, until each of them matches, one of its native runs
+     * identical to one of its JVM runs (its images, checks and errors, as Compare.java compares them). The rendering of
+     * some pages differs between two JVM runs on some machines (the effects and the media of the Windows runners, see
+     * the control of --trace) : the native runs render one of these renderings, a difference of the native image is in
+     * all of them. Prints {@code RECHECK <n> of <RECHECKS> : ...} after each recheck and {@code RECHECK : MATCH ...} or
+     * {@code RECHECK : MISMATCH ...} last. The runs are comparison/jvm-recheck&lt;n&gt;-&lt;label&gt; and
+     * native-recheck&lt;n&gt;-&lt;label&gt;, their comparisons are in comparison/diff-&lt;label&gt;/recheck.
+     *
+     * @return null when each page that differed matches, why the cycle fails otherwise
+     */
+    static String recheck(String label, List<String> compared, boolean swt, List<String> snapshotOptions)
+            throws IOException, InterruptedException {
+        Set<String> pending = differingPages(compared);
+        if (pending.isEmpty() || pending.contains(OUTSIDE_PAGES)) {
+            System.out.println(RECHECK + ": none, the runs differ outside their pages");
+            return "not rechecked : the runs differ outside their pages";
+        }
+        List<String> jvmRuns = new ArrayList<>(List.of("jvm-" + label));
+        List<String> nativeRuns = new ArrayList<>(List.of("native-" + label));
+        // the pages that match : the runs that match
+        Map<String, String> matching = new TreeMap<>();
+        for (int n = 1; n <= RECHECKS && !pending.isEmpty(); n++) {
+            String pages = String.join(",", pending);
+            step("recheck " + n + " of " + RECHECKS + " : " + pages);
+            String jvm = "jvm-recheck" + n + "-" + label;
+            String nativeRun = "native-recheck" + n + "-" + label;
+            if (Snapshot.run("jvm", jvm, pages, swt, snapshotOptions, RECHECK_TIMEOUT_SECONDS) != 0) {
+                System.out.println(RECHECK + ": MISMATCH, the JVM run of recheck " + n + " failed");
+                return "the JVM run of recheck " + n + " failed (comparison/" + jvm + "/run.log)";
+            }
+            if (Snapshot.run("native", nativeRun, pages, swt, snapshotOptions, RECHECK_TIMEOUT_SECONDS) != 0) {
+                System.out.println(RECHECK + ": MISMATCH, the native run of recheck " + n + " failed");
+                return "the native run of recheck " + n + " failed (comparison/" + nativeRun + "/run.log)";
+            }
+            // the new runs, with each other and with the runs before them
+            List<List<String>> pairs = new ArrayList<>();
+            pairs.add(List.of(jvm, nativeRun));
+            for (int i = 0; i < n; i++) {
+                pairs.add(List.of(jvm, nativeRuns.get(i)));
+                pairs.add(List.of(jvmRuns.get(i), nativeRun));
+            }
+            jvmRuns.add(jvm);
+            nativeRuns.add(nativeRun);
+            for (List<String> pair : pairs) {
+                if (pending.isEmpty()) {
+                    break;
+                }
+                Set<String> differing = compareRuns(label, pair.get(0), pair.get(1));
+                if (differing.contains(OUTSIDE_PAGES)) {
+                    continue;
+                }
+                for (Iterator<String> remaining = pending.iterator(); remaining.hasNext();) {
+                    String page = remaining.next();
+                    if (!differing.contains(page)) {
+                        matching.put(page, pair.get(0) + " = " + pair.get(1));
+                        remaining.remove();
+                    }
+                }
+            }
+            System.out.println(RECHECK + n + " of " + RECHECKS + " : "
+                    + (pending.isEmpty() ? "each page matches" : "still differing : " + String.join(", ", pending)));
+        }
+        String matched = matching.entrySet().stream().map(e -> e.getKey() + " (" + e.getValue() + ")")
+                .collect(Collectors.joining(", "));
+        if (pending.isEmpty()) {
+            System.out.println(RECHECK + ": MATCH, a native run of each page that differed is identical to a JVM run : "
+                    + matched);
+            return null;
+        }
+        System.out.println(RECHECK + ": MISMATCH, still differing after " + RECHECKS + " rechecks : "
+                + String.join(", ", pending) + (matched.isEmpty() ? "" : " ; matching : " + matched));
+        return "nor in " + RECHECKS + " rechecks of " + String.join(", ", pending) + " (comparison/diff-" + label
+                + "/recheck)";
+    }
+
+    /**
+     * Two runs compared (comparison/diff-&lt;label&gt;/recheck/&lt;a&gt;-vs-&lt;b&gt;, the label left out) : the pages
+     * that differ, see {@link #differingPages}.
+     */
+    static Set<String> compareRuns(String label, String a, String b) throws IOException, InterruptedException {
+        String name = a.substring(0, a.length() - label.length() - 1) + "-vs-"
+                + b.substring(0, b.length() - label.length() - 1);
+        Path out = Path.of("comparison", "diff-" + label, "recheck", name);
+        Snapshot.deleteRecursively(out);
+        Path summary = Path.of("comparison", "logs-" + label, "recheck-" + name + ".txt");
+        java(summary, "tools/Compare.java", "comparison/" + a, "comparison/" + b, out.toString());
+        return differingPages(Files.readAllLines(summary, CONSOLE));
+    }
+
+    /**
+     * The pages that differ in a summary of Compare.java : by their images (DIFFERENT, SIZE, ONLY_A, ONLY_B), checks,
+     * extras and errors (the expected differences and the same errors in both runs left out), and
+     * {@link #OUTSIDE_PAGES} for the differences outside pages (ENV DIFF, uncaught errors outside pages).
+     */
+    static Set<String> differingPages(List<String> summary) {
+        Set<String> pages = new TreeSet<>();
+        boolean notes = false;
+        String page = null;
+        for (String line : summary) {
+            if (line.startsWith("ENV DIFF ") || line.startsWith("uncaught outside pages")) {
+                pages.add(OUTSIDE_PAGES);
+            } else if (line.startsWith("== Checks and errors")) {
+                notes = true;
+            } else if (!notes) {
+                if (line.matches("(DIFFERENT|SIZE|ONLY_A|ONLY_B) .*")) {
+                    pages.add(Compare.pageId(line.split("\\s+")[1]));
+                }
+            } else if (!line.isBlank() && !Character.isWhitespace(line.charAt(0))) {
+                // a page, its notes on the next lines
+                page = line.strip();
+            } else if (page != null && !line.isBlank()) {
+                String note = line.strip();
+                if (!note.startsWith("expected:") && !note.startsWith("same error in both:")) {
+                    pages.add(page);
+                }
+            }
+        }
+        return pages;
     }
 
     /**

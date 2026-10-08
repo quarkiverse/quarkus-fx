@@ -240,7 +240,7 @@ jobs:
           retention-days: 14
 
       # The images of the runs (index.html of the diff directory shows them side by side, control/index.html the JVM and
-      # the trace ones)
+      # the trace ones, recheck/*/index.html the runs of the rechecks)
       - name: Upload the images
         if: failure()
         uses: actions/upload-artifact@v7
@@ -249,6 +249,7 @@ jobs:
           path: |
             samples/showcase/comparison/jvm-${{ matrix.label }}
             samples/showcase/comparison/native-${{ matrix.label }}
+            samples/showcase/comparison/*-recheck*-${{ matrix.label }}/*.png
             samples/showcase/comparison/diff-${{ matrix.label }}
             samples/showcase/comparison/trace-${{ matrix.label }}/*.png
           if-no-files-found: ignore
@@ -387,6 +388,7 @@ jobs:
           path: |
             samples/showcase/comparison/jvm-${{ matrix.label }}
             samples/showcase/comparison/native-${{ matrix.label }}
+            samples/showcase/comparison/*-recheck*-${{ matrix.label }}/*.png
             samples/showcase/comparison/diff-${{ matrix.label }}
             samples/showcase/comparison/trace-${{ matrix.label }}/*.png
           if-no-files-found: ignore
@@ -516,6 +518,7 @@ jobs:
           path: |
             samples/showcase/comparison/jvm-${{ matrix.label }}
             samples/showcase/comparison/native-${{ matrix.label }}
+            samples/showcase/comparison/*-recheck*-${{ matrix.label }}/*.png
             samples/showcase/comparison/diff-${{ matrix.label }}
             samples/showcase/comparison/trace-${{ matrix.label }}/*.png
           if-no-files-found: ignore

@@ -34,6 +34,9 @@ Builds and runs both modes. Each run renders every page to `comparison/<mode>-<l
 images differ, and `index.html`). The last line is `cycle <label> OK` or `cycle <label> FAILED : ...` (exit code 1).
 
 - Pages are deterministic. Differences of at most 2 levels on less than 0.5% of the pixels are floating point noise.
+- The pages that differ run again, alone and in both modes, up to 3 times: a page matches when one of its native runs is
+  identical to one of its JVM runs (`RECHECK : MATCH`). Two JVM runs of a few pages differ on the Windows runners
+  (effects, media, a scaled image in WebView).
 - `platform-native-limits` shows where a native executable legitimately differs (cause and workaround): `EXPECTED`.
 - Both runs must use the same Prism pipeline, otherwise `ENV DIFF`.
 - `--trace` also runs the JVM under the GraalVM tracing agent: `tools/MetadataDiff.java` lists the JavaFX accesses that
