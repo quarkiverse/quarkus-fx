@@ -283,10 +283,14 @@ public class VideoPage implements FeaturePage {
         }
         // also when the player failed before READY : a missing H.264 decoder makes every player fail, and is reported
         // after the last one
+        // the next player after a growing delay : on the Windows runners, the 5 players of a run failed at once in a row
+        // (ERROR_MEDIA_INVALID, within 250 ms), where the players of the other runs played
         return settled.exceptionallyComposeAsync(error -> {
             LOG.infof("Player %d replaced : %s", playerAttempt, MediaSupport.describe(error));
-            open(state);
-            return settle(state, playerAttempt + 1);
+            return Fx.delay(500.0 * playerAttempt).thenCompose(v -> {
+                open(state);
+                return settle(state, playerAttempt + 1);
+            });
         }, Fx.FX_THREAD);
     }
 
