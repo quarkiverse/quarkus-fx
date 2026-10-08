@@ -203,10 +203,10 @@ public class Cycle {
     }
 
     /**
-     * On Windows, a run of the first page before the runs that are compared, its result left out : the first JavaFX
-     * process of a session (on a new runner) renders the edges of some text runs differently from the next processes,
-     * with LCD and with grayscale antialiasing (the JVM run of a cycle differed from its trace and native runs, which
-     * matched).
+     * On Windows, a run of all the pages before the runs that are compared, its result left out : on a new runner, the
+     * first run renders the edges of some text runs differently from the next ones, with LCD and with grayscale
+     * antialiasing (the JVM run of a cycle differed from its trace and native runs in 40 images, while JVM runs after
+     * them matched the native run ; a first run of one page was not enough).
      */
     static void warmUp(String mode, String label, boolean swt, List<String> snapshotOptions)
             throws IOException, InterruptedException {
@@ -214,7 +214,7 @@ public class Cycle {
             return;
         }
         step("warm-up run");
-        Snapshot.run(mode, "warm-up-" + label, "overview-", swt, snapshotOptions, 300);
+        Snapshot.run(mode, "warm-up-" + label, null, swt, snapshotOptions, 900);
         Snapshot.deleteRecursively(Path.of("comparison", "warm-up-" + label));
     }
 
