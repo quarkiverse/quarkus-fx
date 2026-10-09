@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.quarkiverse.fx</groupId>
         <artifactId>quarkus-fx-parent</artifactId>
-        <version>0.12.0</version>
+        <version>999-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -152,8 +152,4 @@
             </properties>
         </profile>
     </profiles>
-
-  <scm>
-    <tag>0.12.0</tag>
-  </scm>
 </project>
