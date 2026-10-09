@@ -4,7 +4,7 @@
   <parent>
     <groupId>io.quarkiverse.fx</groupId>
     <artifactId>quarkus-fx-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>0.12.0</version>
   </parent>
   <artifactId>quarkus-fx-launcher</artifactId>
   <name>Quarkus FX - Persistent launcher</name>
@@ -19,4 +19,8 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
+
+  <scm>
+    <tag>0.12.0</tag>
+  </scm>
 </project>
