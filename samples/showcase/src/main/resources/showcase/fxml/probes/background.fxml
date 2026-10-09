@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.paint.Color?>
+<!-- Region background and border built from @NamedArg classes -->
+<Pane xmlns:fx="http://javafx.com/fxml/1" fx:id="subject" prefWidth="116" prefHeight="40" maxWidth="116" maxHeight="40">
+    <background>
+        <Background>
+            <fills>
+                <BackgroundFill fill="#ffe0b2">
+                    <radii>
+                        <CornerRadii radius="10"/>
+                    </radii>
+                    <insets>
+                        <Insets topRightBottomLeft="0"/>
+                    </insets>
+                </BackgroundFill>
+                <BackgroundFill>
+                    <fill>
+                        <Color red="0.98" green="0.55" blue="0.0" opacity="0.8"/>
+                    </fill>
+                    <radii>
+                        <CornerRadii radius="6"/>
+                    </radii>
+                    <insets>
+                        <Insets top="8" right="30" bottom="8" left="30"/>
+                    </insets>
+                </BackgroundFill>
+            </fills>
+        </Background>
+    </background>
+    <border>
+        <Border>
+            <strokes>
+                <BorderStroke stroke="#e65100">
+                    <style>
+                        <BorderStrokeStyle fx:constant="DASHED"/>
+                    </style>
+                    <radii>
+                        <CornerRadii radius="10"/>
+                    </radii>
+                    <widths>
+                        <BorderWidths width="2"/>
+                    </widths>
+                </BorderStroke>
+            </strokes>
+        </Border>
+    </border>
+</Pane>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quarkus FX WebView</title>
+<style>
+@font-face {
+    font-family: 'ShowcaseRoboto';
+    src: url(data:font/ttf;base64,@ROBOTO_BASE64@) format('truetype');
+}
+@font-face {
+    font-family: 'ShowcaseIcons';
+    src: url(data:font/ttf;base64,@ICONS_BASE64@) format('truetype');
+}
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif;
+    font-size: 12px;
+    color: #1f2933;
+    background: linear-gradient(135deg, #eef2f7 0%, #dde6f0 100%);
+    width: 1028px;
+    height: 370px;
+}
+.grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+}
+.card {
+    box-sizing: border-box;
+    width: 244px;
+    height: 170px;
+    padding: 7px 10px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(15, 30, 60, 0.25);
+    overflow: hidden;
+}
+.card h3 {
+    margin: 0 0 6px 0;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #52606d;
+}
+/* flexbox & gradients */
+.banner {
+    height: 38px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #4f46e5, #06b6d4 60%, #10b981);
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 8px;
+}
+.dot {
+    width: 40px;
+    border-radius: 50%;
+    height: 40px;
+}
+.d1 { background: radial-gradient(circle at 30% 30%, #fde68a, #f59e0b 70%); }
+.d2 { background: radial-gradient(circle at 30% 30%, #fecaca, #dc2626 70%); height: 50px; width: 50px; }
+.d3 { background: radial-gradient(circle at 30% 30%, #bbf7d0, #16a34a 70%); }
+.d4 { border-radius: 8px; background: repeating-linear-gradient(45deg, #1e3a8a, #1e3a8a 6px, #93c5fd 6px, #93c5fd 12px); }
+.pill {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 2px solid #4f46e5;
+    color: #4f46e5;
+    font-weight: bold;
+}
+/* web fonts */
+.roboto {
+    font-family: 'ShowcaseRoboto', serif;
+    font-size: 24px;
+    line-height: 28px;
+}
+.roboto.small {
+    font-size: 14px;
+    line-height: 18px;
+    color: #52606d;
+}
+.icons {
+    font-family: 'ShowcaseIcons';
+    font-size: 28px;
+    margin-top: 4px;
+    display: flex;
+    gap: 16px;
+}
+.icons span:nth-child(1) { color: #2563eb; }
+.icons span:nth-child(2) { color: #dc2626; }
+.icons span:nth-child(3) { color: #4b5563; }
+.icons span:nth-child(4) { color: #d97706; }
+/* table */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 11px;
+}
+th {
+    background: #334e68;
+    color: white;
+    text-align: left;
+    padding: 3px 5px;
+}
+td {
+    padding: 2px 5px;
+    border-bottom: 1px solid #d9e2ec;
+}
+tr:nth-child(even) td {
+    background: #f0f4f8;
+}
+td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+/* form */
+form {
+    display: grid;
+    grid-template-columns: 54px 1fr;
+    gap: 3px 6px;
+    align-items: center;
+    font-size: 11px;
+}
+input[type=text], select, button {
+    font-size: 11px;
+}
+input[type=text], select {
+    width: 140px;
+}
+input[type=range], progress {
+    width: 140px;
+}
+/* unicode */
+.uni p {
+    margin: 1px 0;
+    font-size: 13px;
+    white-space: nowrap;
+}
+.rtl {
+    direction: rtl;
+    text-align: right;
+}
+/* bridge */
+.bridge-line {
+    font-family: Menlo, Monaco, Consolas, 'DejaVu Sans Mono', 'Liberation Mono', monospace;
+    font-size: 10px;
+    margin: 1px 0;
+}
+.bridge-line b {
+    color: #047857;
+}
+.badge {
+    margin-top: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    color: #92400e;
+    font-size: 11px;
+}
+#dom-button {
+    font-size: 11px;
+    margin-top: 4px;
+}
+</style>
+</head>
+<body>
+<div class="grid">
+
+    <div class="card">
+        <h3>Flexbox &amp; gradients</h3>
+        <div class="banner">linear-gradient</div>
+        <div class="row">
+            <div class="dot d1"></div>
+            <div class="dot d2"></div>
+            <div class="dot d3"></div>
+            <div class="dot d4"></div>
+        </div>
+        <span class="pill">border-radius: 999px</span>
+    </div>
+
+    <div class="card">
+        <h3>Web fonts (data: URI)</h3>
+        <div class="roboto">Roboto Light</div>
+        <div class="roboto">0123456789</div>
+        <div class="roboto small">The quick brown fox jumps</div>
+        <div class="icons"><span>&#xf015;</span><span>&#xf004;</span><span>&#xf013;</span><span>&#xf005;</span></div>
+    </div>
+
+    <div class="card">
+        <h3>Inline SVG</h3>
+        <svg width="203" height="145" viewBox="0 0 224 160" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#f472b6"/>
+                    <stop offset="1" stop-color="#7c3aed"/>
+                </linearGradient>
+                <radialGradient id="g2" cx="0.35" cy="0.35" r="0.65">
+                    <stop offset="0" stop-color="#fef9c3"/>
+                    <stop offset="1" stop-color="#ca8a04"/>
+                </radialGradient>
+            </defs>
+            <rect x="4" y="6" width="100" height="70" rx="12" fill="url(#g1)"/>
+            <circle cx="160" cy="44" r="36" fill="url(#g2)" stroke="#854d0e" stroke-width="3"/>
+            <polygon points="56,88 66,112 92,114 72,130 79,156 56,141 33,156 40,130 20,114 46,112" fill="#22c55e" stroke="#14532d" stroke-width="2"/>
+            <path d="M 110 150 Q 140 90 170 130 T 220 110" fill="none" stroke="#0ea5e9" stroke-width="4" stroke-linecap="round"/>
+            <text x="112" y="104" font-size="14" font-weight="bold" fill="#1f2933">SVG text</text>
+            <line x1="4" y1="82" x2="104" y2="82" stroke="#334155" stroke-width="2" stroke-dasharray="6 4"/>
+        </svg>
+    </div>
+
+    <div class="card">
+        <h3>Canvas (JavaScript)</h3>
+        <canvas id="canvas" width="224" height="134" style="display: block; width: 224px; height: 134px;"></canvas>
+    </div>
+
+    <div class="card">
+        <h3>Table</h3>
+        <table id="table">
+            <thead><tr><th>Module</th><th>Kind</th><th class="num">Size</th></tr></thead>
+            <tbody>
+            <tr><td>javafx.base</td><td>core</td><td class="num">1 024</td></tr>
+            <tr><td>javafx.graphics</td><td>prism</td><td class="num">4 096</td></tr>
+            <tr><td>javafx.controls</td><td>ui</td><td class="num">2 560</td></tr>
+            <tr><td>javafx.web</td><td>webkit</td><td class="num">81 920</td></tr>
+            <tr><td>javafx.media</td><td>gst</td><td class="num">3 072</td></tr>
+            <tr><td>javafx.swing</td><td>interop</td><td class="num">128</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>Form controls</h3>
+        <form>
+            <label for="name">Text</label><input type="text" id="name" value="Quarkus FX">
+            <label>Toggles</label><span><input type="checkbox" checked> on <input type="checkbox"> off <input type="radio" name="r" checked> A <input type="radio" name="r"> B</span>
+            <label for="sel">Select</label><select id="sel"><option>Native image</option><option>JVM</option></select>
+            <label>Range</label><input type="range" min="0" max="100" value="70">
+            <label>Progress</label><progress max="100" value="40"></progress>
+            <label>Button</label><span><button type="button">Submit</button></span>
+        </form>
+    </div>
+
+    <div class="card uni">
+        <h3>Unicode text</h3>
+        <p>Français · Español · Ελληνικά</p>
+        <p>Русский · Türkçe · Čeština</p>
+        <p>日本語 · 中文 · 한국어</p>
+        <p class="rtl">العربية · עברית</p>
+        <p>∑ ∫ √ ∞ ≠ ≤ → ⇒ ∀ ∃</p>
+        <p>♠ ♥ ♦ ♣ ★ ☂ ✓ ✗ € £ ¥</p>
+    </div>
+
+    <div class="card">
+        <h3>Java bridge &amp; DOM</h3>
+        <div id="headline">Waiting for Java</div>
+        <div id="bridge-output"></div>
+        <button id="dom-button" type="button">DOM button</button>
+        <div id="dom-target"></div>
+    </div>
+
+</div>
+<script>
+function drawCanvas() {
+    var canvas = document.getElementById('canvas');
+    // WebKit allocates canvas buffers at the device pixel ratio (2 on a Retina screen) : a backing store of
+    // 224 / ratio CSS pixels gives a buffer of 224 x 134 device pixels, rendered 1:1 (no resampling) when the page is
+    // captured at scale 1 by the snapshots
+    var ratio = Math.max(1, Math.round(window.devicePixelRatio || 1));
+    canvas.width = 224 / ratio;
+    canvas.height = 134 / ratio;
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(1 / ratio, 0, 0, 1 / ratio, 0, 0);
+    var bg = ctx.createLinearGradient(0, 0, 224, 134);
+    bg.addColorStop(0, '#0f172a');
+    bg.addColorStop(1, '#1e40af');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, 224, 134);
+
+    var colors = ['#f97316', '#facc15', '#22c55e', '#06b6d4', '#a855f7'];
+    var values = [30, 20, 25, 15, 10];
+    var start = -Math.PI / 2;
+    for (var i = 0; i < values.length; i++) {
+        var angle = values[i] / 100 * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(62, 76);
+        ctx.arc(62, 76, 50, start, start + angle);
+        ctx.closePath();
+        ctx.fillStyle = colors[i];
+        ctx.fill();
+        start += angle;
+    }
+    ctx.beginPath();
+    ctx.arc(62, 76, 21, 0, Math.PI * 2);
+    ctx.fillStyle = '#0f172a';
+    ctx.fill();
+
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (var x = 0; x <= 90; x += 3) {
+        var y = 100 - Math.sin(x / 90 * Math.PI * 2) * 20 - x / 3;
+        if (x === 0) {
+            ctx.moveTo(126 + x, y);
+        } else {
+            ctx.lineTo(126 + x, y);
+        }
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px Helvetica, Arial, "Liberation Sans", sans-serif';
+    ctx.fillText('Canvas 2D', 128, 24);
+    ctx.font = '11px Helvetica, Arial, "Liberation Sans", sans-serif';
+    ctx.fillText('arc · gradient · path', 126, 127);
+    document.body.setAttribute('data-canvas', 'drawn');
+}
+drawCanvas();
+
+/**
+ * Invalidates the canvas without changing its pixels (a transparent pixel drawn over it) : WebKit paints it again.
+ */
+function touchCanvas() {
+    var ctx = document.getElementById('canvas').getContext('2d');
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+    ctx.fillRect(0, 0, 1, 1);
+    ctx.restore();
+}
+
+/**
+ * Pixel of the canvas at (x, y) CSS pixels : page coordinates and the RGB of getImageData.
+ */
+function canvasProbe(x, y) {
+    var canvas = document.getElementById('canvas');
+    var r = canvas.getBoundingClientRect();
+    var k = canvas.width / r.width;
+    var d = canvas.getContext('2d').getImageData(Math.floor(x * k), Math.floor(y * k), 1, 1).data;
+    return [Math.round(r.left) + x, Math.round(r.top) + y, d[0], d[1], d[2], d[3]].join(',');
+}
+
+/**
+ * Rectangles (x, y, width, height in page coordinates) of two form controls that WebKit draws with JavaFX controls, on
+ * the white background of the card : 3 x 3 pixels in the value of the progress bar (40 %), and 3 rows across the top
+ * border of the text field (above its text).
+ */
+function formProbes() {
+    var progress = document.querySelector('progress').getBoundingClientRect();
+    var text = document.getElementById('name').getBoundingClientRect();
+    return [
+        Math.round(progress.left + progress.width * 0.2) - 1, Math.floor(progress.top + progress.height / 2) - 1, 3, 3,
+        Math.round(text.left + text.width / 4), Math.round(text.top) - 1, Math.round(text.width / 2), 3
+    ].join(',');
+}
+
+function greet(name) {
+    return 'Hello ' + name + ' from JavaScript';
+}
+
+function runBridgeDemo() {
+    var bridge = window.javaBridge;
+    var out = document.getElementById('bridge-output');
+    var lines = [
+        ['greet', bridge.greet('WebView')],
+        ['add', bridge.add(20, 22)],
+        ['sum', bridge.sum([1.5, 2.5, 3])],
+        ['types', bridge.describe(42) + ',' + bridge.describe(1.5) + ',' + bridge.describe('s') + ','
+            + bridge.describe(true) + ',' + bridge.describe({a: 1})]
+    ];
+    for (var i = 0; i < lines.length; i++) {
+        var div = document.createElement('div');
+        div.className = 'bridge-line';
+        div.innerHTML = lines[i][0] + ' → <b></b>';
+        div.lastChild.textContent = String(lines[i][1]);
+        out.appendChild(div);
+    }
+    document.getElementById('headline').textContent = 'Java says: ' + bridge.greet('DOM');
+    return lines.map(function (l) { return l[0] + '=' + l[1]; }).join(';');
+}
+</script>
+</body>
+</html>

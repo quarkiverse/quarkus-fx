@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- Loaded by a plain new FXMLLoader (no controller factory) : JavaFX instantiates the controller reflectively and
+     binds an onAction handler and an on<Property>Change listener -->
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="io.quarkiverse.fx.showcase.pages.fxml.PlainController" spacing="5">
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Button fx:id="button" mnemonicParsing="false" text="Fire" onAction="#fired"/>
+        <Slider fx:id="slider" min="0" max="10" value="2" prefWidth="120" onValueChange="#valueChanged"/>
+    </HBox>
+    <Label fx:id="status" text="not fired yet"/>
+</VBox>

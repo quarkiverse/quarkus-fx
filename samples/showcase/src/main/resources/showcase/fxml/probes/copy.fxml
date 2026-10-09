@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.VBox?>
+<?import io.quarkiverse.fx.showcase.pages.fxml.ColorSwatch?>
+<!-- fx:root custom component (app class) and fx:copy through its copy constructor -->
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="4">
+    <ColorSwatch fx:id="subject" swatchName="Teal" swatchColor="#00897b"/>
+    <fx:copy fx:id="copy" source="subject"/>
+</VBox>

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -e
+
+# update the versions
+mvn -nsu --settings .github/quarkus-ecosystem-maven-settings.xml -B versions:set-property -Dproperty=quarkus.version -DnewVersion=${QUARKUS_VERSION} -DgenerateBackupPoms=false
+
+# the disk space cleanup of the ecosystem CI removes libgl1-mesa-dri, and xvfb with it
+command -v xvfb-run >/dev/null || { sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends xvfb; }
+
+# run the tests in JVM mode with a virtual X display (JavaFX tests)
+xvfb-run -a mvn -nsu --settings .github/quarkus-ecosystem-maven-settings.xml -B clean install --fail-at-end -e

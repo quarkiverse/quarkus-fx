@@ -1,0 +1,5 @@
+target/
+comparison/
+*.log
+.idea/
+*.iml

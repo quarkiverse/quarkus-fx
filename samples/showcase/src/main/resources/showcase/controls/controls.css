@@ -1,0 +1,160 @@
+/* Stylesheet of the controls pages (loaded from the classpath by each page root) */
+
+/* Font loaded by the CSS engine, relative to this stylesheet */
+@font-face {
+    font-family: 'Roboto Light';
+    src: url("../fonts/Roboto-Light.ttf");
+}
+
+.controls-page {
+    -fx-font-size: 12px;
+}
+
+.demo-box {
+    -fx-padding: 5 7 7 7;
+    -fx-border-color: #d4d4d4;
+    -fx-border-radius: 4;
+    -fx-background-color: rgba(255, 255, 255, 0.45);
+    -fx-background-radius: 4;
+}
+
+.demo-caption {
+    -fx-font-size: 10px;
+    -fx-text-fill: #6b6b6b;
+}
+
+.group-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.controls-page .checks-grid .label {
+    -fx-font-size: 11px;
+}
+
+.controls-page .section-title {
+    -fx-font-size: 13px;
+}
+
+/* Buttons page */
+.pill-green {
+    -fx-base: #2e7d32;
+}
+
+.round-button {
+    -fx-background-radius: 16;
+    -fx-padding: 5 16 5 16;
+}
+
+.big-button {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.shadow-button {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 8, 0.2, 2, 2);
+}
+
+.gradient-button {
+    -fx-background-color: #bf360c, linear-gradient(to bottom, #ffb74d, #e65100);
+    -fx-background-insets: 0, 1;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+}
+
+/* Buttons page : resources and classes referenced from CSS */
+.css-graphic-relative {
+    /* resolved against the stylesheet URL */
+    -fx-graphic: url("../images/icon-16.png");
+}
+
+.css-graphic-root {
+    /* leading slash : resolved by the context class loader */
+    -fx-graphic: url("/showcase/images/tile.png");
+}
+
+.css-graphic-data {
+    /* data URI (12x12 PNG) : decoded by JavaFX, no URL handler involved */
+    -fx-graphic: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAKElEQVR42mO4IZ3wH4SBgAGECfEZSFEMYjOQohiugRRnMYz6YVD4AQBhwX5IYznVTgAAAABJRU5ErkJggg==");
+}
+
+.css-image-view {
+    -fx-image: url("../images/icon.png");
+    -fx-fit-width: 32;
+    -fx-fit-height: 32;
+    -fx-preserve-ratio: true;
+}
+
+.css-background-image {
+    -fx-background-image: url("../images/texture.png");
+    -fx-background-size: 24 24;
+    -fx-background-repeat: repeat;
+    -fx-border-color: #9e9e9e;
+    -fx-min-width: 72;
+    -fx-min-height: 32;
+    -fx-pref-width: 72;
+    -fx-pref-height: 32;
+}
+
+.css-shape-button {
+    -fx-shape: "M 0 10 L 10 0 L 50 0 L 60 10 L 50 20 L 10 20 Z";
+    -fx-base: #7e57c2;
+    -fx-padding: 6 18 6 18;
+}
+
+.css-font-face {
+    -fx-font-family: 'Roboto Light';
+    -fx-font-size: 17px;
+    -fx-text-fill: #1a237e;
+}
+
+.css-skin-button {
+    -fx-skin: "io.quarkiverse.fx.showcase.pages.controls.BadgeButtonSkin";
+    /* the skin draws the whole button */
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.badge-skin-circle {
+    -fx-fill: linear-gradient(to bottom, #26a69a, #00695c);
+    -fx-stroke: #004d40;
+}
+
+.badge-skin-text {
+    -fx-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+
+.badge-skin-dot {
+    -fx-fill: #e53935;
+    -fx-stroke: white;
+    -fx-stroke-width: 1.5;
+}
+
+/* Menus page */
+.status-label {
+    -fx-text-fill: #37474f;
+    -fx-font-style: italic;
+}
+
+.context-target {
+    -fx-background-color: #e3f2fd;
+    -fx-border-color: #64b5f6;
+    -fx-border-style: dashed;
+    -fx-padding: 14;
+}
+
+/* RTL page */
+.form-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.form-copy {
+    -fx-padding: 8;
+    -fx-border-color: #bdbdbd;
+    -fx-border-radius: 4;
+    -fx-background-color: #fbfbfb;
+    -fx-background-radius: 4;
+}

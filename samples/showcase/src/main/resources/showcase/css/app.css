@@ -1,0 +1,45 @@
+.page-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.page-frame {
+    -fx-background-color: -fx-background;
+    -fx-padding: 16;
+}
+
+.page-scroll {
+    -fx-background-color: transparent;
+}
+
+.status-bar {
+    -fx-padding: 4 10 4 10;
+    -fx-background-color: derive(-fx-background, -8%);
+}
+
+.status-text {
+    -fx-text-fill: #555555;
+}
+
+.section-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.check-pass {
+    -fx-text-fill: #1b7f3a;
+    -fx-font-weight: bold;
+}
+
+.check-fail {
+    -fx-text-fill: #c62828;
+    -fx-font-weight: bold;
+}
+
+.check-info {
+    -fx-text-fill: #666666;
+}
+
+.check-name {
+    -fx-font-weight: bold;
+}

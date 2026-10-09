@@ -1,0 +1,152 @@
+/* Shared by the fxml-* and platform-* pages */
+
+.group-page {
+    -fx-font-size: 12px;
+}
+
+.demo-box {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 6;
+    -fx-border-color: #cfd6dd;
+    -fx-border-radius: 6;
+    -fx-padding: 6 8 8 8;
+}
+
+.demo-caption {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4a5a6a;
+}
+
+.demo-note {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6a7682;
+}
+
+/* compact checks tables */
+.group-page .section-title {
+    -fx-font-size: 13px;
+}
+
+.group-page .checks-grid .label {
+    -fx-font-size: 11px;
+}
+
+.group-page .checks-grid {
+    -fx-vgap: 1;
+}
+
+/* FXML probes */
+.probe-tile {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 5;
+    -fx-border-color: #cfd6dd;
+    -fx-border-radius: 5;
+    -fx-padding: 4 5 5 5;
+}
+
+.probe-tile.probe-failed {
+    -fx-background-color: #fff1f0;
+    -fx-border-color: #e57373;
+}
+
+.probe-title {
+    -fx-font-size: 10.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #37474f;
+}
+
+.probe-status-ok {
+    -fx-text-fill: #1b7f3a;
+    -fx-font-weight: bold;
+}
+
+.probe-status-failed {
+    -fx-text-fill: #c62828;
+    -fx-font-weight: bold;
+}
+
+.probe-error {
+    -fx-font-size: 9.5px;
+    -fx-text-fill: #b71c1c;
+}
+
+.load-error {
+    -fx-font-size: 11px;
+    -fx-text-fill: #b71c1c;
+    -fx-background-color: #fff1f0;
+    -fx-padding: 6;
+}
+
+/* Worker state chips */
+.state-chip {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 1 5 1 5;
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-background-color: #78909c;
+}
+
+.state-chip.state-scheduled {
+    -fx-background-color: #8e24aa;
+}
+
+.state-chip.state-running {
+    -fx-background-color: #1e88e5;
+}
+
+.state-chip.state-succeeded {
+    -fx-background-color: #2e7d32;
+}
+
+.state-chip.state-failed {
+    -fx-background-color: #c62828;
+}
+
+.state-chip.state-cancelled {
+    -fx-background-color: #ef6c00;
+}
+
+.state-arrow {
+    -fx-font-size: 10px;
+    -fx-text-fill: #90a4ae;
+}
+
+/* monospaced : the family of the operating system is set from code (-fx-font-family takes a single family) */
+.event-line {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: #37474f;
+}
+
+.kv-key {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #455a64;
+}
+
+.kv-value {
+    -fx-font-size: 11px;
+    -fx-text-fill: #263238;
+}
+
+.swatch-label {
+    -fx-font-size: 10px;
+    -fx-text-fill: #455a64;
+}
+
+.key-cap {
+    -fx-font-size: 12px;
+    -fx-padding: 1 6 1 6;
+    -fx-background-color: #eceff1, #fafafa;
+    -fx-background-insets: 0, 1 1 2 1;
+    -fx-background-radius: 4, 3;
+    -fx-border-color: #b0bec5;
+    -fx-border-radius: 4;
+}
+
+/* monospaced, like .event-line */
+.probe-value {
+    -fx-font-size: 9.5px;
+    -fx-text-fill: #2e4a3a;
+}

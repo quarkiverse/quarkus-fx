@@ -5,6 +5,9 @@ import static org.awaitility.Awaitility.await;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import jakarta.inject.Inject;
@@ -15,12 +18,14 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.quarkiverse.fx.FxPlatform;
+import io.quarkiverse.fx.deployment.FxTestConstants;
 import io.quarkiverse.fx.deployment.base.FxTestBase;
 import io.quarkiverse.fx.deployment.fxviews.controllers.ComponentWithStyleController;
 import io.quarkiverse.fx.style.StylesheetWatchService;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkiverse.fx.views.StylesheetReloadStrategy;
 import io.quarkus.test.QuarkusUnitTest;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -49,9 +54,12 @@ class FxStyleReloadTest extends FxTestBase {
 
         this.startAndWait();
 
-        // Check that substitution has been done
+        // Check that substitution has been done : the stylesheet is replaced with Platform.runLater while the views load,
+        // read it on the FX thread, after that task (runLater tasks run in the order they are posted)
         Parent component = this.viewRepository.getViewData("ComponentWithStyle").getRootNode();
-        ObservableList<String> stylesheets = component.getStylesheets();
+        CompletableFuture<List<String>> future = new CompletableFuture<>();
+        Platform.runLater(() -> future.complete(List.copyOf(component.getStylesheets())));
+        List<String> stylesheets = future.get(FxTestConstants.LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         Assertions.assertEquals(1, stylesheets.size());
         Assertions.assertTrue(stylesheets.get(0).endsWith("src/test/resources/views/ComponentWithStyle.css"));
 
@@ -65,15 +73,15 @@ class FxStyleReloadTest extends FxTestBase {
             FxPlatform platform = FxPlatform.launch();
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
             // invoke also drains the initial refreshes queued by watch().
-            platform.invoke(loader, application -> Assertions.assertEquals(2, watched.size()));
+            Assertions.assertTrue(platform.invoke(loader, application -> Assertions.assertEquals(2, watched.size())));
             int initialChanges = changes.get();
             Files.writeString(first, ".root { -fx-opacity: 0.5; }");
             await().atMost(Duration.ofSeconds(5)).until(() -> changes.get() > initialChanges);
-            platform.invoke(loader, application -> {
+            Assertions.assertTrue(platform.invoke(loader, application -> {
                 Assertions.assertEquals(2, watched.size());
                 Assertions.assertEquals(first.toUri().toString(), watched.get(0));
                 Assertions.assertEquals(second.toUri().toString(), watched.get(1));
-            });
+            }));
         }
         StylesheetWatchService.stopAll();
         await().atMost(Duration.ofSeconds(5)).until(() -> Thread.getAllStackTraces().keySet().stream()

@@ -1,0 +1,7 @@
+/* web-loading : WebView properties set from a style sheet (WebView CssMetaData) */
+.zoomed-view {
+    -fx-zoom: 0.75;
+    -fx-font-scale: 1.4;
+    -fx-font-smoothing-type: gray;
+    -fx-context-menu-enabled: false;
+}

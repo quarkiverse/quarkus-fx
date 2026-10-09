@@ -1,0 +1,36 @@
+body {
+    margin: 8px;
+    font-family: Helvetica, Arial, 'Liberation Sans', sans-serif;
+    font-size: 12px;
+    background: #e8f5e9;
+    color: #1b5e20;
+}
+h1 {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    color: #2e7d32;
+    border-bottom: 2px solid #66bb6a;
+}
+.lead {
+    margin: 4px 0;
+    font-weight: bold;
+}
+ul {
+    margin: 2px 0 6px 0;
+    padding-left: 18px;
+}
+.crop {
+    width: 128px;
+    height: 96px;
+    overflow: hidden;
+    border: 2px solid #2e7d32;
+    border-radius: 6px;
+}
+.crop img {
+    /* natural size, the center of the 256x256 image is shown (no scaling) */
+    margin: -80px 0 0 -64px;
+}
+#script-out {
+    font-style: italic;
+    margin: 4px 0 0 0;
+}

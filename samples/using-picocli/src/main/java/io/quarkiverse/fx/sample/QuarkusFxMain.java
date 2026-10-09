@@ -9,6 +9,7 @@ public class QuarkusFxMain implements QuarkusApplication {
 
     @Override
     public int run(String... args) {
+        // Launched by Quarkus FX : calling Application::launch here blocks the first thread (no window in a macOS native executable)
         return new QuarkusFxApplication().run(args);
     }
 }

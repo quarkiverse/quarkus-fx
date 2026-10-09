@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.Boolean?>
+<?import java.lang.Double?>
+<?import java.lang.Integer?>
+<?import java.lang.Long?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Boxed values (fx:value / fx:constant on Integer, Long, Boolean, Double) and a fully qualified element name -->
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" spacing="4">
+    <fx:define>
+        <Integer fx:id="max" fx:constant="MAX_VALUE"/>
+    </fx:define>
+    <javafx.scene.control.Label fx:id="qualified" text="&lt;javafx.scene.control.Label&gt; element"/>
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <TextField fx:id="field" text="6 cols" focusTraversable="false">
+            <prefColumnCount>
+                <Integer fx:value="6"/>
+            </prefColumnCount>
+        </TextField>
+        <CheckBox fx:id="check" mnemonicParsing="false" text="Boolean">
+            <selected>
+                <Boolean fx:value="true"/>
+            </selected>
+        </CheckBox>
+    </HBox>
+    <Label fx:id="subject" text="userData: Long 42, Integer.MAX_VALUE">
+        <userData>
+            <Long fx:value="42"/>
+        </userData>
+        <maxWidth>
+            <Double fx:constant="POSITIVE_INFINITY"/>
+        </maxWidth>
+    </Label>
+</VBox>

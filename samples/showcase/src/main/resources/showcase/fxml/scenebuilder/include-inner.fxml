@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Included with resources="showcase.fxml.IncludeMessages" : %keys come from that bundle -->
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" spacing="2"
+      style="-fx-border-color: #80cbc4; -fx-border-radius: 4; -fx-padding: 3 6 3 6;">
+    <Label text="%include.title" style="-fx-font-weight: bold; -fx-text-fill: #00695c;"/>
+    <Label text="%include.unicode"/>
+    <Label text="UTF-8 literal: é ü ß → ✓"/>
+</VBox>

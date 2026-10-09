@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Origin of a class path page</title>
+<style>
+body { margin: 6px 8px; font-family: Helvetica, Arial, 'Liberation Sans', sans-serif; font-size: 12px; background: #e8f5e9; color: #1b5e20; }
+p { margin: 4px 0; }
+#storage { font-weight: bold; }
+</style></head>
+<body>
+<p id="storage">sessionStorage: not run</p>
+<p id="origin">origin: not run</p>
+<script>
+var storage;
+try {
+    sessionStorage.setItem('showcase', 'stored');
+    storage = sessionStorage.getItem('showcase');
+} catch (e) {
+    storage = e.name;
+}
+document.getElementById('storage').textContent = 'sessionStorage: ' + storage;
+document.getElementById('origin').textContent = 'origin: ' + location.origin;
+</script>
+</body></html>

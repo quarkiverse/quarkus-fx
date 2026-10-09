@@ -1,0 +1,193 @@
+/*
+ * Chart pages (charts-xy, charts-bar-pie) : palettes through looked-up colors, per-series rules,
+ * and chart / axis properties set from CSS (styleable properties, checked by the pages).
+ */
+
+.showcase-charts .demo-caption {
+    -fx-font-size: 11px;
+    -fx-text-fill: #555555;
+}
+
+.showcase-charts .chart {
+    -fx-padding: 4px;
+    -fx-background-color: white;
+    -fx-background-radius: 6px;
+    -fx-border-color: #d9dde3;
+    -fx-border-radius: 6px;
+}
+
+.showcase-charts .chart-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d3440;
+}
+
+.showcase-charts .chart-content {
+    -fx-padding: 6px;
+}
+
+.showcase-charts .chart-legend {
+    -fx-padding: 3px 6px 3px 6px;
+    -fx-background-color: #f2f4f7;
+    -fx-background-radius: 4px;
+    -fx-background-insets: 0;
+}
+
+.showcase-charts .chart-legend-item {
+    -fx-font-size: 11px;
+}
+
+.showcase-charts .axis-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #5b6270;
+}
+
+/* Palettes : the Modena chart rules resolve CHART_COLOR_n on the nearest ancestor defining it */
+.palette-cool {
+    CHART_COLOR_1: #4c78a8;
+    CHART_COLOR_2: #f58518;
+    CHART_COLOR_3: #54a24b;
+    CHART_COLOR_4: #e45756;
+    CHART_COLOR_5: #72b7b2;
+    CHART_COLOR_1_TRANS_20: #4c78a833;
+    CHART_COLOR_2_TRANS_20: #f5851833;
+    CHART_COLOR_3_TRANS_20: #54a24b33;
+    CHART_COLOR_1_TRANS_70: #4c78a8b3;
+    CHART_COLOR_2_TRANS_70: #f58518b3;
+    CHART_COLOR_3_TRANS_70: #54a24bb3;
+}
+
+.palette-warm {
+    CHART_COLOR_1: #ffb000;
+    CHART_COLOR_2: #3d9970;
+    CHART_COLOR_3: #0074d9;
+    CHART_COLOR_4: #b10dc9;
+    CHART_COLOR_5: #ff4136;
+    CHART_COLOR_1_TRANS_20: #ffb00099;
+    CHART_COLOR_2_TRANS_20: #3d997099;
+    CHART_COLOR_3_TRANS_20: #0074d999;
+}
+
+/* LineChart */
+.xy-line .chart-series-line {
+    -fx-stroke-width: 2.5px;
+}
+.xy-line .chart-series-line.series1 {
+    -fx-stroke-dash-array: 6 4;
+}
+.xy-line .chart-series-line.series2 {
+    -fx-stroke: #222222;
+    -fx-stroke-width: 1.5px;
+}
+.xy-line .chart-line-symbol.series2 {
+    -fx-background-color: #222222, white;
+    -fx-background-radius: 0;
+    -fx-padding: 3px;
+}
+
+/* AreaChart */
+.xy-area {
+    -fx-create-symbols: false;
+    -fx-alternative-column-fill-visible: true;
+    -fx-legend-side: top;
+}
+.xy-area .chart-alternative-column-fill {
+    -fx-fill: #f5f7fa;
+}
+
+/* StackedAreaChart */
+.xy-stacked {
+    -fx-legend-side: right;
+    -fx-vertical-grid-lines-visible: false;
+}
+.xy-stacked .chart-series-area-line {
+    -fx-stroke-width: 1px;
+}
+
+/* ScatterChart */
+.xy-scatter {
+    -fx-alternative-row-fill-visible: true;
+}
+.xy-scatter .chart-alternative-row-fill {
+    -fx-fill: #f4f6fa;
+}
+.xy-scatter .chart-symbol.series2 {
+    -fx-shape: "M0,-6 L6,6 L-6,6 Z";
+    -fx-background-color: CHART_COLOR_3;
+    -fx-background-radius: 0;
+    -fx-padding: 5px;
+}
+
+/* BubbleChart */
+.xy-bubble .axis {
+    -fx-tick-unit: 2.5;
+    -fx-minor-tick-count: 2;
+}
+.xy-bubble .axis:left {
+    -fx-tick-label-fill: #4c78a8;
+}
+.xy-bubble .chart-bubble {
+    -fx-border-color: rgba(0, 0, 0, 0.35);
+    -fx-border-width: 1px;
+}
+
+/* BarChart */
+.bar-v {
+    -fx-bar-gap: 2;
+    -fx-category-gap: 14;
+}
+.bar-v .chart-bar.series0 {
+    -fx-background-color: #4c78a8;
+}
+.bar-v .chart-bar.negative {
+    -fx-background-color: #e45756;
+}
+.bar-v .chart-plot-background {
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #eef2f8);
+}
+
+.bar-h {
+    -fx-horizontal-grid-lines-visible: false;
+    -fx-legend-visible: false;
+}
+.bar-h .chart-bar {
+    -fx-background-radius: 0 4 4 0;
+}
+
+/* StackedBarChart */
+.stacked-v {
+    -fx-category-gap: 24;
+}
+.stacked-v .chart-bar {
+    -fx-border-color: white;
+    -fx-border-width: 1 0 0 0;
+}
+
+.stacked-h .axis:left {
+    -fx-tick-label-fill: #0074d9;
+    -fx-tick-label-gap: 6;
+}
+.stacked-h .chart-bar.series2 {
+    -fx-background-color: linear-gradient(from 0px 0px to 8px 8px, repeat, #b10dc9 0%, #b10dc9 50%, #d98ae6 50%, #d98ae6 100%);
+}
+
+/* PieChart */
+.showcase-charts .chart-pie-label {
+    -fx-font-size: 10px;
+}
+.pie-cw .chart-pie {
+    -fx-border-color: white;
+    -fx-border-width: 1.5px;
+}
+.pie-ccw {
+    -fx-start-angle: 90;
+    -fx-clockwise: false;
+    -fx-label-line-length: 12;
+    -fx-legend-visible: false;
+}
+.pie-ccw .chart-pie.data0 {
+    -fx-pie-color: #222222;
+}
+.pie-ccw .chart-pie-label-line {
+    -fx-stroke: #888888;
+}

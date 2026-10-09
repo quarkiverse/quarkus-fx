@@ -1,0 +1,14 @@
+/* A stylesheet whose class path URL has spaces and a non-ASCII character : JavaFX only applies it when its URL is a
+   valid URI, and resolves its url() against it. url() must be a valid URI too : the space is encoded. */
+.encoded-name {
+    -fx-min-width: 32;
+    -fx-pref-width: 32;
+    -fx-max-width: 32;
+    -fx-min-height: 32;
+    -fx-pref-height: 32;
+    -fx-max-height: 32;
+    -fx-background-color: #2e7d32;
+    -fx-background-image: url("image%20caf%C3%A9.png");
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: left top;
+}

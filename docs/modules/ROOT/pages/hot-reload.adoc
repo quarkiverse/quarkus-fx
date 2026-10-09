@@ -41,11 +41,15 @@ Its JavaFX launch parameters are those of the first launch. Use the current Quar
 
 Closing windows in dev mode leaves the toolkit running. Press `s` to rebuild the UI, or `q` / Ctrl+C to end the dev session.
 In a packaged application, closing the last window requests Quarkus shutdown and the extension exits JavaFX after cleanup.
+To quit a packaged application from code, call `Quarkus.asyncExit()`: the extension fires `FxShutdownEvent` on the FX thread, then exits JavaFX.
+Calling `Platform.exit()` first is not needed: the application still exits at once, but JavaFX may then have exited before Quarkus shuts down, and `FxShutdownEvent` is not fired.
 
 == Cleaning up application resources
 
 Observe `FxShutdownEvent` to stop application-owned animations, background tasks and subscriptions and remove listeners registered on external objects.
 The event runs on the FX thread while CDI is still available, before the extension hides application windows and destroys the runtime.
+It is never fired on another thread: it is not fired once JavaFX has exited (the application called `Platform.exit()` before Quarkus shut down), and usually not when the JVM shuts down (Ctrl+C, SIGTERM, `System.exit()`, `q` in dev mode), since JavaFX then disposes itself at the same time.
+Release what must always be released in `@PreDestroy` methods or `ShutdownEvent` observers.
 
 [source,java]
 ----
@@ -57,11 +61,13 @@ void onFxShutdown(@Observes FxShutdownEvent event) {
 
 The extension closes its stylesheet watchers and discards queued `@RunOnFxThread` calls for a detached runtime.
 Applications scheduling callbacks directly with `Platform.runLater` must manage their own cancellation.
-Do not call `Platform.exit()` or `System.exit()` during reload cleanup: exiting the toolkit prevents subsequent reloads in that JVM.
+Do not call `Platform.exit()` in dev mode, during reload cleanup or elsewhere: the toolkit cannot start again in that JVM, and the next restart fails at once with "JavaFX has exited". Restart the dev process then.
+`System.exit()` ends the dev session.
 
 Use `@Singleton` for FXML controllers, as with the other extension examples, so FXML field injection targets the controller instance rather than a CDI client proxy.
 Applications with a custom `@QuarkusMain` can inject `FxLifecycle` and call `start(args)` after Quarkus startup, then use `Quarkus.waitForExit()` to keep the application running.
 Alternatively, delegate to `new QuarkusFxApplication().run(args)` as shown in the startup guide.
+Applications built as macOS native executables must delegate to `QuarkusFxApplication::run`: there, `run` is called on the first thread of the process, which must run the macOS event loop while JavaFX runs, see xref:index.adoc[the startup guide].
 The legacy `Application.launch(FxApplication.class, args)` entry point remains available for a single launch, but does not support hot reload; migrate custom main classes to the lifecycle-aware entry point.
 
 == Classloading

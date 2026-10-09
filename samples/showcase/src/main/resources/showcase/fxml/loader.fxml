@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.Double?>
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.paint.*?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+<?import io.quarkiverse.fx.showcase.pages.fxml.ColorSwatch?>
+<?import io.quarkiverse.fx.showcase.pages.fxml.Person?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="io.quarkiverse.fx.showcase.pages.fxml.LoaderDemoController"
+      stylesheets="@loader.css" styleClass="loader-root" spacing="6">
+
+    <fx:define>
+        <ToggleGroup fx:id="sizeGroup"/>
+        <Color fx:id="accent" red="0.56" green="0.14" blue="0.67"/>
+        <FXCollections fx:factory="observableArrayList" fx:id="languages">
+            <String fx:value="Java"/>
+            <String fx:value="Kotlin"/>
+            <String fx:value="Scala"/>
+        </FXCollections>
+    </fx:define>
+
+    <padding>
+        <Insets top="8" right="10" bottom="10" left="10"/>
+    </padding>
+
+    <Label text="%loader.title" styleClass="loader-title">
+        <font>
+            <Font name="System Bold" size="15"/>
+        </font>
+        <textFill>
+            <LinearGradient endX="1" endY="0">
+                <stops>
+                    <Stop offset="0" color="#1565c0"/>
+                    <Stop offset="1" color="#8e24aa"/>
+                </stops>
+            </LinearGradient>
+        </textFill>
+    </Label>
+
+    <GridPane hgap="8" vgap="5" styleClass="loader-form">
+        <columnConstraints>
+            <ColumnConstraints minWidth="90" prefWidth="90"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+
+        <Label text="%loader.name" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="nameField" text="Duke" prefColumnCount="14" maxWidth="200"
+                   GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="%loader.greeting" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <Label fx:id="greetingLabel" text="${'Hello, ' + nameField.text + '!'}" styleClass="bound-value"
+               GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="%loader.size" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <HBox spacing="12" GridPane.rowIndex="2" GridPane.columnIndex="1">
+            <RadioButton text="S" toggleGroup="$sizeGroup" userData="small"/>
+            <RadioButton fx:id="mediumRadio" text="M" toggleGroup="$sizeGroup" userData="medium" selected="true"/>
+            <RadioButton text="L" toggleGroup="$sizeGroup" userData="large"/>
+        </HBox>
+
+        <Label text="%loader.language" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="languageBox" items="$languages" value="Kotlin" prefWidth="140"
+                  GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="%loader.level" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <HBox spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="4" GridPane.columnIndex="1">
+            <Slider fx:id="levelSlider" min="0" max="100" value="70" prefWidth="140"/>
+            <ProgressBar fx:id="levelBar" progress="${levelSlider.value / 100}" prefWidth="110"/>
+            <Label text="${levelSlider.value}" styleClass="bound-value"/>
+        </HBox>
+
+        <Label text="%loader.service" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <Label fx:id="serviceLabel" styleClass="service-value" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Button fx:id="incrementButton" text="%loader.increment" onAction="#increment"/>
+        <CheckBox fx:id="enableBox" text="%loader.enableReset" selected="false"/>
+        <Button fx:id="resetButton" text="%loader.reset" onAction="#reset" disable="${!enableBox.selected}"/>
+        <Label fx:id="clicksLabel" text="${controller.clickText}" styleClass="bound-value"/>
+    </HBox>
+
+    <HBox spacing="14" alignment="CENTER_LEFT">
+        <ColorSwatch fx:id="primarySwatch" swatchName="Primary" swatchColor="#1e88e5"/>
+        <ColorSwatch swatchName="Accent" swatchColor="$accent"/>
+        <fx:copy source="primarySwatch"/>
+        <Rectangle width="44" height="16" arcWidth="6" arcHeight="6">
+            <fill>
+                <fx:reference source="accent"/>
+            </fill>
+        </Rectangle>
+    </HBox>
+
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <fx:include fx:id="badge" source="loader-badge.fxml"/>
+        <Button fx:id="wideButton" text="%loader.wide" styleClass="wide-button" mnemonicParsing="false" HBox.hgrow="ALWAYS">
+            <maxWidth>
+                <Double fx:constant="MAX_VALUE"/>
+            </maxWidth>
+        </Button>
+    </HBox>
+
+    <TableView fx:id="peopleTable" prefHeight="98" focusTraversable="false">
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+        </columnResizePolicy>
+        <columns>
+            <TableColumn text="%loader.col.name" prefWidth="170">
+                <cellValueFactory>
+                    <PropertyValueFactory property="name"/>
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn text="%loader.col.age" prefWidth="60" styleClass="age-column">
+                <cellValueFactory>
+                    <PropertyValueFactory property="age"/>
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn text="%loader.col.role" prefWidth="160">
+                <cellValueFactory>
+                    <PropertyValueFactory property="role"/>
+                </cellValueFactory>
+            </TableColumn>
+        </columns>
+        <items>
+            <FXCollections fx:factory="observableArrayList">
+                <Person name="Ada Lovelace" age="36" role="Analyst"/>
+                <Person name="Alan Turing" age="41" role="Cryptanalyst"/>
+                <Person name="Grace Hopper" age="85" role="Rear admiral"/>
+            </FXCollections>
+        </items>
+    </TableView>
+</VBox>

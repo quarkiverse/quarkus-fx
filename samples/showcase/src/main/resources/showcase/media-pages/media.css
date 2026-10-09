@@ -1,0 +1,80 @@
+/* Media pages : player cards and controls */
+.media-card {
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #f1f4f8);
+    -fx-background-radius: 10;
+    -fx-border-color: #c7d2de;
+    -fx-border-radius: 10;
+    -fx-padding: 10;
+    -fx-spacing: 6;
+    -fx-effect: dropshadow(gaussian, rgba(20, 40, 80, 0.18), 6, 0.1, 0, 2);
+}
+
+.media-card-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #243b53;
+}
+
+.media-card-subtitle {
+    -fx-font-size: 11px;
+    -fx-text-fill: #627d98;
+}
+
+.media-caption {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #52606d;
+}
+
+.media-button {
+    -fx-min-width: 34px;
+    -fx-pref-width: 34px;
+    -fx-min-height: 28px;
+    -fx-pref-height: 28px;
+    -fx-padding: 0;
+    -fx-background-radius: 14;
+    -fx-base: #334e68;
+    -fx-text-fill: white;
+}
+
+.media-button.primary {
+    -fx-base: #2f855a;
+}
+
+/* the monospaced family of the platform is set from code (MediaSupport.timeLabel) */
+.media-time {
+    -fx-font-size: 12px;
+    -fx-text-fill: #102a43;
+}
+
+.media-status {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-background-color: #2f855a;
+    -fx-background-radius: 8;
+    -fx-padding: 1 8 1 8;
+}
+
+.media-status.failed {
+    -fx-background-color: #c53030;
+}
+
+.media-status.waiting {
+    -fx-background-color: #718096;
+}
+
+.equalizer-band .slider {
+    -fx-pref-height: 120px;
+}
+
+.equalizer-band .label {
+    -fx-font-size: 10px;
+    -fx-text-fill: #52606d;
+}
+
+.video-frame {
+    -fx-border-color: #243b53;
+    -fx-border-width: 1;
+    -fx-background-color: #102a43;
+}
