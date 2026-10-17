@@ -158,6 +158,11 @@ jobs:
             showcase-m2-${{ runner.os }}-${{ runner.arch }}-${{ contains(matrix.args, '--swt') && 'swt' || 'default' }}-
             showcase-m2-${{ runner.os }}-${{ runner.arch }}-
 
+      # Quarkus 999-SNAPSHOT (main, the future Quarkus 4), which quarkus-fx and the showcase are built with : the daily
+      # snapshot of quarkusio/quarkus-ecosystem-ci, over the restored Maven repository
+      - name: Install the Quarkus snapshot
+        uses: quarkusio/install-quarkus-snapshots-action@main
+
       - uses: docker/setup-buildx-action@v4
 
       # The image is multi-arch (ubuntu:24.04 and the GraalVM builder image jdk-25 have amd64 and arm64 variants)
@@ -210,6 +215,11 @@ jobs:
           # the snapshots of quarkus-fx are built from the checked out commit, javafx-swt is installed by the SWT
           # variant from javafx-graphics (not on Maven Central) : never from the cache
           rm -rf "$HOME/.m2/repository/io/quarkiverse/fx" "$HOME/.m2/repository/org/openjfx/javafx-swt"
+
+      # never in the cache : the next run installs the snapshot of its day
+      - name: Remove the Quarkus snapshot
+        if: always()
+        uses: quarkusio/install-quarkus-snapshots-action/cleanup@main
 
       # once the dependencies are there, whatever the cycle gave
       - name: Save the Maven repository
@@ -305,6 +315,11 @@ jobs:
             showcase-m2-${{ runner.os }}-${{ runner.arch }}-${{ contains(matrix.args, '--swt') && 'swt' || 'default' }}-
             showcase-m2-${{ runner.os }}-${{ runner.arch }}-
 
+      # Quarkus 999-SNAPSHOT (main, the future Quarkus 4), which quarkus-fx and the showcase are built with : the daily
+      # snapshot of quarkusio/quarkus-ecosystem-ci, over the restored Maven repository
+      - name: Install the Quarkus snapshot
+        uses: quarkusio/install-quarkus-snapshots-action@main
+
       # The largest display mode (the runners start at 1024x768, the showcase main window is 1400x900 at 40,40), every
       # window minimized, no screen saver ; the screen, the window in front and a screenshot in the log
       - name: Prepare the desktop
@@ -351,6 +366,11 @@ jobs:
       - name: Clean the Maven repository
         if: always()
         run: rm -rf ~/.m2/repository/io/quarkiverse/fx ~/.m2/repository/org/openjfx/javafx-swt
+
+      # never in the cache : the next run installs the snapshot of its day
+      - name: Remove the Quarkus snapshot
+        if: always()
+        uses: quarkusio/install-quarkus-snapshots-action/cleanup@main
 
       - name: Save the Maven repository
         if: steps.install.outcome == 'success' && steps.m2.outputs.cache-hit != 'true' && (github.event_name == 'push' || github.event_name == 'schedule') && !cancelled() && hashFiles('cycle.log') != '' && !contains(steps.built.outputs.failed, 'FAILED')
@@ -443,6 +463,11 @@ jobs:
             showcase-m2-${{ runner.os }}-${{ runner.arch }}-${{ contains(matrix.args, '--swt') && 'swt' || 'default' }}-
             showcase-m2-${{ runner.os }}-${{ runner.arch }}-
 
+      # Quarkus 999-SNAPSHOT (main, the future Quarkus 4), which quarkus-fx and the showcase are built with : the daily
+      # snapshot of quarkusio/quarkus-ecosystem-ci, over the restored Maven repository
+      - name: Install the Quarkus snapshot
+        uses: quarkusio/install-quarkus-snapshots-action@main
+
       # The session, the display (its largest mode at scale 1), the front application, a screenshot
       - name: Prepare the desktop
         continue-on-error: true
@@ -481,6 +506,11 @@ jobs:
       - name: Clean the Maven repository
         if: always()
         run: rm -rf ~/.m2/repository/io/quarkiverse/fx ~/.m2/repository/org/openjfx/javafx-swt
+
+      # never in the cache : the next run installs the snapshot of its day
+      - name: Remove the Quarkus snapshot
+        if: always()
+        uses: quarkusio/install-quarkus-snapshots-action/cleanup@main
 
       - name: Save the Maven repository
         if: steps.install.outcome == 'success' && steps.m2.outputs.cache-hit != 'true' && (github.event_name == 'push' || github.event_name == 'schedule') && !cancelled() && hashFiles('cycle.log') != '' && !contains(steps.built.outputs.failed, 'FAILED')

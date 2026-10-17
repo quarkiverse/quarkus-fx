@@ -50,7 +50,7 @@ public final class FxClassesAndResources {
 
     /**
      * The libjvm stand-ins of WebKit, resources of the runtime module ({@code src/main/c/build-libjvm-stand-in.sh})
-     * installed by {@code io.quarkiverse.fx.graal.LibJvmStandInRecorder} when a native executable starts : libjfxwebkit
+     * installed by {@code io.quarkiverse.fx.graal.LibJvmStandInSupport} when a native executable starts : libjfxwebkit
      * links libjvm without using it (objdump -p and otool -L of javafx-web 21 to 27) on macOS, on Linux x86_64, and on
      * Linux aarch64 in JavaFX 24. jfxwebkit.dll does not import jvm.dll.
      */

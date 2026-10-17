@@ -12,7 +12,8 @@
     <properties>
         <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <quarkus.platform.version>4.0.0.Beta1</quarkus.platform.version>
+        <!-- The Quarkus version of quarkus-fx (999-SNAPSHOT : Quarkus main, the future Quarkus 4) -->
+        <quarkus.platform.version>999-SNAPSHOT</quarkus.platform.version>
         <javafx.version>25.0.4</javafx.version>
         <quarkus-fx.version>999-SNAPSHOT</quarkus-fx.version>
         <quarkus-desktop.version>0.1.0</quarkus-desktop.version>

@@ -24,7 +24,7 @@ import io.quarkiverse.fx.deployment.fxviews.controllers.ComponentWithStyleContro
 import io.quarkiverse.fx.style.StylesheetWatchService;
 import io.quarkiverse.fx.views.FxViewRepository;
 import io.quarkiverse.fx.views.StylesheetReloadStrategy;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -34,7 +34,7 @@ import javafx.scene.Parent;
 class FxStyleReloadTest extends FxTestBase {
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .withApplicationRoot((jar) -> {
                 jar.addClass(ComponentWithStyleController.class);
                 jar.addAsResource("views");

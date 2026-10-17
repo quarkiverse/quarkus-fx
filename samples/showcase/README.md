@@ -5,14 +5,16 @@ possible: controls, data views, layout and CSS, graphics, text, images, charts, 
 interop, windows, FXML, platform services, and, in its SWT variant, JavaFX embedded in SWT. It checks that a GraalVM
 native executable renders exactly the same UI as the JVM, and finds the gaps in the native configuration of quarkus-fx.
 
-It uses Quarkus 4.0.0.Beta1 and [Quarkus Desktop](https://github.com/quarkiverse/quarkus-desktop)
+It uses Quarkus `999-SNAPSHOT` (Quarkus `main`, the future Quarkus 4.0) and [Quarkus Desktop](https://github.com/quarkiverse/quarkus-desktop)
 (`quarkus-desktop-swing`), which makes AWT and Swing work in native executables (Swing interop, printing, ImageIO).
 
 ## Requirements
 
 - GraalVM for JDK 25, with `JAVA_HOME` and `GRAALVM_HOME` pointing to it, and the
   [Quarkus native prerequisites](https://quarkus.io/guides/building-native-image)
-- quarkus-fx `999-SNAPSHOT`: `./mvnw install -DskipTests` at the root of this repository
+- quarkus-fx `999-SNAPSHOT`: `./mvnw install -DskipTests` at the root of this repository. It is built with Quarkus
+  `999-SNAPSHOT`, the Quarkus version of the showcase too: a Quarkus built from `main`, or the daily snapshot (see
+  [Using snapshots](https://github.com/quarkusio/quarkus/blob/main/CONTRIBUTING.md#using-snapshots))
 
 ## Run
 
