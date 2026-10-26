@@ -3,7 +3,9 @@ package io.quarkiverse.fx.deployment;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -210,6 +212,7 @@ class QuarkusFxExtensionProcessor {
             BeanContainerBuildItem beanContainerBuildItem) {
 
         List<String> views = new ArrayList<>();
+        Map<String, String> viewControllers = new LinkedHashMap<>();
 
         // Look for all @FxView annotations
         Collection<AnnotationInstance> annotations = combinedIndex.getComputingIndex().getAnnotations(FxView.class);
@@ -218,7 +221,7 @@ class QuarkusFxExtensionProcessor {
             ClassInfo target = annotation.target().asClass();
             AnnotationValue value = annotation.value();
 
-            if (value != null) {
+            if (value != null && !value.asString().isEmpty()) {
                 // Custom value is set in annotation : use it
                 String customName = value.asString();
                 views.add(customName);
@@ -247,11 +250,17 @@ class QuarkusFxExtensionProcessor {
                     views.add(name);
                 }
             }
+            String viewName = views.get(views.size() - 1);
+            String previous = viewControllers.putIfAbsent(viewName, target.name().toString());
+            if (previous != null) {
+                throw new IllegalStateException("View '" + viewName + "' is registered by both "
+                        + previous + " and " + target.name());
+            }
         }
 
         LOGGER.infof("Fx views : %s", views);
 
-        recorder.process(views, beanContainerBuildItem.getValue());
+        recorder.process(viewControllers, beanContainerBuildItem.getValue());
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)

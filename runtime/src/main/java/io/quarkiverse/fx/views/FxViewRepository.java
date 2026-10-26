@@ -47,11 +47,32 @@ public class FxViewRepository {
     private final Map<String, FxViewData> viewDataMap = new HashMap<>();
 
     private List<String> viewNames;
+    private Map<String, Class<?>> viewControllers = Map.of();
+    private Map<Class<?>, String> controllerViews = Map.of();
+    private volatile boolean viewsLoaded;
 
     private Stage primaryStage;
 
     public void setViewNames(List<String> views) {
-        this.viewNames = views;
+        viewsLoaded = false;
+        viewControllers = Map.of();
+        controllerViews = Map.of();
+        this.viewNames = List.copyOf(views);
+    }
+
+    public void setViewControllers(Map<String, Class<?>> controllers) {
+        viewsLoaded = false;
+        Map<Class<?>, String> byController = new HashMap<>();
+        controllers.forEach((name, type) -> {
+            String previous = byController.putIfAbsent(type, name);
+            if (previous != null) {
+                throw new IllegalArgumentException("Controller " + type.getName()
+                        + " is registered for both " + previous + " and " + name);
+            }
+        });
+        viewControllers = Map.copyOf(controllers);
+        controllerViews = Map.copyOf(byController);
+        viewNames = List.copyOf(controllers.keySet());
     }
 
     /**
@@ -59,10 +80,13 @@ public class FxViewRepository {
      */
     void setupViews(@Observes FxViewLoadEvent event) {
 
+        viewsLoaded = false;
+        viewDataMap.clear();
         this.primaryStage = event.getPrimaryStage();
 
         // Skip processing if no FX view is set
         if (this.viewNames.isEmpty()) {
+            viewsLoaded = true;
             return;
         }
 
@@ -77,6 +101,7 @@ public class FxViewRepository {
         for (String name : this.viewNames) {
             this.manageView(name, classLoader, stylesheetReload);
         }
+        viewsLoaded = true;
     }
 
     private void manageView(String name, ClassLoader classLoader, boolean stylesheetReload) {
@@ -136,12 +161,18 @@ public class FxViewRepository {
 
             Object rootNode = loader.load(fxmlStream);
 
+            Object controller = loader.getController();
+            Class<?> expectedController = viewControllers.get(name);
+            if (expectedController != null && !expectedController.isInstance(controller)) {
+                throw new IllegalStateException("View '" + name + "' declares controller "
+                        + expectedController.getName() + " but FXML loaded "
+                        + (controller == null ? "no controller" : controller.getClass().getName()));
+            }
+
             // Stylesheet live reload
             if (stylesheetReload) {
                 this.manageStylesheetLiveReload(rootNode);
             }
-
-            Object controller = loader.getController();
 
             // Register view
             FxViewData viewData = FxViewData.of(rootNode, controller);
@@ -223,6 +254,26 @@ public class FxViewRepository {
      */
     public FxViewData getViewData(String viewName) {
         return this.viewDataMap.get(viewName);
+    }
+
+    /**
+     * Returns the loaded view registered for exactly this declared controller class.
+     * Call after view initialization, normally from an {@link FxPostStartupEvent} observer.
+     *
+     * @throws IllegalStateException if view initialization has not completed
+     * @throws IllegalArgumentException if the controller class has no registered view
+     */
+    public <C> FxViewHandle<C> get(Class<C> controllerType) {
+        Objects.requireNonNull(controllerType, "controllerType");
+        if (!viewsLoaded) {
+            throw new IllegalStateException("JavaFX views are not ready; wait for FxPostStartupEvent");
+        }
+        String name = controllerViews.get(controllerType);
+        if (name == null) {
+            throw new IllegalArgumentException("No @FxView registered for controller " + controllerType.getName());
+        }
+        FxViewData data = viewDataMap.get(name);
+        return new FxViewHandle<>(data.getRootNode(), controllerType.cast(data.getController()));
     }
 
     /**

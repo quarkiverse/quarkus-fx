@@ -87,6 +87,33 @@ public class SampleController {
 }
 ----
 
+== Typed view access
+
+Look up a loaded view by its declared `@FxView` controller class:
+
+[source,java]
+----
+FxViewHandle<SampleController> view = views.get(SampleController.class);
+SampleController controller = view.controller();
+Parent root = view.root(Parent.class);
+----
+
+`views` is the injected `FxViewRepository`. Call `get` after view initialization, normally in an
+`FxPostStartupEvent` observer. Early access throws `IllegalStateException`.
+Lookup uses the exact declared controller class, including controllers with custom `@FxView` names;
+an unregistered class throws `IllegalArgumentException`.
+
+`root()` returns the root as `Object`. `root(Class<R>)` checks the requested type and supports
+`Parent`, `Scene`, `Stage` and `Dialog` roots, throwing `IllegalArgumentException` for a wrong root type.
+The controller loaded from FXML is checked against the annotated controller during initialization.
+Each controller has one registered view; duplicate view names are rejected at build time.
+
+A handle belongs to the UI generation in which it was obtained. After hot reload, obtain a new handle
+from the new runtime's repository. Handles do not automatically rebind old controllers or roots.
+JavaFX thread rules still apply when using the returned objects.
+
+The existing `getViewData(String)` API remains available for compatibility.
+
 == Stylesheet live reload
 
 It is possible to enable automatic live reload for stylesheets (`.css` files).

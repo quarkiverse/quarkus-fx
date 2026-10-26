@@ -14,6 +14,7 @@ import io.quarkiverse.fx.views.FxViewRepository;
 import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 
@@ -40,7 +41,11 @@ public class ReloadController {
 
     void started(@Observes FxPostStartupEvent event) {
         hostServices.getCodeBase();
-        event.getPrimaryStage().setScene(new Scene(views.getViewData("Reload").getRootNode()));
+        var view = views.get(ReloadController.class);
+        if (view.controller() != this) {
+            throw new IllegalStateException("Typed view resolved a stale controller");
+        }
+        event.getPrimaryStage().setScene(new Scene(view.root(Parent.class)));
         event.getPrimaryStage().show();
         System.setProperty("fx.test.reload.snapshot", String.join("|",
                 version(), label.getText(), instance, Integer.toString(applicationId),
