@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.deployment.base.FxTestBase;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import javafx.application.Platform;
 
 class RunOnFxThreadTest extends FxTestBase {
@@ -20,7 +20,7 @@ class RunOnFxThreadTest extends FxTestBase {
     private static final int ASYNC_RUN_TIMEOUT_MS = 1_000;
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
 
     private static Boolean regularThread;

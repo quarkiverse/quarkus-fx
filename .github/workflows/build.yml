@@ -1,6 +1,6 @@
 name: Build
 
-# Pull requests : the JVM build on Linux with JDK 17, and the other JDK and platforms (JVM and native) when the pull
+# Pull requests : the JVM build on Linux with JDK 21, and the other JDK and platforms (JVM and native) when the pull
 # request has the label full-ci (adding it runs them on the current commit), as are the showcase cycles of the Showcase
 # workflow. Pushes to main and manual runs : all.
 on:
@@ -51,11 +51,11 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      # pull requests : JDK 17 on Linux, unless labelled full-ci
+      # pull requests : JDK 21 on Linux, unless labelled full-ci
       matrix:
         os: ${{ fromJSON((github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'full-ci')) && '["ubuntu-latest", "windows-latest", "macos-latest"]' || '["ubuntu-latest"]') }}
-        # 17 : the default JavaFX version of Quarkus FX (22) ; 25 : JavaFX 25 in the integration tests (javafx-25 profile)
-        java-version: ${{ fromJSON((github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'full-ci')) && '[17, 25]' || '[17]') }}
+        # 21 : the default JavaFX version of Quarkus FX (22) ; 25 : JavaFX 25 in the integration tests (javafx-25 profile)
+        java-version: ${{ fromJSON((github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'full-ci')) && '[21, 25]' || '[21]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Prepare git

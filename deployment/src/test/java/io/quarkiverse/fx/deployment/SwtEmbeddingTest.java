@@ -22,12 +22,12 @@ import org.objectweb.asm.Opcodes;
 
 import io.quarkiverse.fx.FxLifecycle;
 import io.quarkiverse.fx.RunOnFxThread;
-import io.quarkiverse.fx.swt.SwtEmbeddingRecorder;
+import io.quarkiverse.fx.swt.SwtEmbeddingSupport;
 import io.quarkus.builder.BuildChainBuilder;
 import io.quarkus.builder.ProduceFlag;
 import io.quarkus.deployment.builditem.QuarkusApplicationClassBuildItem;
 import io.quarkus.runtime.QuarkusApplication;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import javafx.application.Platform;
 
 /**
@@ -42,7 +42,7 @@ class SwtEmbeddingTest {
     }
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .withApplicationRoot(root -> root.addClass(SwtApplicationStandIn.class))
             .addAdditionalDependency(quarkusDesktopSwtStandIn())
             .addBuildChainCustomizer(SwtEmbeddingTest::produceSwtApplication)
@@ -88,7 +88,7 @@ class SwtEmbeddingTest {
                 && record.getParameters() != null && record.getParameters().length > 0
                 && "javafx.embed.swt.FXCanvas".equals(record.getParameters()[0])));
         assertTrue(records.stream().anyMatch(record -> record.getLevel().intValue() == Level.WARNING.intValue()
-                && record.getLoggerName().equals(SwtEmbeddingRecorder.class.getName())
+                && record.getLoggerName().equals(SwtEmbeddingSupport.class.getName())
                 && record.getMessage().startsWith("JavaFX already runs embedded in SWT in this JVM")));
         // The stand-in of the main application of Quarkus Desktop SWT runs the user interface
         assertTrue(records.stream().noneMatch(record -> record.getMessage().startsWith("Nothing runs the SWT user interface")));

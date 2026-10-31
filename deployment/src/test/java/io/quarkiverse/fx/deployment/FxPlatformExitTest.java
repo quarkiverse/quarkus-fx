@@ -20,7 +20,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import io.quarkiverse.fx.FxPlatform;
 import io.quarkiverse.fx.FxShutdownEvent;
 import io.quarkiverse.fx.deployment.base.FxTestBase;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import javafx.application.Platform;
 
 /**
@@ -35,7 +35,7 @@ class FxPlatformExitTest extends FxTestBase {
     private static final String FX_SHUTDOWN = "fx.test.exit.fx-shutdown";
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class))
             // Once Quarkus has stopped : its ShutdownEvent detached Quarkus FX from JavaFX
             .setAfterUndeployListener(FxPlatformExitTest::assertPromptShutdown);
