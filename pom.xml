@@ -17,7 +17,7 @@
         <module>runtime</module>
     </modules>
     <properties>
-        <quarkus.version>999-SNAPSHOT</quarkus.version>
+        <quarkus.version>4.0.0.Beta2</quarkus.version>
         <javafx.version>22.0.2</javafx.version>
         <maven.compiler.release>21</maven.compiler.release>
     </properties>

@@ -71,29 +71,20 @@ jobs:
           java-version: ${{ matrix.java-version }}
           cache: 'maven'
 
-      # Quarkus 999-SNAPSHOT (main, the future Quarkus 4) : the daily snapshot of quarkusio/quarkus-ecosystem-ci
-      - name: Install the Quarkus snapshot
-        uses: quarkusio/install-quarkus-snapshots-action@main
-
       # JavaFX needs a display : a virtual X display on Linux
       - name: Build with Maven (virtual X display)
         if: startsWith(matrix.os, 'ubuntu')
-        run: xvfb-run -a ./mvnw -B -ntp -nsu clean install -Dno-format 2>&1 | tee maven.log
+        run: xvfb-run -a ./mvnw -B -ntp clean install -Dno-format 2>&1 | tee maven.log
 
       - name: Build with Maven
         if: ${{ !startsWith(matrix.os, 'ubuntu') }}
-        run: ./mvnw -B -ntp -nsu clean install -Dno-format 2>&1 | tee maven.log
+        run: ./mvnw -B -ntp clean install -Dno-format 2>&1 | tee maven.log
 
       # The failed tests and the Maven errors as annotations of the run : shown in its summary, and readable through the
       # public API (check run annotations) without logging in, unlike the logs
       - name: Report the failures
         if: failure()
         run: java .github/scripts/ReportFailures.java maven.log
-
-      # not cached with the Maven repository
-      - name: Remove the Quarkus snapshot
-        if: always()
-        uses: quarkusio/install-quarkus-snapshots-action/cleanup@main
 
   native:
     # pull requests labelled full-ci only
@@ -138,21 +129,14 @@ jobs:
           sudo apt-get install -y --no-install-recommends build-essential zlib1g-dev xvfb fonts-dejavu-core \
             libgtk-3-0t64 libxtst6 libxxf86vm1 libgl1 libegl1 libasound2t64
 
-      - name: Install the Quarkus snapshot
-        uses: quarkusio/install-quarkus-snapshots-action@main
-
       - name: Build native executables and run the integration tests (virtual X display)
         if: startsWith(matrix.os, 'ubuntu')
-        run: xvfb-run -a ./mvnw -B -ntp -nsu clean install -Dnative -Dno-format -Dnative.surefire.skip $NATIVE_ARGS 2>&1 | tee maven.log
+        run: xvfb-run -a ./mvnw -B -ntp clean install -Dnative -Dno-format -Dnative.surefire.skip $NATIVE_ARGS 2>&1 | tee maven.log
 
       - name: Build native executables and run the integration tests
         if: ${{ !startsWith(matrix.os, 'ubuntu') }}
-        run: ./mvnw -B -ntp -nsu clean install -Dnative -Dno-format -Dnative.surefire.skip $NATIVE_ARGS 2>&1 | tee maven.log
+        run: ./mvnw -B -ntp clean install -Dnative -Dno-format -Dnative.surefire.skip $NATIVE_ARGS 2>&1 | tee maven.log
 
       - name: Report the failures
         if: failure()
         run: java .github/scripts/ReportFailures.java maven.log
-
-      - name: Remove the Quarkus snapshot
-        if: always()
-        uses: quarkusio/install-quarkus-snapshots-action/cleanup@main
