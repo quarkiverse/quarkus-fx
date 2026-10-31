@@ -16,7 +16,7 @@
         <quarkus.platform.version>4.0.0.Beta2</quarkus.platform.version>
         <javafx.version>25.0.4</javafx.version>
         <quarkus-fx.version>999-SNAPSHOT</quarkus-fx.version>
-        <quarkus-desktop.version>0.1.0</quarkus-desktop.version>
+        <quarkus-desktop.version>0.2.1</quarkus-desktop.version>
         <compiler-plugin.version>3.14.0</compiler-plugin.version>
         <!-- The Quarkus Desktop extension of the variant : quarkus-desktop-swing (default) or quarkus-desktop-swt (swt, see
              the profile) -->
@@ -148,8 +148,6 @@
             </activation>
             <properties>
                 <showcase.desktop.extension>quarkus-desktop-swt</showcase.desktop.extension>
-                <!-- the first version of quarkus-desktop-swt -->
-                <quarkus-desktop.version>0.2.1</quarkus-desktop.version>
             </properties>
             <dependencies>
                 <dependency>
