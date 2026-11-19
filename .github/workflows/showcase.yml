@@ -284,13 +284,10 @@ jobs:
           showcase=$(sed -n 's:.*<quarkus.platform.version>\(.*\)</quarkus.platform.version>.*:\1:p' samples/showcase/pom.xml | head -1)
           echo "Quarkus $showcase (showcase), quarkus-fx built with Quarkus $fx" >> "$GITHUB_STEP_SUMMARY"
 
-      # Oracle GraalVM for JDK 25, the GraalVM of the native job of the Build workflow (it sets up MSVC)
-      - name: Set up GraalVM for JDK 25
-        uses: graalvm/setup-graalvm@v1
-        with:
-          java-version: '25'
-          distribution: graalvm
-          github-token: ${{ github.token }}
+      # GraalVM Community 25 Innovation 5, the GraalVM of the native job of the Build workflow (native-image finds MSVC
+      # itself). Not Oracle GraalVM for JDK 25 : its native builds fail with Quarkus 4.0.0 (quarkusio/quarkus#58350)
+      - name: Set up GraalVM Community 25 Innovation 5 (JDK 25)
+        run: bash .github/scripts/setup-graalvm.sh
 
       - name: Restore the Maven repository
         id: m2
@@ -420,15 +417,10 @@ jobs:
           showcase=$(sed -n 's:.*<quarkus.platform.version>\(.*\)</quarkus.platform.version>.*:\1:p' samples/showcase/pom.xml | head -1)
           echo "Quarkus $showcase (showcase), quarkus-fx built with Quarkus $fx" >> "$GITHUB_STEP_SUMMARY"
 
-      # The latest innovation release of Oracle GraalVM 25 (JDK 25) : Quarkus builds the AWT and Swing of Quarkus
-      # Desktop into macOS native executables with GraalVM 25.1 or later (the native job of the Build workflow, without
-      # AWT, has Oracle GraalVM for JDK 25)
-      - name: Set up GraalVM 25 (latest innovation release)
-        uses: graalvm/setup-graalvm@v1
-        with:
-          version: '25i-latest'
-          distribution: graalvm
-          github-token: ${{ github.token }}
+      # GraalVM Community 25 Innovation 5, the GraalVM of the native job of the Build workflow : Quarkus builds the AWT
+      # and Swing of Quarkus Desktop into macOS native executables with GraalVM 25.1 or later
+      - name: Set up GraalVM Community 25 Innovation 5 (JDK 25)
+        run: bash .github/scripts/setup-graalvm.sh
 
       - name: Restore the Maven repository
         id: m2
