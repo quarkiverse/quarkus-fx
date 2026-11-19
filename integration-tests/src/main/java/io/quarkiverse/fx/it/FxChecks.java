@@ -313,7 +313,10 @@ public class FxChecks {
         String path = Normalizer.normalize(uri.getSchemeSpecificPart(), Normalizer.Form.NFC);
         require(path.endsWith("/" + name), "URI " + uri + " is not the one of " + name);
         if (ImageMode.current().isNativeImage()) {
-            require(external.toUpperCase(Locale.ROOT).endsWith(ENCODED_IMAGE_URL_END.toUpperCase(Locale.ROOT)),
+            // in ASCII : quarkus-fx encodes the non-ASCII characters (as ParseUtil.encodePath in JVM mode), GraalVM 25.5
+            // and later, which encode the resource URLs themselves with java.net.URI (GR-79614), leave them as they are
+            String ascii = uri.toASCIIString();
+            require(ascii.toUpperCase(Locale.ROOT).endsWith(ENCODED_IMAGE_URL_END.toUpperCase(Locale.ROOT)),
                     "resource URL " + external);
         }
         // the connections decode the escapes : the URL, the URL of its URI, a URL resolved against another one
