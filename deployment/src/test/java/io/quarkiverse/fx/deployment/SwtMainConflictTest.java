@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkus.builder.ChainBuildException;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 /**
  * Without the public API of quarkus-desktop-swt on the class path, the overridable producer of the main application of
@@ -16,7 +16,7 @@ import io.quarkus.test.QuarkusUnitTest;
 class SwtMainConflictTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .withApplicationRoot(root -> root.addClass(SwtEmbeddingTest.SwtApplicationStandIn.class))
             .addBuildChainCustomizer(SwtEmbeddingTest::produceSwtApplication)
             .assertException(failure -> {

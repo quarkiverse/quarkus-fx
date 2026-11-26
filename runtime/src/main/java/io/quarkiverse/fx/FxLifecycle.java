@@ -11,7 +11,7 @@ import jakarta.inject.Singleton;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.style.StylesheetWatchService;
-import io.quarkiverse.fx.swt.SwtEmbeddingRecorder;
+import io.quarkiverse.fx.swt.SwtEmbeddingSupport;
 import io.quarkiverse.fx.views.FxViewConfig;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.Quarkus;
@@ -68,7 +68,7 @@ public class FxLifecycle {
             // A JavaFX application launched next to SWT : on macOS, SWT then crashes the JVM when it creates its Display
             throw new IllegalStateException("Quarkus Desktop SWT is present : JavaFX runs embedded in SWT (FXCanvas), "
                     + "Quarkus FX does not launch a JavaFX application. Run the SWT user interface instead "
-                    + "(SwtLifecycle.run()), see " + SwtEmbeddingRecorder.GUIDE);
+                    + "(SwtLifecycle.run()), see " + SwtEmbeddingSupport.GUIDE);
         }
         if (this.platform != null || (this.liveReload && this.retainUiAcrossRestarts())) {
             return;

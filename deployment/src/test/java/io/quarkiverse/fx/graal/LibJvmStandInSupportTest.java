@@ -26,7 +26,7 @@ import org.junit.jupiter.api.io.TempDir;
  * The installation of the libjvm stand-in of WebKit : where JavaFX extracts its native libraries, replacing a file that
  * differs, or loaded from a temporary file on Linux.
  */
-class LibJvmStandInRecorderTest {
+class LibJvmStandInSupportTest {
 
     private static final String MAC_STAND_IN = "io/quarkiverse/fx/graal/libjvm-stand-in/macos/libjvm.dylib";
 
@@ -40,17 +40,17 @@ class LibJvmStandInRecorderTest {
         Properties properties = properties();
         // ~/.openjfx/cache/<runtime version, ':' replaced>/<os.arch>, created
         Path cache = temporary.resolve("home/.openjfx/cache");
-        assertEquals(cache.resolve("25.0.4+2/aarch64"), LibJvmStandInRecorder.javaFxCacheDirectory(properties, "25.0.4+2"));
+        assertEquals(cache.resolve("25.0.4+2/aarch64"), LibJvmStandInSupport.javaFxCacheDirectory(properties, "25.0.4+2"));
         assertTrue(Files.isDirectory(cache.resolve("25.0.4+2/aarch64")));
-        assertEquals(cache.resolve("25-1/aarch64"), LibJvmStandInRecorder.javaFxCacheDirectory(properties, "25:1"));
+        assertEquals(cache.resolve("25-1/aarch64"), LibJvmStandInSupport.javaFxCacheDirectory(properties, "25:1"));
         // the toolkit does not set javafx.runtime.version when javafx.version is set
         properties.setProperty("javafx.version", "25");
-        assertEquals(cache.resolve("versionless/aarch64"), LibJvmStandInRecorder.javaFxCacheDirectory(properties, "25.0.4+2"));
+        assertEquals(cache.resolve("versionless/aarch64"), LibJvmStandInSupport.javaFxCacheDirectory(properties, "25.0.4+2"));
         properties.setProperty("javafx.runtime.version", "25+1");
-        assertEquals(cache.resolve("25+1/aarch64"), LibJvmStandInRecorder.javaFxCacheDirectory(properties, "25.0.4+2"));
+        assertEquals(cache.resolve("25+1/aarch64"), LibJvmStandInSupport.javaFxCacheDirectory(properties, "25.0.4+2"));
         // javafx.cachedir as it is
         properties.setProperty("javafx.cachedir", temporary.resolve("cache").toString());
-        assertEquals(temporary.resolve("cache"), LibJvmStandInRecorder.javaFxCacheDirectory(properties, "25.0.4+2"));
+        assertEquals(temporary.resolve("cache"), LibJvmStandInSupport.javaFxCacheDirectory(properties, "25.0.4+2"));
     }
 
     @Test
@@ -59,16 +59,16 @@ class LibJvmStandInRecorderTest {
         // the cache cannot be created (a file in its path) : java.io.tmpdir/.openjfx_<user.name>/cache/<version>/<arch>
         Files.writeString(temporary.resolve("home"), "a file");
         assertEquals(temporary.resolve("tmp/.openjfx_fx/cache/25.0.4+2/aarch64"),
-                LibJvmStandInRecorder.javaFxCacheDirectory(properties, "25.0.4+2"));
+                LibJvmStandInSupport.javaFxCacheDirectory(properties, "25.0.4+2"));
         // nor that one
         properties.setProperty("java.io.tmpdir", Files.writeString(temporary.resolve("tmp2"), "a file").toString());
-        assertNull(LibJvmStandInRecorder.javaFxCacheDirectory(properties, "25.0.4+2"));
+        assertNull(LibJvmStandInSupport.javaFxCacheDirectory(properties, "25.0.4+2"));
     }
 
     @Test
     void writesTheStandIn() throws IOException {
         Path standIn = temporary.resolve("libjvm.dylib");
-        LibJvmStandInRecorder.write(resource(MAC_STAND_IN), standIn, false);
+        LibJvmStandInSupport.write(resource(MAC_STAND_IN), standIn, false);
         assertArrayEquals(resource(MAC_STAND_IN), Files.readAllBytes(standIn));
         // no temporary file left
         assertEquals(List.of(standIn), files(temporary));
@@ -77,10 +77,10 @@ class LibJvmStandInRecorderTest {
     @Test
     void keepsTheSameStandIn() throws IOException {
         Path standIn = temporary.resolve("libjvm.so");
-        LibJvmStandInRecorder.write(resource(LINUX_STAND_IN), standIn, false);
+        LibJvmStandInSupport.write(resource(LINUX_STAND_IN), standIn, false);
         FileTime written = FileTime.fromMillis(1_000_000_000_000L);
         Files.setLastModifiedTime(standIn, written);
-        LibJvmStandInRecorder.write(resource(LINUX_STAND_IN), standIn, false);
+        LibJvmStandInSupport.write(resource(LINUX_STAND_IN), standIn, false);
         assertEquals(written, Files.getLastModifiedTime(standIn));
     }
 
@@ -90,7 +90,7 @@ class LibJvmStandInRecorderTest {
         for (String content : List.of("another stand-in", "")) {
             Path standIn = temporary.resolve("libjvm.dylib");
             Files.writeString(standIn, content);
-            LibJvmStandInRecorder.write(resource(MAC_STAND_IN), standIn, false);
+            LibJvmStandInSupport.write(resource(MAC_STAND_IN), standIn, false);
             assertArrayEquals(resource(MAC_STAND_IN), Files.readAllBytes(standIn), content);
             assertEquals(List.of(standIn), files(temporary));
         }
@@ -106,7 +106,7 @@ class LibJvmStandInRecorderTest {
             // Windows, without the privilege to create links
             assumeTrue(false, e.toString());
         }
-        LibJvmStandInRecorder.write(resource(LINUX_STAND_IN), standIn, false);
+        LibJvmStandInSupport.write(resource(LINUX_STAND_IN), standIn, false);
         assertFalse(Files.isSymbolicLink(standIn));
         assertArrayEquals(resource(LINUX_STAND_IN), Files.readAllBytes(standIn));
         assertEquals("a file of the user", Files.readString(target));
@@ -116,16 +116,16 @@ class LibJvmStandInRecorderTest {
     void keepsTheShimOfGraalVmNextToTheExecutable() throws IOException {
         Path standIn = temporary.resolve("libjvm.dylib");
         Files.writeString(standIn, "the libjvm.dylib shim of GraalVM");
-        assertTrue(LibJvmStandInRecorder.install(MAC_STAND_IN, false, temporary, temporary, library -> fail()));
+        assertTrue(LibJvmStandInSupport.install(MAC_STAND_IN, false, temporary, temporary, library -> fail()));
         assertEquals("the libjvm.dylib shim of GraalVM", Files.readString(standIn));
         // written when there is none
         Files.delete(standIn);
-        assertTrue(LibJvmStandInRecorder.install(MAC_STAND_IN, false, temporary, temporary, library -> fail()));
+        assertTrue(LibJvmStandInSupport.install(MAC_STAND_IN, false, temporary, temporary, library -> fail()));
         assertArrayEquals(resource(MAC_STAND_IN), Files.readAllBytes(standIn));
         // replaced in another directory
         Files.writeString(standIn, "another stand-in");
         Path executableDirectory = Files.createDirectory(temporary.resolve("bin"));
-        assertTrue(LibJvmStandInRecorder.install(MAC_STAND_IN, false, temporary, executableDirectory, library -> fail()));
+        assertTrue(LibJvmStandInSupport.install(MAC_STAND_IN, false, temporary, executableDirectory, library -> fail()));
         assertArrayEquals(resource(MAC_STAND_IN), Files.readAllBytes(standIn));
     }
 
@@ -134,7 +134,7 @@ class LibJvmStandInRecorderTest {
         // in the directory of the executable too : the libjvm.so shim of GraalVM is empty as well
         Files.writeString(temporary.resolve("libjvm.so"), "the libjvm.so shim of GraalVM");
         List<Path> loaded = new ArrayList<>();
-        assertTrue(LibJvmStandInRecorder.install(LINUX_STAND_IN, true, temporary, temporary, loaded::add));
+        assertTrue(LibJvmStandInSupport.install(LINUX_STAND_IN, true, temporary, temporary, loaded::add));
         assertEquals(List.of(temporary.resolve("libjvm.so")), loaded);
         assertArrayEquals(resource(LINUX_STAND_IN), Files.readAllBytes(loaded.get(0)));
     }
@@ -145,7 +145,7 @@ class LibJvmStandInRecorderTest {
         Files.createDirectories(temporary.resolve("libjvm.so/file"));
         for (Path directory : new Path[] { temporary, null }) {
             List<Path> loaded = new ArrayList<>();
-            assertTrue(LibJvmStandInRecorder.install(LINUX_STAND_IN, true, directory, null, library -> {
+            assertTrue(LibJvmStandInSupport.install(LINUX_STAND_IN, true, directory, null, library -> {
                 assertArrayEquals(resource(LINUX_STAND_IN), bytes(library));
                 loaded.add(library);
             }));
@@ -162,11 +162,11 @@ class LibJvmStandInRecorderTest {
         Files.createDirectories(temporary.resolve("libjvm.dylib/file"));
         Files.createDirectories(temporary.resolve("libjvm.so/file"));
         // macOS : only next to libjfxwebkit.dylib
-        assertFalse(LibJvmStandInRecorder.install(MAC_STAND_IN, false, temporary, null, library -> fail()));
-        assertFalse(LibJvmStandInRecorder.install(MAC_STAND_IN, false, null, null, library -> fail()));
+        assertFalse(LibJvmStandInSupport.install(MAC_STAND_IN, false, temporary, null, library -> fail()));
+        assertFalse(LibJvmStandInSupport.install(MAC_STAND_IN, false, null, null, library -> fail()));
         // Linux : loaded from neither
         List<Path> loaded = new ArrayList<>();
-        assertFalse(LibJvmStandInRecorder.install(LINUX_STAND_IN, true, temporary, null, library -> {
+        assertFalse(LibJvmStandInSupport.install(LINUX_STAND_IN, true, temporary, null, library -> {
             loaded.add(library);
             throw new UnsatisfiedLinkError(library.toString());
         }));
@@ -182,7 +182,7 @@ class LibJvmStandInRecorderTest {
         try {
             System.setProperty("javafx.cachedir", cache.toString());
             // in JVM mode (no executable name) : logs a warning, the application starts
-            new LibJvmStandInRecorder().install(MAC_STAND_IN, false);
+            LibJvmStandInSupport.install(MAC_STAND_IN, false);
             assertEquals(List.of(cache.resolve("libjvm.dylib")), files(cache));
         } finally {
             if (previous == null) {
@@ -217,7 +217,7 @@ class LibJvmStandInRecorderTest {
     }
 
     private static byte[] resource(String name) {
-        try (InputStream in = LibJvmStandInRecorderTest.class.getClassLoader().getResourceAsStream(name)) {
+        try (InputStream in = LibJvmStandInSupportTest.class.getClassLoader().getResourceAsStream(name)) {
             return in.readAllBytes();
         } catch (IOException e) {
             throw new UncheckedIOException(e);

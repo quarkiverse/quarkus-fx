@@ -23,7 +23,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import io.quarkiverse.fx.FxApplicationStartupEvent;
 import io.quarkiverse.fx.FxPostStartupEvent;
 import io.quarkiverse.fx.deployment.base.FxTestBase;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.Pane;
@@ -64,7 +64,7 @@ class QuarkusFxTest extends FxTestBase {
     }
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
 
     @Inject

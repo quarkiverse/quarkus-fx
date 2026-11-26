@@ -15,7 +15,7 @@ import io.quarkiverse.fx.deployment.fxviews.controllers.SampleTestController;
 import io.quarkiverse.fx.deployment.fxviews.controllers.SubSampleTestController;
 import io.quarkiverse.fx.views.FxViewData;
 import io.quarkiverse.fx.views.FxViewRepository;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import javafx.collections.ObservableList;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -23,7 +23,7 @@ import javafx.stage.Stage;
 class FxViewTest extends FxTestBase {
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .withApplicationRoot((jar) -> {
                 jar.addClasses(
                         SampleTestController.class,
