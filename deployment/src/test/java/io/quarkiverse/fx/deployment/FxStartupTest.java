@@ -13,14 +13,14 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import io.quarkiverse.fx.FxPlatform;
 import io.quarkiverse.fx.FxStartupLatch;
 import io.quarkiverse.fx.QuarkusFxApplication;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import javafx.application.HostServices;
 import javafx.fxml.FXMLLoader;
 
 class FxStartupTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
+    static final QuarkusExtensionTest unitTest = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
 
     @Inject

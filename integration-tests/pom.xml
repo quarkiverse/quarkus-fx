@@ -142,7 +142,7 @@
         <profile>
             <!-- macOS native executables need JavaFX 24 or later (up to JavaFX 23 they crash when the toolkit exits), which
                  needs Java 22 or later : JavaFX 25 (Java 23 or later) when the build runs on JDK 23 or later, the default
-                 JavaFX version of Quarkus FX otherwise (JDK 17 builds) -->
+                 JavaFX version of Quarkus FX otherwise (JDK 21 and 22 builds) -->
             <id>javafx-25</id>
             <activation>
                 <jdk>[23,)</jdk>

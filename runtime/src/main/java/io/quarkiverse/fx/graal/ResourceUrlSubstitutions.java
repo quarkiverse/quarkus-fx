@@ -38,8 +38,10 @@ import com.oracle.svm.core.annotate.TargetClass;
  * <p>
  * GraalVM builds resource URLs in two ways, each substituted when its code is the expected one, encoding and decoding
  * together : otherwise GraalVM is left as it is (GraalVM Community 25.1, GraalVM 24 and earlier). GraalVM itself makes
- * resource URLs that are valid URIs, and decodes them, since GR-79614 (https://github.com/oracle/graal/issues/14441, on
- * the master branch, not in the 25.0 to 25.4 releases) : the substitutions are then not applied.
+ * resource URLs that are valid URIs, and decodes them, since GR-79614 (https://github.com/oracle/graal/issues/14441, in
+ * GraalVM 25.5, such as GraalVM Community 25 Innovation 5, not in the 25.0 to 25.4 releases) : the substitutions are then
+ * not applied. Those URLs leave the non-ASCII characters of the name as they are ({@code java.net.URI}), where the JDK
+ * and the substitutions encode them.
  */
 final class ResourceUrlSubstitutions {
 

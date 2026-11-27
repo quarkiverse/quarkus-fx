@@ -20,8 +20,6 @@ import org.jboss.logging.Logger;
 
 import com.sun.javafx.runtime.VersionInfo;
 
-import io.quarkus.runtime.annotations.Recorder;
-
 /**
  * Installs the libjvm stand-in of WebKit when a native executable starts, before JavaFX loads WebKit.
  * <p>
@@ -46,16 +44,18 @@ import io.quarkus.runtime.annotations.Recorder;
  * JavaFX extracts its libraries in the directory of the executable, an existing libjvm.dylib is kept.</li>
  * </ul>
  */
-@Recorder
-public class LibJvmStandInRecorder {
+public final class LibJvmStandInSupport {
 
-    private static final Logger LOGGER = Logger.getLogger(LibJvmStandInRecorder.class);
+    private static final Logger LOGGER = Logger.getLogger(LibJvmStandInSupport.class);
+
+    private LibJvmStandInSupport() {
+    }
 
     /**
      * @param resource the stand-in for the platform of the executable, a class path resource
      * @param linux whether it is loaded, from anywhere (Linux), or written next to libjfxwebkit (macOS)
      */
-    public void install(String resource, boolean linux) {
+    public static void install(String resource, boolean linux) {
         Path directory = null;
         Path executableDirectory = null;
         try {
@@ -178,7 +178,7 @@ public class LibJvmStandInRecorder {
     }
 
     private static byte[] content(String resource) throws IOException {
-        try (InputStream in = LibJvmStandInRecorder.class.getClassLoader().getResourceAsStream(resource)) {
+        try (InputStream in = LibJvmStandInSupport.class.getClassLoader().getResourceAsStream(resource)) {
             if (in == null) {
                 throw new IOException("Resource " + resource + " not found");
             }

@@ -4,17 +4,15 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.fx.FxLifecycle;
 import io.quarkus.arc.runtime.BeanContainer;
-import io.quarkus.runtime.annotations.Recorder;
 import javafx.application.Platform;
 
 /**
  * JavaFX embedded in SWT, with Quarkus Desktop SWT : the first FXCanvas starts JavaFX on the SWT user interface thread,
  * which becomes the JavaFX Application Thread. Quarkus FX does not launch a JavaFX application then.
  */
-@Recorder
-public class SwtEmbeddingRecorder {
+public final class SwtEmbeddingSupport {
 
-    private static final Logger LOGGER = Logger.getLogger(SwtEmbeddingRecorder.class);
+    private static final Logger LOGGER = Logger.getLogger(SwtEmbeddingSupport.class);
 
     public static final String GUIDE = "https://docs.quarkiverse.io/quarkus-fx/dev/index.html#swt";
 
@@ -26,10 +24,13 @@ public class SwtEmbeddingRecorder {
 
     static final String FXCANVAS_APPLICATION_TYPE = "FXCanvas";
 
+    private SwtEmbeddingSupport() {
+    }
+
     /**
      * Called when the application starts, before the SWT user interface runs.
      */
-    public void embed(BeanContainer beanContainer) {
+    public static void embed(BeanContainer beanContainer) {
         if (FXCANVAS_APPLICATION_TYPE.equals(System.getProperty(APPLICATION_TYPE_PROPERTY))) {
             // A restart of dev mode, or another application in this JVM (tests) : JavaFX starts once per JVM
             LOGGER.warnf("JavaFX already runs embedded in SWT in this JVM : it stays bound to the SWT user interface "

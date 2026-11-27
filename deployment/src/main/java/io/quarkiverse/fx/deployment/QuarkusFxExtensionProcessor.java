@@ -25,23 +25,22 @@ import io.quarkiverse.fx.HostServicesProducer;
 import io.quarkiverse.fx.QuarkusFxApplication;
 import io.quarkiverse.fx.RunOnFxThread;
 import io.quarkiverse.fx.RunOnFxThreadInterceptor;
-import io.quarkiverse.fx.graal.LibJvmStandInRecorder;
-import io.quarkiverse.fx.livereload.LiveReloadRecorder;
-import io.quarkiverse.fx.swt.SwtEmbeddingRecorder;
+import io.quarkiverse.fx.graal.LibJvmStandInSupport;
+import io.quarkiverse.fx.livereload.LiveReloadSupport;
+import io.quarkiverse.fx.swt.SwtEmbeddingSupport;
 import io.quarkiverse.fx.views.FxView;
 import io.quarkiverse.fx.views.FxViewConfig;
-import io.quarkiverse.fx.views.FxViewRecorder;
 import io.quarkiverse.fx.views.FxViewRepository;
+import io.quarkiverse.fx.views.FxViewSupport;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
-import io.quarkus.arc.deployment.BeanContainerBuildItem;
+import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
+import io.quarkus.core.deployment.service.ServiceRegistrar;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Overridable;
 import io.quarkus.deployment.annotations.Produce;
-import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
@@ -153,46 +152,49 @@ class QuarkusFxExtensionProcessor {
      * there is an SwtStartupEvent observer, or SwtLifecycle.run() in a @QuarkusMain), and Quarkus FX does not launch a
      * JavaFX application : launched first, JavaFX makes SWT crash (macOS) or FXCanvas wait forever for itself.
      * <p>
-     * Before the SWT user interface runs (a service start, as the user interface of Quarkus Desktop SWT is configured),
-     * Quarkus FX keeps JavaFX when the last FXCanvas is closed, and runs the {@link RunOnFxThread} methods without waiting
-     * for the application it does not launch.
+     * Before the SWT user interface runs (a service start, as the user interface of Quarkus Desktop SWT is configured :
+     * before the {@code StartupEvent} observers), Quarkus FX keeps JavaFX when the last FXCanvas is closed, and runs the
+     * {@link RunOnFxThread} methods without waiting for the application it does not launch.
      */
     @BuildStep(onlyIf = QuarkusDesktopSwtPresent.class)
-    @Record(ExecutionTime.RUNTIME_INIT)
     ServiceStartBuildItem embedInSwt(CombinedIndexBuildItem combinedIndex,
-            Optional<QuarkusApplicationClassBuildItem> quarkusApplicationClass, BeanContainerBuildItem beanContainer,
-            SwtEmbeddingRecorder recorder) {
+            Optional<QuarkusApplicationClassBuildItem> quarkusApplicationClass, ServiceRegistrar serviceRegistrar) {
         IndexView index = combinedIndex.getIndex();
         LOGGER.info("Quarkus Desktop SWT is present : Quarkus FX does not launch a JavaFX application, JavaFX runs "
                 + "embedded in SWT (FXCanvas)");
         if (!QuarkusClassLoader.isClassPresentAtRuntime(FxClassesAndResources.SWT_MARKER_CLASS)) {
             LOGGER.warnf("%s is not on the class path : JavaFX cannot be used with Quarkus Desktop SWT without it. Add "
                     + "javafx-swt (the javafx.swt module of your JavaFX version, not on Maven Central), see %s",
-                    FxClassesAndResources.SWT_MARKER_CLASS, SwtEmbeddingRecorder.GUIDE);
+                    FxClassesAndResources.SWT_MARKER_CLASS, SwtEmbeddingSupport.GUIDE);
         }
         if (quarkusApplicationClass.isEmpty()
                 && index.getAnnotations(DotName.createSimple(QuarkusMain.class.getName())).isEmpty()) {
             LOGGER.warnf("Nothing runs the SWT user interface, and Quarkus FX does not launch a JavaFX application with "
                     + "Quarkus Desktop SWT : observe SwtStartupEvent, or call SwtLifecycle.run() in a @QuarkusMain, see %s",
-                    SwtEmbeddingRecorder.GUIDE);
+                    SwtEmbeddingSupport.GUIDE);
         }
         if (!index.getAnnotations(DotName.createSimple(FxView.class.getName())).isEmpty()) {
             LOGGER.warnf("The @%s views are not loaded with Quarkus Desktop SWT (Quarkus FX loads them in the primary "
                     + "stage of the JavaFX application it launches) : load them with an injected FXMLLoader, see %s",
-                    FxView.class.getSimpleName(), SwtEmbeddingRecorder.GUIDE);
+                    FxView.class.getSimpleName(), SwtEmbeddingSupport.GUIDE);
         }
-        recorder.embed(beanContainer.getValue());
+        serviceRegistrar
+                .forService("io.quarkiverse.fx.swt-embedding")
+                .require(BeanContainer.class)
+                .onStart((ctx, beans) -> SwtEmbeddingSupport.embed(beans));
         return new ServiceStartBuildItem("quarkus-fx-swt");
     }
 
-    @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep
     void handleLiveReload(
             LiveReloadBuildItem liveReloadBuildItem,
-            BeanContainerBuildItem beanContainer,
-            LiveReloadRecorder recorder) {
+            ServiceRegistrar serviceRegistrar) {
 
-        recorder.process(liveReloadBuildItem.isLiveReload(), beanContainer.getValue());
+        boolean liveReload = liveReloadBuildItem.isLiveReload();
+        serviceRegistrar
+                .forService("io.quarkiverse.fx.live-reload")
+                .require(BeanContainer.class)
+                .onStart((ctx, beans) -> LiveReloadSupport.process(liveReload, beans));
     }
 
     @BuildStep
@@ -202,12 +204,10 @@ class QuarkusFxExtensionProcessor {
                 .build();
     }
 
-    @Record(ExecutionTime.RUNTIME_INIT)
     @BuildStep
     void fxViews(
             CombinedIndexBuildItem combinedIndex,
-            FxViewRecorder recorder,
-            BeanContainerBuildItem beanContainerBuildItem) {
+            ServiceRegistrar serviceRegistrar) {
 
         List<String> views = new ArrayList<>();
 
@@ -251,7 +251,11 @@ class QuarkusFxExtensionProcessor {
 
         LOGGER.infof("Fx views : %s", views);
 
-        recorder.process(views, beanContainerBuildItem.getValue());
+        List<String> viewNames = List.copyOf(views);
+        serviceRegistrar
+                .forService("io.quarkiverse.fx.views")
+                .require(BeanContainer.class)
+                .onStart((ctx, beans) -> FxViewSupport.process(viewNames, beans));
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
@@ -455,15 +459,17 @@ class QuarkusFxExtensionProcessor {
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
-    @Record(ExecutionTime.RUNTIME_INIT)
     void installLibJvmStandIn(FxTargetPlatformBuildItem fxTargetPlatform, CurateOutcomeBuildItem curateOutcome,
-            LibJvmStandInRecorder recorder, BuildProducer<NativeImageResourceBuildItem> resources) {
+            ServiceRegistrar serviceRegistrar, BuildProducer<NativeImageResourceBuildItem> resources) {
         String standIn = libJvmStandIn(fxTargetPlatform,
                 javaFxVersion(curateOutcome.getApplicationModel().getRuntimeDependencies(), "javafx-web") != null);
         if (standIn != null) {
             resources.produce(new NativeImageResourceBuildItem(standIn));
             // When the executable starts, before the application : JavaFX loads WebKit when a WebView is first created
-            recorder.install(standIn, fxTargetPlatform.isLinux());
+            boolean linux = fxTargetPlatform.isLinux();
+            serviceRegistrar
+                    .forService("io.quarkiverse.fx.libjvm-stand-in")
+                    .onStart(ctx -> LibJvmStandInSupport.install(standIn, linux));
         }
     }
 
@@ -471,7 +477,7 @@ class QuarkusFxExtensionProcessor {
      * The libjvm stand-in that WebKit needs in a native executable for the given platform, null when it needs none : on
      * macOS and Linux, when the application depends on javafx-web. On Linux aarch64, only the libjfxwebkit.so of JavaFX
      * 24 links libjvm.so : the stand-in is installed whatever the version, a version linking it again works too. With
-     * Quarkus Desktop, see {@link LibJvmStandInRecorder}.
+     * Quarkus Desktop, see {@link LibJvmStandInSupport}.
      *
      * @param javaFxWeb whether the application depends on javafx-web
      */

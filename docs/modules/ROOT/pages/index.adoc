@@ -301,7 +301,7 @@ Quarkus Desktop is available on Maven Central (version 0.1.0 and later), and nee
 <dependency>
     <groupId>io.quarkiverse.desktop</groupId>
     <artifactId>quarkus-desktop-swing</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.1</version>
 </dependency>
 ----
 
