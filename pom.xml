@@ -18,7 +18,7 @@
     </modules>
     <properties>
         <quarkus.version>4.0.1</quarkus.version>
-        <javafx.version>22.0.2</javafx.version>
+        <javafx.version>27.0.1.1</javafx.version>
         <maven.compiler.release>21</maven.compiler.release>
     </properties>
     <dependencyManagement>
